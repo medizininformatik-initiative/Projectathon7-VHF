@@ -1,9 +1,7 @@
-#Rscript zum Download von FHIR-Daten zum Vorhofflimmern VHF
-#Rscript VHF_fhir.R
-#Author JP, FM
-#Letzte Änderung 5.3.2021
-# https://google.github.io/styleguide/Rguide.html
-# NCmisc::list.functions.in.file(rstudioapi::getSourceEditorContext()$path, alphabetic = TRUE)
+# Rscript zum Download von FHIR-Daten zum Vorhofflimmern VHF
+# Rscript VHF_fhir.R
+# Author JP, FM
+# Letzte Änderung 5.3.2021
 
 library(base)
 library(dplyr)
@@ -12,15 +10,8 @@ library(stringr)
 library(utils)
 library(xlsx)
 
-#endpoint <- "http://localhost:8086/baseR4/"
-#endpoint <- "http://lilly:8080/baseR4/"
-#endpoint <- "http://orrostar:8080/fhir/"
-#dasselbe wie orrostar:8080 nur über den öffentlichen Webzugang
-#endpoint <- "https://mii-agiop-3p.life.uni-leipzig.de/fhir/"
-#AXS: orrostar:8080 über meinen star-ssh-Tunnel auf port 8081
 endpoint <- "http://localhost:8081/fhir/"
 MaxBundle <- Inf
-#MaxBundle <- 10
 verbose <- 2
 
 # only needed if verbose > 0; write intermediate results
@@ -41,16 +32,16 @@ writeCsv <- function(lot) {
 ###############################################################################################################
 # Erste FHIR search Abfrage
 ###############################################################################################################
+
 fsq <- paste0(endpoint, "Observation?code=33762-6&_count=100")
 bundles <- fhircrackr::fhir_search(fsq, max_bundles = MaxBundle, verbose = verbose)
 
 design <- list(Observation = list(
   resource = "//Observation",
   cols = list(
-    pid              = "subject/reference",
-    NTproBNP         = "valueQuantity/value",
-#    ntprobnp_einheit = "valueQuantity/unit",
-    datum_labor      = "effectiveDateTime"
+    pid = "subject/reference",
+    NTproBNP = "valueQuantity/value",
+    datum_labor = "effectiveDateTime"
   ),
   style = list(
     sep = "|",
@@ -66,6 +57,7 @@ if (verbose) writeCsv(laborData)
 ###################################################
 # Zweite FHIR search Abfrage
 ###################################################
+
 fsq <-
   paste0(endpoint, "Condition?code=I48.0,I48.1,I48.9&_count=100")
 
@@ -74,9 +66,9 @@ bundles <- fhir_search(fsq, max_bundles = MaxBundle, verbose = verbose)
 design <- list(Condition = list(
   resource = "//Condition",
   cols = list(
-    pid            = "subject/reference",
-    Diagnose       = "code/coding/code",
-    recordedDate   = "recordedDate"
+    pid = "subject/reference",
+    Diagnose = "code/coding/code",
+    recordedDate = "recordedDate"
   ),
   style = list(
     sep = "|",
@@ -92,13 +84,13 @@ if (verbose) writeCsv(diagData)
 tab <- full_join(diagData[[1]], laborData[[1]], by = "pid")
 tab$pid <- str_sub(tab$pid, 9, 16)
 
-tab$datum_labor  <- as.POSIXct(tab$datum_labor, tz = Sys.timezone())
+tab$datum_labor <- as.POSIXct(tab$datum_labor, tz = Sys.timezone())
 tab$recordedDate <- as.POSIXct(tab$recordedDate, tz = Sys.timezone())
 
 tab$datumDiff <- tab$datum_labor - tab$recordedDate
 
-#datumDiff muss => 0 sein, sonst muss die Diagnose auf NA gesetzt werden.
-tab_tmp  <- filter(tab, tab$datumDiff < 0)
+# datumDiff muss => 0 sein, sonst muss die Diagnose auf NA gesetzt werden.
+tab_tmp <- filter(tab, tab$datumDiff < 0)
 d <- dim(tab_tmp)
 if (0 < d[1]) {
   tab_tmp$Diagnose <- NA
@@ -107,14 +99,15 @@ if (0 < d[1]) {
 ###################################################
 # Dritte FHIR search Abfrage
 ###################################################
+
 fsq <- paste0(endpoint, "Patient?_count=100")
 bundles <- fhir_search(fsq, max_bundles = MaxBundle, verbose = verbose)
 design <- list(Patient = list(
   resource = "//Patient",
   cols = list(
-    pid         = "id",
-    birthday    = "birthDate",
-    Geschlecht  = "gender"
+    pid = "id",
+    birthday = "birthDate",
+    Geschlecht = "gender"
   ),
   style = list(
     sep = "|",
@@ -133,12 +126,10 @@ if (verbose > 0) writeCsv(patientData)
 
 result <- left_join(tab, patientData[[1]], by = "pid")
 
-#result$Alter      <-
-#  as.numeric(as.Date(result$datum_labor) - as.Date(result$birthday)) / 365.25
-result$Alter      <-
+result$Alter <-
   as.numeric(difftime(result$datum_labor, result$birthday, units = "days") /
                365)
-result$Geschlecht <- 
+result$Geschlecht <-
   factor(result$Geschlecht,
          levels = c("male", "female"),
          labels = c(1, 2))
@@ -147,8 +138,7 @@ result$NTproBNP <- as.numeric(result$NTproBNP)
 result$Station <- "kardiologie"
 
 xlsx::write.xlsx(
-  result[,c("Station","Diagnose","NTproBNP","Alter","Geschlecht")],
+  result[, c("Station", "Diagnose", "NTproBNP", "Alter", "Geschlecht")],
   dataFile,
   row.names = FALSE
 )
-

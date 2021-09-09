@@ -1,8 +1,7 @@
 library("grDevices")
 
 
-thisDir = dirname(rstudioapi::getSourceEditorContext()$path)
-#thisDir = "."
+thisDir <- dirname(rstudioapi::getSourceEditorContext()$path)
 
 dataDirectory <- paste0(thisDir, "/input")
 dataFile <- paste0(dataDirectory, "/data.xlsx")
@@ -32,9 +31,8 @@ try({
     source(data_extraction_script)
     message("created ", dataFile, " ", format(round(Sys.time() - start_time, 2)))
   }
-  
+
   source(paste0(thisDir, "/Vorhofflimmern.R"))
-  
 })
 
 
@@ -46,4 +44,3 @@ closeAllConnections()
 
 # close all redirect
 message("finished")
-
