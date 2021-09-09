@@ -1,5 +1,5 @@
 # Rscript zum Download von FHIR-Daten zum Vorhofflimmern VHF
-# Rscript VHF_fhir.R
+# Rscript retrieve.R
 # Author JP, FM
 # Letzte Änderung 5.3.2021
 
