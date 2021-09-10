@@ -1,7 +1,4 @@
 # Rscript zum Download von FHIR-Daten zum Vorhofflimmern VHF
-# Rscript retrieve.R
-# Author JP, FM
-# Letzte Änderung 5.3.2021
 
 library(base)
 library(dplyr)
@@ -10,7 +7,10 @@ library(stringr)
 library(utils)
 library(xlsx)
 
-endpoint <- "http://localhost:8081/fhir/"
+FHIR_ENDPOINT <- Sys.getenv("FHIR_ENDPOINT")
+FHIR_USERNAME <- Sys.getenv("FHIR_USERNAME")
+FHIR_PASSWORD <- Sys.getenv("FHIR_PASSWORD")
+
 MaxBundle <- Inf
 verbose <- 2
 
@@ -33,8 +33,8 @@ writeCsv <- function(lot) {
 # Erste FHIR search Abfrage
 ###############################################################################################################
 
-fsq <- paste0(endpoint, "Observation?code=33762-6&_count=100")
-bundles <- fhircrackr::fhir_search(fsq, max_bundles = MaxBundle, verbose = verbose)
+fsq <- paste0(FHIR_ENDPOINT, "Observation?code=33762-6&_count=100")
+bundles <- fhircrackr::fhir_search(fsq, max_bundles = MaxBundle, verbose = verbose, username = FHIR_USERNAME, password = FHIR_PASSWORD)
 
 design <- list(Observation = list(
   resource = "//Observation",
@@ -58,10 +58,9 @@ if (verbose) writeCsv(laborData)
 # Zweite FHIR search Abfrage
 ###################################################
 
-fsq <-
-  paste0(endpoint, "Condition?code=I48.0,I48.1,I48.9&_count=100")
+fsq <- paste0(FHIR_ENDPOINT, "Condition?code=I48.0,I48.1,I48.9&_count=100")
 
-bundles <- fhir_search(fsq, max_bundles = MaxBundle, verbose = verbose)
+bundles <- fhir_search(fsq, max_bundles = MaxBundle, verbose = verbose, username = FHIR_USERNAME, password = FHIR_PASSWORD)
 
 design <- list(Condition = list(
   resource = "//Condition",
@@ -100,8 +99,8 @@ if (0 < d[1]) {
 # Dritte FHIR search Abfrage
 ###################################################
 
-fsq <- paste0(endpoint, "Patient?_count=100")
-bundles <- fhir_search(fsq, max_bundles = MaxBundle, verbose = verbose)
+fsq <- paste0(FHIR_ENDPOINT, "Patient?_count=100")
+bundles <- fhir_search(fsq, max_bundles = MaxBundle, verbose = verbose, username = FHIR_USERNAME, password = FHIR_PASSWORD)
 design <- list(Patient = list(
   resource = "//Patient",
   cols = list(
