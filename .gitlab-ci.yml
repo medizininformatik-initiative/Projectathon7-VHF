@@ -7,7 +7,7 @@ test:
   tags: ["docker"]
   script:
     - docker build -t ${CI_REGISTRY}/${CI_PROJECT_NAME}:${CI_JOB_ID} .
-    - docker run -e FHIR_ENDPOINT="https://mii-agiop-3p.life.uni-leipzig.de/fhir/" ${CI_REGISTRY}/${CI_PROJECT_NAME}:${CI_JOB_ID}
+#    - docker run -e FHIR_ENDPOINT="https://mii-agiop-3p.life.uni-leipzig.de/fhir/" ${CI_REGISTRY}/${CI_PROJECT_NAME}:${CI_JOB_ID}
   after_script:
     - docker rmi -f ${CI_REGISTRY}/${CI_PROJECT_NAME}:${CI_JOB_ID}
 
