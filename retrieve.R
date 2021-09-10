@@ -60,7 +60,7 @@ if (verbose) writeCsv(laborData)
 
 fsq <- paste0(FHIR_ENDPOINT, "Condition?code=I48.0,I48.1,I48.9&_count=100")
 
-bundles <- fhir_search(fsq, max_bundles = MaxBundle, verbose = verbose, username = FHIR_USERNAME, password = FHIR_PASSWORD)
+bundles <- fhircrackr::fhir_search(fsq, max_bundles = MaxBundle, verbose = verbose, username = FHIR_USERNAME, password = FHIR_PASSWORD)
 
 design <- list(Condition = list(
   resource = "//Condition",
@@ -76,7 +76,7 @@ design <- list(Condition = list(
   )
 ))
 
-diagData <- fhir_crack(bundles, design, verbose = verbose)
+diagData <- fhircrackr::fhir_crack(bundles, design, verbose = verbose)
 
 if (verbose) writeCsv(diagData)
 
@@ -100,7 +100,7 @@ if (0 < d[1]) {
 ###################################################
 
 fsq <- paste0(FHIR_ENDPOINT, "Patient?_count=100")
-bundles <- fhir_search(fsq, max_bundles = MaxBundle, verbose = verbose, username = FHIR_USERNAME, password = FHIR_PASSWORD)
+bundles <- fhircrackr::fhir_search(fsq, max_bundles = MaxBundle, verbose = verbose, username = FHIR_USERNAME, password = FHIR_PASSWORD)
 design <- list(Patient = list(
   resource = "//Patient",
   cols = list(
@@ -115,7 +115,7 @@ design <- list(Patient = list(
   )
 ))
 
-patientData <- fhir_crack(bundles, design, verbose = verbose)
+patientData <- fhircrackr::fhir_crack(bundles, design, verbose = verbose)
 
 if (verbose > 0) writeCsv(patientData)
 
