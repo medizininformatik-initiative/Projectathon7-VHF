@@ -179,7 +179,6 @@ Conditions <- fhir_table_description(
 
 con_design <- fhir_design(
   Conditions, Patients, Encounters
-  
 )
 
 diagData <- fhircrackr::fhir_crack(con_bundles, con_design, verbose = VERBOSE, data.table = T)
@@ -211,9 +210,6 @@ diagData$ALL <- left_join(
 )
 
 if(SAVE_DIAG_DATA) writeCsv(diagData)
-
-
-
 
 tab <- merge(
   diagData$ALL, 
@@ -285,3 +281,4 @@ xlsx::write.xlsx(
   dataFile,
   row.names = FALSE
 )
+

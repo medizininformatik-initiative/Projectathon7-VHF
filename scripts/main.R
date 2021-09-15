@@ -3,6 +3,8 @@
 ###
 rm(list = ls())
 
+print(R.version)
+
 library("grDevices")
 library("fhircrackr")
 
@@ -24,15 +26,15 @@ if (!dir.exists(dataDirectory)) {
 message("start")
 
 sink(logFile)
-source(paste0(getwd(), 'scripts/retrieve.R'))
+source(paste_paths(getwd(), 'scripts/retrieve.R'))
 
-pdf(file = plotFile)
-source(paste0(getwd(), "scripts/analyze.R"))
-
+# pdf(file = plotFile)
+# source(paste_paths(getwd(), "scripts/analyze.R"))
+# 
 sink()
-dev.flush()
-dev.off()
-closeAllConnections()
+# dev.flush()
+# dev.off()
+# closeAllConnections()
 
 
 # close all redirect
