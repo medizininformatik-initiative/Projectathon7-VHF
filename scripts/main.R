@@ -24,10 +24,10 @@ if (!dir.exists(dataDirectory)) {
 message("start")
 
 sink(logFile)
-source(paste0(getwd(), '/retrieve.R'))
+source(paste0(getwd(), 'scripts/retrieve.R'))
 
 pdf(file = plotFile)
-source(paste0(getwd(), "/analyze.R"))
+source(paste0(getwd(), "scripts/analyze.R"))
 
 sink()
 dev.flush()
