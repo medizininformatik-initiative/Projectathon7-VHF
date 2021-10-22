@@ -1,7 +1,7 @@
 variables:
-  WP_TEMPLATE_REF: feature-api-description-in-readme
+  WP_TEMPLATE_REF: v0.9.1
 
 include:
   project: 'smith/uc-phep/polar/wp-template'
   file: 'gitlab-ci.yml'
-  ref: feature-api-description-in-readme
+  ref: v0.9.1
