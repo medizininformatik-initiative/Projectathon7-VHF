@@ -28,44 +28,55 @@ STYLE = fhir_style(
 polar_run(
   message = "0 Check FHIR ENDPOINT for response",
   process = {
-    if(FHIR_ENDPOINT == "") {
+    if(is.null(FHIR_ENDPOINT)) {
       stop("FHIR_ENDPOINT is an empty string.")
     }
-    if(!check_response(FHIR_ENDPOINT)) {
-      stop(paste0("The Server ", FHIR_ENDPOINT, " does not response. "))
-    }
+    # if(!check_response(FHIR_ENDPOINT)) {
+    #   stop(paste0("The Server ", FHIR_ENDPOINT, " does not response. "))
+    # }
   }
 )
-MAX_BUNDLES <- 198
+#MAX_BUNDLES <- 198
 ###
 # Erste FHIR search Abfrage
 # http://localhost:8080/baseR4/Observation?code=33762-6&_include=Observation:patient&_include=Observation:encounter
 ###
-polar_run("1 Create first FHIR Search request", {  
-  request <- fhir_url(
-    url = FHIR_ENDPOINT,
-    resource = "Observation",
-    parameters = c(
-      "code"     = "33762-6",
-#      "code"     = "15074-8",
-      "_include" = "Observation:patient",
-      #"_include" = "Observation:encounter",
-      "_count"   = "50"
+polar_run("1 Create and Save first FHIR Search request", {  
+  
+  polar_run("1.1 Create first FHIR Search request", {  
+    request <- fhir_url(
+      url = FHIR_ENDPOINT,
+      resource = "Observation",
+      parameters = c(
+        "code"     = "33762-6",
+  #      "code"     = "15074-8",
+        "_include" = "Observation:patient",
+        #"_include" = "Observation:encounter",
+        "_count"   = "1000"
+      )
     )
-  )
-})
+  })
+  
+  polar_run("1.2 Save first FHIR Search request", {
+    polar_save_request(request = request,filename_without_extension = "request_obs_with_pats")
+  })
+}, single_line = FALSE)
+
 
 polar_run("2 Execute the FHIR Search and Save Revieved Bundles", {
+  
   polar_run("2.1 Execute the FHIR Search", {
     obs_bundles <- polar_fhir_search(
       request = request, 
       verbose = VERBOSE
     )
   }, single_line = FALSE)
-  polar_run("2.2 Save Bundles", {
-    polar_save_bundles(obs_bundles)
-  })
+  
+  # polar_run("2.2 Save Bundles", {
+  #   polar_save_bundles(obs_bundles)
+  # })
 },single_line = FALSE)
+
 
 polar_run("3 Create laborData table descriptions and design", {
   
@@ -156,30 +167,35 @@ polar_run("8 Save Completed Labor Data", {
 # http://localhost:8080/baseR4/Condition?code=I48.0,I48.1,I48.9&_include=Condition:patient&_include=Condition:encounter
 ###
 
-polar_run("9 Create second FHIR Search request for Conditions", {
-  request <- fhir_url(
-    url = FHIR_ENDPOINT,
-    resource = "Condition",
-    parameters = c(
-      "code" = "I48.0,I48.1,I48.9",
-      "_include" = "Condition:patient"#,
-#      "_include" = "Condition:encounter"
+polar_run("9 Create and Save second FHIR Search request for Conditions", {
+  polar_run("9.1 Create second FHIR Search request for Conditions", {
+    request <- fhir_url(
+      url = FHIR_ENDPOINT,
+      resource = "Condition",
+      parameters = c(
+        "code" = "I48.0,I48.1,I48.9",
+        "_include" = "Condition:patient",
+  #      "_include" = "Condition:encounter",
+        "_count"   = "1000"
+      )
     )
-  )
+  })
+  polar_run("9.2 Create second FHIR Search request for Conditions", {
+    polar_save_request(request = request, filename_without_extension = "request_cond_with_pats")
+  })
 })
 
-MAX_BUNDLES <- 21
+#MAX_BUNDLES <- 21
 polar_run("10 Execute the FHIR Search and Save Revieved Bundles", {
   polar_run("10.1 Execute the FHIR Search", {  
     con_bundles <- polar_fhir_search(
       request     = request,
-      max_bundles = MAX_BUNDLES, 
       verbose     = VERBOSE
     )
   }, single_line = VERBOSE < 1)
-  polar_run("10.2 Save Bundles", {
-    polar_save_bundles(con_bundles)
-  })
+  # polar_run("10.2 Save Bundles", {
+  #   polar_save_bundles(con_bundles)
+  # })
 })
 
 polar_run("11 Create diagData table descriptions and design", {  
@@ -189,7 +205,7 @@ polar_run("11 Create diagData table descriptions and design", {
       Con.Con.ID = "id",
       Con.Pat.ID = "subject/reference",
       #Con.Enc.ID = "encounter/reference",
-      Diagnosis    = "code/coding/code",
+      Diagnose     = "code/coding/code",
       recordedDate = "recordedDate"
     ),
     style = STYLE
@@ -235,7 +251,7 @@ polar_run("15 Join labaorData tables Observations and Patients", {
 })
 
 polar_run("16 Save Completed Diag Data", {  
-  if (SAVE_DIAG_DATA) polar_save_table_as_tsv(diagData$ALL, "request_2")
+  if (SAVE_DIAG_DATA) polar_save_table_as_tsv(diagData$ALL, "diag_data")
 })
 
 polar_run("17 Merge tables diagData and laborData", {
@@ -273,11 +289,27 @@ polar_run("19 Check Dates", {
 })
 
 polar_run("20 Calculate Patients' Ages", {  
-  fullDate[,Alter:=as.numeric(difftime(result$datum_labor, result$DOB, units = "days") / 365.25)]
+  fullData[,Alter:=as.numeric(difftime(fullData$datum_labor, fullData$DOB, units = "days") / 365.25)]
 })
 
-polar_run("21 Factorize Geschlecht", {  
-  fullDate[,Geschlech:=]
+polar_run("21 Recode Sex to Geschlecht", {  
+  fullData[,Geschlecht:=match(Sex, c("male", "female"))]
+})
+
+polar_run("23 Coerce NTproBNP to numeric", {  
+  fullData[,NTproBNP:=as.numeric(NTproBNP)]
+})
+
+polar_run("23 Add column 'Station' with all entries kardiologie", {  
+  fullData[,Station:="kardiologie"]
+})
+
+polar_run("24 Select Columns", {  
+  fullData <- fullData[, c("Station", "Diagnose", "NTproBNP", "Alter", "Geschlecht")]
+})
+
+polar_run("24 Save Result", {  
+  polar_save_rdata(fullData)
 })
 
 # result$Geschlecht <- factor(
