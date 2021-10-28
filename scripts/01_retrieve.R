@@ -51,8 +51,8 @@ polar_run("1 Create and Save first FHIR Search request", {
         "code"     = "33762-6",
   #      "code"     = "15074-8",
         "_include" = "Observation:patient",
-        #"_include" = "Observation:encounter",
-        "_count"   = "1000"
+        "_include" = "Observation:encounter",
+        "_count"   = "100"
       )
     )
   })
@@ -75,7 +75,7 @@ polar_run("2 Execute the FHIR Search and Save Revieved Bundles", {
   # polar_run("2.2 Save Bundles", {
   #   polar_save_bundles(obs_bundles)
   # })
-},single_line = FALSE)
+}, single_line = FALSE)
 
 
 polar_run("3 Create laborData table descriptions and design", {
@@ -107,20 +107,20 @@ polar_run("3 Create laborData table descriptions and design", {
     style = STYLE
   )
   
-  # Encounters <- fhir_table_description(
-  #   resource = "Encounter",
-  #   cols = c(
-  #     Enc.Enc.ID = "id",
-  #     Enc.Pat.ID = "subject/reference",
-  #     Enc.Con.ID = "diagnosis/condition/reference",
-  #     StartTime  = "period/start",
-  #     EndTime    = "period/end"
-  #   ),
-  #   style = STYLE
-  # )
+  Encounters <- fhir_table_description(
+    resource = "Encounter",
+    cols = c(
+      Enc.Enc.ID = "id",
+      Enc.Pat.ID = "subject/reference",
+      Enc.Con.ID = "diagnosis/condition/reference",
+      StartTime  = "period/start",
+      EndTime    = "period/end"
+    ),
+    style = STYLE
+  )
   
   obs_design <- fhir_design(
-    Observations, Patients#, Encounters
+    Observations, Patients, Encounters
   )
 })
 
@@ -151,8 +151,12 @@ polar_run("6 Remove multiple Patients from laborData table", {
 
 polar_run("7 Join labaorData tables Observations and Patients", {  
   laborData$ALL <- left_join(
+    left_join(
+      laborData$Encounters,
       laborData$Observations,
-      laborData$Patients,
+      by = c("Enc.Enc.ID" = "Obs.Enc.ID")
+    ),
+    laborData$Patients,
       by = c("Obs.Pat.ID" = "Pat.Pat.ID")
     )
 })
@@ -175,8 +179,8 @@ polar_run("9 Create and Save second FHIR Search request for Conditions", {
       parameters = c(
         "code" = "I48.0,I48.1,I48.9",
         "_include" = "Condition:patient",
-  #      "_include" = "Condition:encounter",
-        "_count"   = "1000"
+        "_include" = "Condition:encounter",
+        "_count"   = "100"
       )
     )
   })
@@ -244,7 +248,7 @@ polar_run("14 Remove multiple Patients from diagData table", {
 
 polar_run("15 Join labaorData tables Observations and Patients", {  
   diagData$ALL <- left_join(
-    diagData$Conditions,
+    diagData$Condition,
     diagData$Patients,
     by = c("Con.Pat.ID" = "Pat.Pat.ID")
   )
@@ -258,7 +262,7 @@ polar_run("17 Merge tables diagData and laborData", {
   fullData <- merge(
     laborData$ALL,
     diagData$ALL,
-    by.x = c("Obs.Pat.ID", "DOB", "Sex"),
+    by.x = c("Enc.Pat.ID", "DOB", "Sex"),
     by.y = c("Con.Pat.ID", "DOB", "Sex"),
     all  = FALSE
   )
