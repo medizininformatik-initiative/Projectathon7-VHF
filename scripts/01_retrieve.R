@@ -25,17 +25,17 @@ STYLE = fhir_style(
 ###
 # Check FHIR ENDPOINT for Response
 ###
-# polar_run(
-#   message = "0 Check FHIR ENDPOINT for response",
-#   process = {
-#     if(is.null(FHIR_ENDPOINT)) {
-#       stop("Environment Variable FHIR_ENDPOINT is not set.")
-#     }
-#     # if(!check_response(FHIR_ENDPOINT)) {
-#     #   stop(paste0("The Server ", FHIR_ENDPOINT, " does not response. "))
-#     # }
-#   }
-# )
+polar_run(
+  message = "0 Check FHIR ENDPOINT for response",
+  process = {
+    if(is.null(FHIR_ENDPOINT)) {
+      stop("Environment Variable FHIR_ENDPOINT is not set.")
+    }
+    # if(!check_response(FHIR_ENDPOINT)) {
+    #   stop(paste0("The Server ", FHIR_ENDPOINT, " does not response. "))
+    # }
+  }
+)
 #MAX_BUNDLES <- 198
 ###
 # Erste FHIR search Abfrage
