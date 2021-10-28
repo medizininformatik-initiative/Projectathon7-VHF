@@ -143,10 +143,10 @@ polar_run("6 Remove multiple Patients from laborData table", {
   polar_run("6.1 Remove multiple Patients from laborData table", {
     laborData$Patients <- distinct(laborData$Patients, Pat.Pat.ID, .keep_all = T)
   })
-  # polar_run("6.2 Remove multiple Encounters from laborData table",
-  #   process = {  
-  #     laborData$Encounters <- distinct(laborData$Encounters, Enc.Enc.ID, .keep_all = T)
-  #   })
+  polar_run("6.2 Remove multiple Encounters from laborData table",
+    process = {
+      laborData$Encounters <- distinct(laborData$Encounters, Enc.Enc.ID, .keep_all = T)
+    })
 }, single_line = FALSE)
 
 polar_run("7 Join labaorData tables Observations and Patients", {  
@@ -255,16 +255,16 @@ polar_run("15 Join labaorData tables Observations and Patients", {
 })
 
 polar_run("16 Save Completed Diag Data", {  
-  if (SAVE_DIAG_DATA) polar_save_table_as_tsv(diagData$ALL, "diag_data")
+  if (SAVE_DIAG_DATA) polar_save_table_as_csv(diagData$ALL, "diag_data")
 })
 
 polar_run("17 Merge tables diagData and laborData", {
   fullData <- merge(
     laborData$ALL,
     diagData$ALL,
-    by.x = c("Enc.Pat.ID", "DOB", "Sex"),
-    by.y = c("Con.Pat.ID", "DOB", "Sex"),
-    all  = FALSE
+    by.x   = c("Enc.Pat.ID", "DOB", "Sex"),
+    by.y   = c("Con.Pat.ID", "DOB", "Sex"),
+    all.x  = TRUE
   )
 })
 
