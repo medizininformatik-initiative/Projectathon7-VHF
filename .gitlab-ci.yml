@@ -1,0 +1,7 @@
+variables:
+  WP_TEMPLATE_REF: v0.9.3
+
+include:
+  project: 'smith/uc-phep/polar/wp-template'
+  file: 'gitlab-ci.yml'
+  ref: v0.9.3
