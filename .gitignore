@@ -4,3 +4,6 @@
 .Renviron
 outputLocal/
 outputGlobal/
+Bundles/
+errors/
+results/
