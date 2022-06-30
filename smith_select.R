@@ -3,18 +3,6 @@ start <- Sys.time()
 # load/install a packages
 source("install_R_packages.R")
 
-#create directories
-if (!dir.exists("Ergebnisse")) {
-  dir.create("Ergebnisse")
-}
-if (!dir.exists("errors")) {
-  dir.create("errors")
-}
-if (!dir.exists("Bundles")) {
-  dir.create("Bundles")
-}
-
-
 # source config
 if (file.exists("config.R") && !dir.exists("config.R")) {
   source("config.R")
@@ -22,17 +10,58 @@ if (file.exists("config.R") && !dir.exists("config.R")) {
   source("config.R.default")
 }
 
-#If needed disable peer verification
-if (!ssl_verify_peer) {
+# Maximum character length of GET requests to the FHIR server.
+# This value was created by testing.
+# Request to load patients are divided under this maximum length.
+MAX_REQUEST_STRING_LENGTH = 1800
+
+# Output directories
+output_local_errors <- paste0(OUTPUT_DIR_LOCAL, "/Errors")
+output_local_bundles <- paste0(OUTPUT_DIR_LOCAL, "/Bundles")
+# Error files
+error_file = paste0(output_local_errors, "/error_message.txt")
+error_file_obs = paste0(output_local_errors, "/observation_error.xml")
+error_file_enc = paste0(output_local_errors, "/encounter_error.xml")
+error_file_con = paste0(output_local_errors, "/condition_error.xml")
+# Debug files
+debug_dir_obs_bundles = paste0(output_local_bundles, "/Observations")
+debug_dir_enc_bundles = paste0(output_local_bundles, "/Encounter")
+debug_dir_con_bundles = paste0(output_local_bundles, "/Conditions")
+# Result files
+result_file_cohort = paste0(OUTPUT_DIR_GLOBAL, "/Kohorte.csv")
+result_file_diagnoses = paste0(OUTPUT_DIR_GLOBAL, "/Diagnosen.csv")
+result_file_log = paste0(OUTPUT_DIR_GLOBAL, "/retrieve.log")
+
+# create directories (surpress warning if dir exists)
+dir.create(OUTPUT_DIR_GLOBAL,
+           recursive = TRUE,
+           showWarnings = FALSE)
+dir.create(output_local_errors,
+           recursive = TRUE,
+           showWarnings = FALSE)
+if (OPTION_DEBUG) {
+  dir.create(debug_dir_obs_bundles,
+             recursive = TRUE,
+             showWarnings = FALSE)
+  dir.create(debug_dir_enc_bundles,
+             recursive = TRUE,
+             showWarnings = FALSE)
+  dir.create(debug_dir_con_bundles,
+             recursive = TRUE,
+             showWarnings = FALSE)
+}
+
+# If needed disable peer verification
+if (!OPTION_SSL_VERIFY_PEER) {
   httr::set_config(httr::config(ssl_verifypeer = 0L))
 }
 
-#remove trailing slashes from endpoint
-base <-
-  if (grepl("/$", base)) {
-    strtrim(base, width = nchar(base) - 1)
+# remove trailing slashes from endpoint
+fhir_server_url <-
+  if (startsWith(FHIR_SERVER_URL, "/")) {
+    strtrim(FHIR_SERVER_URL, width = nchar(FHIR_SERVER_URL) - 1)
   } else{
-    base
+    FHIR_SERVER_URL
   }
 
 # Brackets around indexes for nested values after fhir_crack()
@@ -44,7 +73,7 @@ sep = " || "
 # Observations have to implement MII profile
 # TODO: weitere LOINC Codes ergänzen zB für proBNP
 obs_request <- fhir_url(
-  url = base,
+  url = fhir_server_url,
   resource = "Observation",
   parameters = c(
     "code" = "http://loinc.org|33763-4,http://loinc.org|71425-3,http://loinc.org|33762-6,http://loinc.org|83107-3,http://loinc.org|83108-1,http://loinc.org|77622-9,http://loinc.org|77621-1",
@@ -54,24 +83,25 @@ obs_request <- fhir_url(
   )
 )
 
-#add profile from config
-obs_request <- fhir_url(paste0(obs_request, obs_profile))
+# add profile from config
+obs_request <- fhir_url(paste0(obs_request, PROFILE_OBS))
 
 # download bundles
 message("Downloading Observations: ", obs_request, "\n")
 obs_bundles <- fhir_search(
   request = obs_request,
-  username = username,
-  password = password,
-  token = token,
-  log_errors = "errors/observation_error.xml",
-  verbose = 0,
-  max_bundles = 3
+  username = FHIR_SERVER_USERNAME,
+  password = FHIR_SERVER_PASSWORD,
+  token = FHIR_SERVER_TOKEN,
+  log_errors = error_file_obs,
+  verbose = OPTION_FHIRCRACKR_VERBOSE_LEVEL,
+  max_bundles = OPTION_MAX_OBSERVATION_BUNLDES
 )
 
-#save for checking purposes
-#TODO löschen?
-fhir_save(bundles = obs_bundles, directory = "Bundles/Observations")
+# save for checking purposes
+if (OPTION_DEBUG) {
+  fhir_save(bundles = obs_bundles, directory = debug_dir_obs_bundles)
+}
 
 # flatten
 obs_description <- fhir_table_description(
@@ -104,7 +134,7 @@ obs_tables <- fhir_crack(
   sep = sep,
   brackets = brackets,
   data.table = TRUE,
-  verbose = 0
+  verbose = OPTION_FHIRCRACKR_VERBOSE_LEVEL
 )
 
 rm(obs_bundles)
@@ -112,7 +142,7 @@ rm(obs_bundles)
 if (nrow(obs_tables$obs) == 0) {
   write(
     "Konnte keine Observations für NTproBNP auf dem Server finden. Abfrage abgebrochen.",
-    file = "errors/error_message.txt"
+    file = error_file
   )
   stop("No NTproBNP Observations found - aborting.")
 }
@@ -120,7 +150,7 @@ if (nrow(obs_tables$obs) == 0) {
 if (nrow(obs_tables$pat) == 0) {
   write(
     "Konnte keine Patientenressourcen für NTproBNP-Observations auf dem Server finden. Abfrage abgebrochen.",
-    file = "errors/error_message.txt"
+    file = error_file
   )
   stop("No Patients for NTproBNP Observations found - aborting.")
 }
@@ -194,33 +224,24 @@ rm(obs_tables)
 
 #split patient id list into smaller chunks that can be used in a GET url
 #(split because we don't want to exceed allowed URL length)
-#TODO magic Number nach oben
-patients <- obsdata$subject #all patient ids
+patient_ids <- obsdata$subject #all patient ids
 
-nchar_for_ids <- 1800 - nchar(
-  paste0(
-    base,
-    "Encounter?_profile=https://www.medizininformatik-initiative.de/fhir/core/modul-fall/StructureDefinition/KontaktGesundheitseinrichtung"
-  )
-) #assume maximal length of 1800
+#remaining number of characters in the url that can be used for patient IDs
+nchar_for_ids <- MAX_REQUEST_STRING_LENGTH - nchar(paste0(fhir_server_url,
+                                                          paste0("Encounter", PROFILE_ENC))) #assume maximal length of 1800
 
-n <- length(patients)
-
-list <-
-  split(patients, ceiling(seq_along(patients) / n)) #split patients ids in chunks of size n
-
-nchar <-
-  sapply(list, function(x) {
+# reduce the chunk size until number of characters is small enough
+patient_ids_chunk_size <- length(patient_ids)
+repeat {
+  patient_ids_chunks <-
+    split(patient_ids, ceiling(seq_along(patient_ids) / patient_ids_chunk_size)) # split patients ids in chunks of size n
+  nchar <- sapply(patient_ids_chunks, function(x) {
     sum(nchar(x)) + (length(x) - 1)
-  }) #compute number of characters for each chunk, including commas for seperation
-
-#reduce the chunk size until number of characters is small enough
-while (any(nchar > nchar_for_ids)) {
-  n <- n / 2
-  list <- split(patients, ceiling(seq_along(patients) / n))
-  nchar <- sapply(list, function(x) {
-    sum(nchar(x)) + (length(x) - 1)
-  })
+  }) # compute number of characters for each chunk, including commas for seperation
+  if (any(nchar <= nchar_for_ids)) {
+    break
+  }
+  patient_ids_chunk_size <- patient_ids_chunk_size / 2
 }
 
 
@@ -233,54 +254,54 @@ condition_bundles <- list()
 message("Downloading Encounters and Conditions.\n")
 
 invisible({
-  lapply(list, function(x) {
-    #x<-list[[1]]
+  lapply(patient_ids_chunks, function(x) {
+    # x <- patient_ids_chunks[[1]]
     ids <- paste(x, collapse = ",")
     
     ### Encounters
     enc_request <- fhir_url(
-      url = base,
+      url = fhir_server_url,
       resource = "Encounter",
       parameters = c(subject = ids,
                      type = "einrichtungskontakt")
     )
     
-    #add profile from config
-    enc_request <- fhir_url(url = paste0(enc_request, enc_profile))
+    # add profile from config
+    enc_request <- fhir_url(url = paste0(enc_request, PROFILE_ENC))
     
     
     encounter_bundles <<- append(
       encounter_bundles,
       fhir_search(
         enc_request,
-        username = username,
-        password = password,
-        token = token,
-        log_errors = "errors/encounter_error.xml",
-        verbose = 0
+        username = FHIR_SERVER_USERNAME,
+        password = FHIR_SERVER_PASSWORD,
+        token = FHIR_SERVER_TOKEN,
+        log_errors = error_file_enc,
+        verbose = OPTION_FHIRCRACKR_VERBOSE_LEVEL
       )
     )
     
     ### Conditions
     con_request <- fhir_url(
-      url = base,
+      url = fhir_server_url,
       resource = "Condition",
       parameters = c(subject = ids)
     )
     
-    #add profile from config
-    con_request <- fhir_url(url = paste0(con_request, con_profile))
+    # add profile from config
+    con_request <- fhir_url(url = paste0(con_request, PROFILE_CON))
     
     
     condition_bundles <<- append(
       condition_bundles,
       fhir_search(
         con_request,
-        username = username,
-        password = password,
-        token = token,
-        log_errors = "errors/condition_error.xml",
-        verbose = 0
+        username = FHIR_SERVER_USERNAME,
+        password = FHIR_SERVER_PASSWORD,
+        token = FHIR_SERVER_TOKEN,
+        log_errors = error_file_con,
+        verbose = OPTION_FHIRCRACKR_VERBOSE_LEVEL
       )
     )
     
@@ -294,9 +315,10 @@ encounter_bundles <-
 condition_bundles <-
   fhircrackr:::fhir_bundle_list(condition_bundles)
 
-#TODO löschen
-fhir_save(bundles = encounter_bundles, directory = "Bundles/Encounters")
-fhir_save(bundles = condition_bundles, directory = "Bundles/Conditions")
+if (OPTION_DEBUG) {
+  fhir_save(bundles = encounter_bundles, directory = debug_dir_enc_bundles)
+  fhir_save(bundles = condition_bundles, directory = debug_dir_con_bundles)
+}
 
 enc_description <- fhir_table_description(
   "Encounter",
@@ -320,7 +342,7 @@ encounters <- fhir_crack(
   brackets = brackets,
   sep = sep,
   data.table = TRUE,
-  verbose = 0
+  verbose = OPTION_FHIRCRACKR_VERBOSE_LEVEL
 )
 
 rm(encounter_bundles)
@@ -349,7 +371,7 @@ conditions <- fhir_crack(
   brackets = brackets,
   sep = sep,
   data.table = TRUE,
-  verbose = 0
+  verbose = OPTION_FHIRCRACKR_VERBOSE_LEVEL
 )
 
 rm(condition_bundles)
@@ -358,7 +380,7 @@ rm(condition_bundles)
 if (nrow(encounters) == 0) {
   write(
     "Konnte keine Encounter-Ressourcen zu den gefundenen Patients finden. Abfrage abgebrochen.",
-    file = "errors/error_message.txt"
+    file = error_file
   )
   stop("No Encounters for Patients found - aborting.")
 }
@@ -492,15 +514,14 @@ if (nrow(conditions) > 0) {
 }
 
 
-###Export
-#TODO schön machen
-write.csv2(cohort, paste0("Ergebnisse/Kohorte.csv"))
-write.csv2(conditions, paste0("Ergebnisse/Diagnosen.csv"))
+# Write result files
+write.csv2(cohort, result_file_cohort)
+write.csv2(conditions, result_file_cohort)
 
 # logging
 runtime <- Sys.time() - start
 
-con <- file("Ergebnisse/smith_select.log")
+con <- file(result_file_log)
 write(
   paste0(
     "smith_select.R finished at ",
