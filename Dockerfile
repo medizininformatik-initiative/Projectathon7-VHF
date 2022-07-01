@@ -13,7 +13,7 @@ RUN install2.r --error \
   fhircrackr
 
 COPY config.R.default config.R.default
-COPY smith_select.R smith_select.R
+COPY main.R main.R
 COPY install_R_packages.R install_R_packages.R
 
-CMD ["Rscript", "smith_select.R"]
+CMD ["Rscript", "main.R"]
