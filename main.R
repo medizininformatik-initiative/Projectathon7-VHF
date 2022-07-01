@@ -6,6 +6,12 @@ source("install-dependencies.R")
 # source config
 source("config.R")
 
+### Verzeichnisse
+# Verzeichnis für Zwischenergebnisse/Debug
+OUTPUT_DIR_LOCAL <- "/mnt/outputLocal"
+# Verzeichnis für Endergebnisse
+OUTPUT_DIR_GLOBAL <- "/mnt/outputGlobal"
+
 # Maximum character length of GET requests to the FHIR server.
 # This value was created by testing.
 # Request to load patients are divided under this maximum length.
@@ -35,7 +41,7 @@ dir.create(OUTPUT_DIR_GLOBAL,
 dir.create(output_local_errors,
            recursive = TRUE,
            showWarnings = FALSE)
-if (OPTION_DEBUG) {
+if (DEBUG) {
   dir.create(debug_dir_obs_bundles,
              recursive = TRUE,
              showWarnings = FALSE)
@@ -48,16 +54,16 @@ if (OPTION_DEBUG) {
 }
 
 # If needed disable peer verification
-if (!OPTION_SSL_VERIFY_PEER) {
+if (!SSL_VERIFY) {
   httr::set_config(httr::config(ssl_verifypeer = 0L))
 }
 
 # remove trailing slashes from endpoint
 fhir_server_url <-
-  if (startsWith(FHIR_SERVER_URL, "/")) {
-    strtrim(FHIR_SERVER_URL, width = nchar(FHIR_SERVER_URL) - 1)
+  if (startsWith(FHIR_SERVER_ENDPOINT, "/")) {
+    strtrim(FHIR_SERVER_ENDPOINT, width = nchar(FHIR_SERVER_ENDPOINT) - 1)
   } else{
-    FHIR_SERVER_URL
+    FHIR_SERVER_ENDPOINT
   }
 
 # Brackets around indexes for nested values after fhir_crack()
@@ -80,22 +86,22 @@ obs_request <- fhir_url(
 )
 
 # add profile from config
-obs_request <- fhir_url(paste0(obs_request, PROFILE_OBS))
+obs_request <- fhir_url(paste0(obs_request, "&_profile=", PROFILE_OBS))
 
 # download bundles
 message("Downloading Observations: ", obs_request, "\n")
 obs_bundles <- fhir_search(
   request = obs_request,
-  username = FHIR_SERVER_USERNAME,
-  password = FHIR_SERVER_PASSWORD,
+  username = FHIR_SERVER_USER,
+  password = FHIR_SERVER_PASS,
   token = FHIR_SERVER_TOKEN,
   log_errors = error_file_obs,
-  verbose = OPTION_FHIRCRACKR_VERBOSE_LEVEL,
-  max_bundles = OPTION_MAX_OBSERVATION_BUNLDES
+  verbose = VERBOSE,
+  max_bundles = MAX_BUNLDES
 )
 
 # save for checking purposes
-if (OPTION_DEBUG) {
+if (DEBUG) {
   fhir_save(bundles = obs_bundles, directory = debug_dir_obs_bundles)
 }
 
@@ -130,7 +136,7 @@ obs_tables <- fhir_crack(
   sep = sep,
   brackets = brackets,
   data.table = TRUE,
-  verbose = OPTION_FHIRCRACKR_VERBOSE_LEVEL
+  verbose = VERBOSE
 )
 
 rm(obs_bundles)
@@ -224,7 +230,7 @@ patient_ids <- obsdata$subject #all patient ids
 
 #remaining number of characters in the url that can be used for patient IDs
 nchar_for_ids <- MAX_REQUEST_STRING_LENGTH - nchar(paste0(fhir_server_url,
-                                                          paste0("Encounter", PROFILE_ENC))) #assume maximal length of 1800
+                                                          paste0("Encounter", "&_profile=", PROFILE_ENC))) #assume maximal length of 1800
 
 # reduce the chunk size until number of characters is small enough
 patient_ids_chunk_size <- length(patient_ids)
@@ -263,18 +269,18 @@ invisible({
     )
     
     # add profile from config
-    enc_request <- fhir_url(url = paste0(enc_request, PROFILE_ENC))
+    enc_request <- fhir_url(url = paste0(enc_request, "&_profile=", PROFILE_ENC))
     
     
     encounter_bundles <<- append(
       encounter_bundles,
       fhir_search(
         enc_request,
-        username = FHIR_SERVER_USERNAME,
-        password = FHIR_SERVER_PASSWORD,
+        username = FHIR_SERVER_USER,
+        password = FHIR_SERVER_PASS,
         token = FHIR_SERVER_TOKEN,
         log_errors = error_file_enc,
-        verbose = OPTION_FHIRCRACKR_VERBOSE_LEVEL
+        verbose = VERBOSE
       )
     )
     
@@ -286,18 +292,18 @@ invisible({
     )
     
     # add profile from config
-    con_request <- fhir_url(url = paste0(con_request, PROFILE_CON))
+    con_request <- fhir_url(url = paste0(con_request, "&_profile=", PROFILE_CON))
     
     
     condition_bundles <<- append(
       condition_bundles,
       fhir_search(
         con_request,
-        username = FHIR_SERVER_USERNAME,
-        password = FHIR_SERVER_PASSWORD,
+        username = FHIR_SERVER_USER,
+        password = FHIR_SERVER_PASS,
         token = FHIR_SERVER_TOKEN,
         log_errors = error_file_con,
-        verbose = OPTION_FHIRCRACKR_VERBOSE_LEVEL
+        verbose = VERBOSE
       )
     )
     
@@ -311,7 +317,7 @@ encounter_bundles <-
 condition_bundles <-
   fhircrackr:::fhir_bundle_list(condition_bundles)
 
-if (OPTION_DEBUG) {
+if (DEBUG) {
   fhir_save(bundles = encounter_bundles, directory = debug_dir_enc_bundles)
   fhir_save(bundles = condition_bundles, directory = debug_dir_con_bundles)
 }
@@ -338,7 +344,7 @@ encounters <- fhir_crack(
   brackets = brackets,
   sep = sep,
   data.table = TRUE,
-  verbose = OPTION_FHIRCRACKR_VERBOSE_LEVEL
+  verbose = VERBOSE
 )
 
 rm(encounter_bundles)
@@ -367,7 +373,7 @@ conditions <- fhir_crack(
   brackets = brackets,
   sep = sep,
   data.table = TRUE,
-  verbose = OPTION_FHIRCRACKR_VERBOSE_LEVEL
+  verbose = VERBOSE
 )
 
 rm(condition_bundles)

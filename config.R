@@ -3,42 +3,37 @@
 
 # FHIR-Endpunkt
 #base <- "http://host.docker.internal:8080/fhir" 
-FHIR_SERVER_URL <- "https://mii-agiop-polar.life.uni-leipzig.de/fhir"
+FHIR_SERVER_ENDPOINT <- Sys.getenv('FHIR_SERVER_ENDPOINT')
 
 ### Authentifizierung
 # Falls Authentifizierung, bitte entsprechend anpassen (sonst ignorieren):
 # Username und Passwort für Basic Authentification
-FHIR_SERVER_USERNAME <- "" # zB "myusername"
-FHIR_SERVER_PASSWORD <- "" #zB "mypassword"
+FHIR_SERVER_USER <- Sys.getenv('FHIR_SERVER_USER') # zB "myusername"
+FHIR_SERVER_PASS <- Sys.getenv('FHIR_SERVER_PASS') #zB "mypassword"
 
 # Alternativ: Token für Bearer Token Authentifizierung
-FHIR_SERVER_TOKEN <- NULL #zB "mytoken"
-
-### Verzeichnisse
-# Verzeichnis für Zwischenergebnisse/Debug
-OUTPUT_DIR_LOCAL <- "outputLocal"
-# Verzeichnis für Endergebnisse
-OUTPUT_DIR_GLOBAL <- "outputGlobal"
+FHIR_SERVER_TOKEN <- Sys.getenv('FHIR_SERVER_TOKEN') #zB "mytoken"
 
 # SSL peer verification angeschaltet lassen?
 # TRUE = peer verification anschalten, FALSE = peer verification ausschalten 
-OPTION_SSL_VERIFY_PEER <- TRUE
+SSL_VERIFY <- Sys.getenv('SSL_VERIFY', TRUE)
 
 # Das Script lädt zuerst alle passenden Observations, davon ausgehend
 # die zugehörigen Patienten und Conditions.
 # Inf = alle Observation Bundles, ansonsten wird maximal die gegebene Anzahl geladen
-OPTION_MAX_OBSERVATION_BUNLDES = 30
+MAX_BUNLDES <- Sys.getenv('MAX_BUNLDES', 30)
 # Debug = TRUE -> Bundles werden in outputLocal gespeichert
-OPTION_DEBUG = TRUE
+DEBUG <- Sys.getenv('DEBUG', TRUE)
 # Verbose-Level des fhircrackr
-OPTION_FHIRCRACKR_VERBOSE_LEVEL = 0
+VERBOSE <- Sys.getenv('VERBOSE', 0)
 
 ### Profile, der gesuchten Resourcen:
 #Encounter 
-PROFILE_ENC <- "&_profile=https://www.medizininformatik-initiative.de/fhir/core/modul-fall/StructureDefinition/KontaktGesundheitseinrichtung"
-
+PROFILE_ENC <- Sys.getenv("PROFILE_ENC",
+                          "https://www.medizininformatik-initiative.de/fhir/core/modul-fall/StructureDefinition/KontaktGesundheitseinrichtung")
 #Observation
-PROFILE_OBS <- "&_profile=https://www.medizininformatik-initiative.de/fhir/core/modul-labor/StructureDefinition/ObservationLab"
-
+PROFILE_OBS <- Sys.getenv("PROFILE_OBS",
+                          "https://www.medizininformatik-initiative.de/fhir/core/modul-labor/StructureDefinition/ObservationLab")
 #Condition
-PROFILE_CON <- "&_profile=https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Diagnose"
+PROFILE_CON <- Sys.getenv("PROFILE_CON",
+                          "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Diagnose")
