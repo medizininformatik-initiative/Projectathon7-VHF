@@ -16,16 +16,16 @@ FHIR_SERVER_TOKEN <- Sys.getenv('FHIR_SERVER_TOKEN') #zB "mytoken"
 
 # SSL peer verification angeschaltet lassen?
 # TRUE = peer verification anschalten, FALSE = peer verification ausschalten 
-SSL_VERIFY <- Sys.getenv('SSL_VERIFY', TRUE)
+SSL_VERIFY <- as.logical(Sys.getenv('SSL_VERIFY', "TRUE"))
 
 # Das Script lädt zuerst alle passenden Observations, davon ausgehend
 # die zugehörigen Patienten und Conditions.
 # Inf = alle Observation Bundles, ansonsten wird maximal die gegebene Anzahl geladen
-MAX_BUNLDES <- Sys.getenv('MAX_BUNLDES', 30)
+MAX_BUNLDES <- as.integer(Sys.getenv('MAX_BUNLDES', "30"))
 # Debug = TRUE -> Bundles werden in outputLocal gespeichert
-DEBUG <- Sys.getenv('DEBUG', TRUE)
+DEBUG <- as.logical(Sys.getenv('DEBUG', "TRUE"))
 # Verbose-Level des fhircrackr
-VERBOSE <- Sys.getenv('VERBOSE', 0)
+VERBOSE <- as.integer(Sys.getenv('VERBOSE', "0"))
 
 ### Profile, der gesuchten Resourcen:
 #Encounter 
