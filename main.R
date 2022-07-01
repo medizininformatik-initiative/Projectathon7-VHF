@@ -1,14 +1,10 @@
 ### Preparation
 start <- Sys.time()
 # load/install a packages
-source("install_R_packages.R")
+source("install-dependencies.R")
 
 # source config
-if (file.exists("config.R") && !dir.exists("config.R")) {
-  source("config.R")
-} else{
-  source("config.R.default")
-}
+source("config.R")
 
 # Maximum character length of GET requests to the FHIR server.
 # This value was created by testing.
