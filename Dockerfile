@@ -8,4 +8,6 @@ RUN /bin/bash -e install-dependencies.sh
 COPY config.R config.R
 COPY main.R main.R
 
+COPY version.txt .
+
 CMD ["Rscript", "main.R"]
