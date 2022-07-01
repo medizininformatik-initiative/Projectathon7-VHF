@@ -1,8 +1,6 @@
-FROM rocker/r-ver:latest
+FROM rocker/r-ver:4.2.1
 
-# MAINTAINER Julia Palm <julia.palm@med.uni-jena.de>
-LABEL Description="PJT#6 smith2"
-LABEL Maintainer="julia.palm@med.uni-jena.de"
+LABEL Maintainer="Alexander Strübing <alexander.struebing@imise.uni-leipzig.de>"
 
 RUN mkdir -p /Ergebnisse
 RUN mkdir -p /errors
