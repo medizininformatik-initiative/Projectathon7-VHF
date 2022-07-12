@@ -1,6 +1,10 @@
 # Konfigurations-Datei für Vorhofflimmern Retrieval
 # Bitte die folgenden Variablen entsprechend der Gegebenheiten vor Ort anpassen!
 
+emptyToNull <- function (v) {
+    if (v == '') return(NULL) else return(v)
+}
+
 # FHIR-Endpunkt
 #base <- "http://host.docker.internal:8080/fhir" 
 FHIR_SERVER_ENDPOINT <- Sys.getenv('FHIR_SERVER_ENDPOINT')
@@ -8,11 +12,11 @@ FHIR_SERVER_ENDPOINT <- Sys.getenv('FHIR_SERVER_ENDPOINT')
 ### Authentifizierung
 # Falls Authentifizierung, bitte entsprechend anpassen (sonst ignorieren):
 # Username und Passwort für Basic Authentification
-FHIR_SERVER_USER <- Sys.getenv('FHIR_SERVER_USER') # zB "myusername"
-FHIR_SERVER_PASS <- Sys.getenv('FHIR_SERVER_PASS') #zB "mypassword"
+FHIR_SERVER_USER <- emptyToNull(Sys.getenv('FHIR_SERVER_USER')) # zB "myusername"
+FHIR_SERVER_PASS <- emptyToNull(Sys.getenv('FHIR_SERVER_PASS')) #zB "mypassword"
 
 # Alternativ: Token für Bearer Token Authentifizierung
-FHIR_SERVER_TOKEN <- Sys.getenv('FHIR_SERVER_TOKEN') #zB "mytoken"
+FHIR_SERVER_TOKEN <- emptyToNull(Sys.getenv('FHIR_SERVER_TOKEN')) #zB "mytoken"
 
 # SSL peer verification angeschaltet lassen?
 # TRUE = peer verification anschalten, FALSE = peer verification ausschalten 
