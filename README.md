@@ -37,12 +37,12 @@ enthält alle nötigen Skripte und Libraries für eine manuelle Ausführung mitt
 
 Die weiteren Schritte der manuellen Ausführung sind in der [DUP README][readme] erläutert.
 
------------------------------------------------------------------------------------------------
-
 ## Output
+
 Das Skript erzeugt mehrere Ordner im Projekt-Directory. Um für den Projectathon eine möglichst einfache übersichtliche Lösung zu bekommen, werden alle files, die darin erzeugt werden bei mehrmaligem Ausführen ggf. einfach überschrieben.
 
 ### Ergebnisse
+
 Wenn die Abfrage erfolgreich durchgeführt wurde, sind hier zwei semikolongetrennte csv-Dateien (= lässt sich durch Doppelklick in Excel öffnen) zu finden. Die enthaltenen Variablen sind hier kurz erklärt: 
 
 **Kohorte.csv**
@@ -90,21 +90,26 @@ Diese Tabelle enthält alle Diagnosen der Patienten aus Kohorte.csv, die einen d
 Neben den Ergebnistabellen wird außerdem eine "smith_select.log"-Datei erzeugt, welche die Anzahl der extrahierten Fälle, Patienten und die Laufzeit des R-Skriptes dokumentiert. Das log-file muss nicht geteilt werden, es dient den DIZen nur als Hilfestellung für die Einschätzung von Laufzeiten und Ergebnismengen. 
 
 ### Bundles
+
 Dieser Ordner enthält die heruntergeladenen Bundles und kann der Kontrolle dienen, falls die Tabellen nicht aussehen wie erwartet.
 
 ### errors
+
 Dieser Ordner enthält ggf. Fehlermeldungen, wenn die Abfrage nicht erfolgreich durchgeführt werden kann.
 
 ## Verwendete Codesysteme
+
 Das Skript verwendet folgende Codesysteme:
 
 - *http://loinc.org* für `Observation.code.coding.system` -> Dieses System wird für den Download per FHIR Search verwendet
 - *urn:oid:2.16.840.1.113883.3.1937.777.24.5.3* für `Consent.provision.provision.code.coding.system` -> Nur verwendet, wenn konsentierte Daten über Consent Ressource selektiert werden, also wenn `filterConsent <- TRUE` in config.R.
 
 ## Verwendete Profile/Datenelemente
+
 Die Abfragen sind auf Basis der MII Profile für die entsprechenden Ressouren geschrieben. Die Skripte sind kompatibel mit dem jeweils neuesten Release der verfügbaren Major Versionen (1 und, wenn vorhanden, 2). In den meisten Fällen werden die Skripte auch funktionieren, wenn nicht genau dieser Release des Profils verwendet wird. Es ist jedoch zwingend notwendig, dass die Ressourcen das jeweilige Profil im `Resource.meta.profile` Element benennen. Im folgenden ist für jeden verwendeten Ressourcentyp beschrieben, welche Elemente für die FHIR-Search-Abfrage an den Server verwendet werden (diese Elemente *müssen* vorhanden sein, damit kein Fehler geworfen wird) und welche Elemente im Skript extrahiert und in die Ergebnistabellen geschrieben werden. 
 
 ### Modul Labor: Observation
+
 Profil: `https://www.medizininformatik-initiative.de/fhir/core/modul-labor/StructureDefinition/ObservationLab`
 
 Version: [1.0.6](https://simplifier.net/packages/de.medizininformatikinitiative.kerndatensatz.laborbefund/1.0.6/~introduction)
@@ -127,6 +132,7 @@ Extrahierte Elemente:
 - `Observation.valueQuantity.system`
 
 ### Modul Person: Patient
+
 Profil: `https://www.medizininformatik-initiative.de/fhir/core/modul-person/StructureDefinition/Patient`
 
 Version: [2.0.0-alpha3](https://simplifier.net/packages/de.medizininformatikinitiative.kerndatensatz.person/2.0.0-alpha3) bzw. [1.0.14](https://simplifier.net/packages/de.medizininformatikinitiative.kerndatensatz.person/1.0.14)
@@ -142,6 +148,7 @@ Extrahierte Elemente:
 - `Patient.birthDate`
 
 ### Modul Fall: Encounter
+
 Profil: `https://www.medizininformatik-initiative.de/fhir/core/modul-fall/StructureDefinition/KontaktGesundheitseinrichtung`
 
 Version: [1.0.1](https://simplifier.net/packages/de.medizininformatikinitiative.kerndatensatz.fall/1.0.1)
@@ -161,6 +168,7 @@ Extrahierte Elemente:
 - `Encounter.diagnosis.use.coding.system`
 
 ### Modul Diagnose: Condition
+
 Profil: `https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Diagnose`
 
 Version: [2.0.0-alpha3](https://simplifier.net/packages/de.medizininformatikinitiative.kerndatensatz.diagnose/2.0.0-alpha3) bzw. [1.0.4](https://simplifier.net/packages/de.medizininformatikinitiative.kerndatensatz.diagnose/1.0.4)
@@ -183,6 +191,7 @@ Extrahierte Elemente:
 
 
 ### Modul Consent: Consent
+
 Wird nur verwendet, wenn `filterConsent <- TRUE` in `config.R`, d.h. wenn konsentierte und nicht konsentierte Daten durch das R-Skript gefiltert werden müssen und die Trennung nicht durch unterschiedliche FHIR-Repositories erfolgt.
 
 Profil: `http://fhir.de/ConsentManagement/StructureDefinition/Consent`
@@ -200,6 +209,7 @@ Extrahierte Elemente:
 - `Consent.provision.provision.code.coding.system`
 
 ## Konzeptioneller Ablauf der Abfrage
+
 Prinzipiell geht das Skript wie folgt vor:
 
 1) Lade alle Observations, die eine NTproBNP-Messung darstellen (`loinc code` ist einer aus: `33763-4,71425-3,33762-6,83107-3, 83108-1,77622-9,77621-1`), welche ein `effective` im Zeitraum `2019-01-01 - 2021-12-31` haben und das Profil `https://www.medizininformatik-initiative.de/fhir/core/modul-labor/StructureDefinition/ObservationLab` erfüllen, herunter. Ziehe dazu außerdem (mit `_include`) die zugehörigen Patient Ressourcen.
