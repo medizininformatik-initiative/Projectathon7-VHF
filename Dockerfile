@@ -1,4 +1,4 @@
-FROM rocker/r-ver:4.2.1
+FROM rocker/r-ver:4.2.0
 
 LABEL Maintainer="Alexander Strübing <alexander.struebing@imise.uni-leipzig.de>"
 
