@@ -27,7 +27,7 @@ SSL_VERIFY <- as.logical(Sys.getenv('SSL_VERIFY', "TRUE"))
 # Inf = alle Observation Bundles, ansonsten wird maximal die gegebene Anzahl geladen
 MAX_BUNLDES <- as.integer(Sys.getenv('MAX_BUNLDES', "30"))
 # Debug = TRUE -> Bundles werden in outputLocal gespeichert
-DEBUG <- as.logical(Sys.getenv('DEBUG', "TRUE"))
+DEBUG <- as.logical(Sys.getenv('DEBUG', "FALSE"))
 # Verbose-Level des fhircrackr
 VERBOSE <- as.integer(Sys.getenv('VERBOSE', "0"))
 
