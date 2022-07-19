@@ -25,7 +25,7 @@ SSL_VERIFY <- as.logical(Sys.getenv('SSL_VERIFY', "TRUE"))
 # Das Script lädt zuerst alle passenden Observations, davon ausgehend
 # die zugehörigen Patienten und Conditions.
 # Inf = alle Observation Bundles, ansonsten wird maximal die gegebene Anzahl geladen
-MAX_BUNLDES <- as.double(Sys.getenv('MAX_BUNLDES', "Inf"))
+MAX_BUNDLES <- as.double(Sys.getenv('MAX_BUNDLES', "Inf"))
 # Debug = TRUE -> Bundles werden in outputLocal gespeichert
 DEBUG <- as.logical(Sys.getenv('DEBUG', "FALSE"))
 # Verbose-Level des fhircrackr

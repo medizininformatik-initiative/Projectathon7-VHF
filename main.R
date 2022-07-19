@@ -97,7 +97,7 @@ obs_bundles <- fhir_search(
   token = FHIR_SERVER_TOKEN,
   log_errors = error_file_obs,
   verbose = VERBOSE,
-  max_bundles = MAX_BUNLDES
+  max_bundles = MAX_BUNDLES
 )
 
 # save for checking purposes
