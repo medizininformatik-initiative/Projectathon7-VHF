@@ -15,24 +15,24 @@ OUTPUT_DIR_GLOBAL <- "/mnt/outputGlobal"
 # Maximum character length of GET requests to the FHIR server.
 # This value was created by testing.
 # Request to load patients are divided under this maximum length.
-MAX_REQUEST_STRING_LENGTH = 1800
+MAX_REQUEST_STRING_LENGTH <- 1800
 
 # Output directories
 output_local_errors <- paste0(OUTPUT_DIR_LOCAL, "/Errors")
 output_local_bundles <- paste0(OUTPUT_DIR_LOCAL, "/Bundles")
 # Error files
-error_file = paste0(output_local_errors, "/error_message.txt")
-error_file_obs = paste0(output_local_errors, "/observation_error.xml")
-error_file_enc = paste0(output_local_errors, "/encounter_error.xml")
-error_file_con = paste0(output_local_errors, "/condition_error.xml")
+error_file <- paste0(output_local_errors, "/error_message.txt")
+error_file_obs <- paste0(output_local_errors, "/observation_error.xml")
+error_file_enc <- paste0(output_local_errors, "/encounter_error.xml")
+error_file_con <- paste0(output_local_errors, "/condition_error.xml")
 # Debug files
-debug_dir_obs_bundles = paste0(output_local_bundles, "/Observations")
-debug_dir_enc_bundles = paste0(output_local_bundles, "/Encounter")
-debug_dir_con_bundles = paste0(output_local_bundles, "/Conditions")
+debug_dir_obs_bundles <- paste0(output_local_bundles, "/Observations")
+debug_dir_enc_bundles <- paste0(output_local_bundles, "/Encounter")
+debug_dir_con_bundles <- paste0(output_local_bundles, "/Conditions")
 # Result files
-result_file_cohort = paste0(OUTPUT_DIR_GLOBAL, "/Kohorte.csv")
-result_file_diagnoses = paste0(OUTPUT_DIR_GLOBAL, "/Diagnosen.csv")
-result_file_log = paste0(OUTPUT_DIR_GLOBAL, "/retrieve.log")
+result_file_cohort <- paste0(OUTPUT_DIR_GLOBAL, "/Kohorte.csv")
+result_file_diagnoses <- paste0(OUTPUT_DIR_GLOBAL, "/Diagnosen.csv")
+result_file_log <- paste0(OUTPUT_DIR_GLOBAL, "/retrieve.log")
 
 # create directories (surpress warning if dir exists)
 dir.create(OUTPUT_DIR_GLOBAL,
@@ -67,8 +67,8 @@ fhir_server_url <-
   }
 
 # Brackets around indexes for nested values after fhir_crack()
-brackets = c("[", "]")
-sep = " || "
+brackets <- c("[", "]")
+sep <- " || "
 
 ### Get all Observations between 2019-01-01 and 2021-12-31 with loinc 33763-4,71425-3,33762-6,83107-3, 83108-1, 77622-9,77621-1
 # also get associated patient resources --> initial patient population
@@ -259,7 +259,7 @@ invisible({
   lapply(patient_ids_chunks, function(x) {
     # x <- patient_ids_chunks[[1]]
     ids <- paste(x, collapse = ",")
-    
+
     ### Encounters
     enc_request <- fhir_url(
       url = fhir_server_url,
@@ -267,11 +267,11 @@ invisible({
       parameters = c(subject = ids,
                      type = "einrichtungskontakt")
     )
-    
+
     # add profile from config
     enc_request <- fhir_url(url = paste0(enc_request, "&_profile=", PROFILE_ENC))
-    
-    
+
+
     encounter_bundles <<- append(
       encounter_bundles,
       fhir_search(
@@ -283,18 +283,18 @@ invisible({
         verbose = VERBOSE
       )
     )
-    
+
     ### Conditions
     con_request <- fhir_url(
       url = fhir_server_url,
       resource = "Condition",
       parameters = c(subject = ids)
     )
-    
+
     # add profile from config
     con_request <- fhir_url(url = paste0(con_request, "&_profile=", PROFILE_CON))
-    
-    
+
+
     condition_bundles <<- append(
       condition_bundles,
       fhir_search(
@@ -306,7 +306,7 @@ invisible({
         verbose = VERBOSE
       )
     )
-    
+
   })
 })
 
@@ -398,17 +398,17 @@ if (nrow(conditions) > 0) {
       sep = sep,
       all_columns = TRUE
     )
-  
+
   useInfo <- fhir_rm_indices(useInfo, brackets = brackets)
-  
+
   useInfo <-
     useInfo[, c("encounter.id",
                 "diagnosis",
                 "diagnosis.use.code",
                 "diagnosis.use.system")]
-  
+
   useInfo[, diagnosis := sub("Condition/", "", diagnosis)]
-  
+
   # expand condition codes
   for (i in 1:2) {
     conditions <-
@@ -420,14 +420,14 @@ if (nrow(conditions) > 0) {
         all_columns = TRUE
       )
   }
-  
-  
+
+
   conditions <- fhir_rm_indices(conditions, brackets = brackets)
   conditions[, resource_identifier := NULL]
-  
+
   # filter for ICD codesystem
   conditions <- conditions[grepl("icd-10", code.system)]
-  
+
   # add diagnosis use info to condition table
   message(
     "Merging Condition and Encounter data based on Condition id.\n",
@@ -444,7 +444,7 @@ if (nrow(conditions) > 0) {
     " rows",
     "\n"
   )
-  
+
   conditions <- merge.data.table(
     x = conditions,
     y = useInfo,
@@ -452,11 +452,11 @@ if (nrow(conditions) > 0) {
     by.y = "diagnosis",
     all.x = TRUE
   )
-  
+
   # prepare key variables
   conditions[, subject := sub("Patient/", "", subject)]
   conditions[, encounter := sub("Encounter/", "", encounter)]
-  
+
   # merge encounter ids coming from the encounter.id vs. ids coming from the condition.encounter element into one column
   conditions[is.na(encounter.id), encounter.id := encounter]
   conditions[, encounter := NULL]

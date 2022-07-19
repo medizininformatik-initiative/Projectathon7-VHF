@@ -6,7 +6,7 @@ emptyToNull <- function (v) {
 }
 
 # FHIR-Endpunkt
-#base <- "http://host.docker.internal:8080/fhir" 
+#base <- "http://host.docker.internal:8080/fhir"
 FHIR_SERVER_ENDPOINT <- Sys.getenv('FHIR_SERVER_ENDPOINT')
 
 ### Authentifizierung
@@ -19,7 +19,7 @@ FHIR_SERVER_PASS <- emptyToNull(Sys.getenv('FHIR_SERVER_PASS')) #zB "mypassword"
 FHIR_SERVER_TOKEN <- emptyToNull(Sys.getenv('FHIR_SERVER_TOKEN')) #zB "mytoken"
 
 # SSL peer verification angeschaltet lassen?
-# TRUE = peer verification anschalten, FALSE = peer verification ausschalten 
+# TRUE = peer verification anschalten, FALSE = peer verification ausschalten
 SSL_VERIFY <- as.logical(Sys.getenv('SSL_VERIFY', "TRUE"))
 
 # Das Script lädt zuerst alle passenden Observations, davon ausgehend
@@ -32,7 +32,7 @@ DEBUG <- as.logical(Sys.getenv('DEBUG', "TRUE"))
 VERBOSE <- as.integer(Sys.getenv('VERBOSE', "0"))
 
 ### Profile, der gesuchten Resourcen:
-#Encounter 
+#Encounter
 PROFILE_ENC <- Sys.getenv("PROFILE_ENC",
                           "https://www.medizininformatik-initiative.de/fhir/core/modul-fall/StructureDefinition/KontaktGesundheitseinrichtung")
 #Observation
