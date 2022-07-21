@@ -34,23 +34,15 @@ result_file_cohort <- paste0(OUTPUT_DIR_GLOBAL, "/Kohorte.csv")
 result_file_diagnoses <- paste0(OUTPUT_DIR_GLOBAL, "/Diagnosen.csv")
 result_file_log <- paste0(OUTPUT_DIR_GLOBAL, "/retrieve.log")
 
-# create directories (surpress warning if dir exists)
-dir.create(OUTPUT_DIR_GLOBAL,
-           recursive = TRUE,
-           showWarnings = FALSE)
-dir.create(output_local_errors,
-           recursive = TRUE,
-           showWarnings = FALSE)
+# remove old files and dirs and create new dirs  (surpress warning if dir exists)
+unlink(OUTPUT_DIR_GLOBAL, recursive = TRUE)
+unlink(OUTPUT_DIR_LOCAL, recursive = TRUE)
+dir.create(OUTPUT_DIR_GLOBAL, recursive = TRUE, showWarnings = FALSE)
+dir.create(output_local_errors, recursive = TRUE, showWarnings = FALSE)
 if (DEBUG) {
-  dir.create(debug_dir_obs_bundles,
-             recursive = TRUE,
-             showWarnings = FALSE)
-  dir.create(debug_dir_enc_bundles,
-             recursive = TRUE,
-             showWarnings = FALSE)
-  dir.create(debug_dir_con_bundles,
-             recursive = TRUE,
-             showWarnings = FALSE)
+  dir.create(debug_dir_obs_bundles, recursive = TRUE, showWarnings = FALSE)
+  dir.create(debug_dir_enc_bundles, recursive = TRUE, showWarnings = FALSE)
+  dir.create(debug_dir_con_bundles, recursive = TRUE, showWarnings = FALSE)
 }
 
 # If needed disable peer verification
