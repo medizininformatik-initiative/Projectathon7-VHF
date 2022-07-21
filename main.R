@@ -518,7 +518,7 @@ if (nrow(conditions) > 0) {
 
 # Write result files
 write.csv2(cohort, result_file_cohort)
-write.csv2(conditions, result_file_cohort)
+write.csv2(conditions, result_file_diagnoses)
 
 # logging
 runtime <- Sys.time() - start
