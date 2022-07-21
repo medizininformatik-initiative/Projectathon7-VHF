@@ -161,21 +161,16 @@ if (nrow(obs_tables$pat) == 0) {
 obs_tables$pat <-
   fhir_rm_indices(obs_tables$pat, brackets = brackets)
 
-obs_tables$obs <- fhir_melt(
-  obs_tables$obs,
-  columns = c("NTproBNP.code", "NTproBNP.codeSystem"),
-  brackets = brackets,
-  sep = sep,
-  all_columns = TRUE
-)
-
-obs_tables$obs <- fhir_melt(
-  obs_tables$obs,
-  columns = c("NTproBNP.code", "NTproBNP.codeSystem"),
-  brackets = brackets,
-  sep = sep,
-  all_columns = TRUE
-)
+# remove 2 indices
+for (i in 1:2) {
+  obs_tables$obs <- fhir_melt(
+    obs_tables$obs,
+    columns = c("NTproBNP.code", "NTproBNP.codeSystem"),
+    brackets = brackets,
+    sep = sep,
+    all_columns = TRUE
+  )
+}
 
 obs_tables$obs <-
   fhir_rm_indices(obs_tables$obs, brackets = brackets)
@@ -409,7 +404,7 @@ if (nrow(conditions) > 0) {
 
   useInfo[, diagnosis := sub("Condition/", "", diagnosis)]
 
-  # expand condition codes
+  # expand condition codes + remove indices
   for (i in 1:2) {
     conditions <-
       fhir_melt(
