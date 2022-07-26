@@ -49,41 +49,41 @@ Wenn die Abfrage erfolgreich durchgeführt wurde, sind hier zwei semikolongetren
 
 Diese Tabelle enthält eine Kombination von Informationen aus der Patient Ressource, der Encounter Ressource und der Observation Ressource. Sie enthält alle Fälle, für die es eine Observation mit einer NTproBNP Messung im geforderten Zeitraum gibt.
 
-|Variable             | Bedeutung|
-|---------------------|----------|
-|subject                            | Logical id der Patient Ressource|
-|encounter.start                    | Startzeitpunkt des Einrichtungskontakt-Encounters, der zeitlich zur NTproBNP-Messung gehört.|
-|encounter.end                      | Stoppzeitpunkt des Einrichtungskontakt-Encounters, der zeitlich zur NTproBNP-Messung gehört.|
-|serviceType                        | ServiceType (Stationsschlüssel) des Einrichtungskontakt-Encounters, der zeitlich zur NTproBNP-Messung gehört.|
-|NTproBNP.date                      | Datum (effectiveDateTime) der Observation mit der NTproBNP-Messung.|
-|NTproBNP.valueQuantity.value       | Numerischer Wert (valueQuantity.value) der Observation mit der NTproBNP-Messung.|
-|NTproBNP.valueQuantity.comparator  | Komparator (valueQuantity.comparator, falls vorhanden) der Observation mit der NTproBNP-Messung, welcher den numerischen Wert qualifiziert.|
-|NTproBNP.valueCodeableConcept.code | Kodierter Wert (valueCodeableConcept.code) der Observation mit der NTproBNP-Messung, für Fälle in denen die Messung nicht numerisch abgelegt wurde.|
-|NTproBNP.valueCodeableConcept.system | Codesystem zu NTproBNP.valueCodeableConcept.code|
-|NTproBNP.code                      | Loinc-Code (code.coding.code) der Observation mit der NTproBNP-Messung.|
-|NTproBNP.codeSystem                | CodeSystem (code.coding.system) der Observation mit der NTproBNP-Messung.|
-|NTproBNP.unit                      | Code der Einheit (valueQuantity.code) der NTproBNP-Messung.|
-|NTproBNP.unitSystem                | Codesystem der Einheit (valueQuantity.code) der NTproBNP-Messung.|
-|gender                             | Geschlecht (gender) der Patient Ressource|
-|birthdate                          | Geburtsdatum (birthDate) der Patient Ressource|
+| Variable                             | Bedeutung                                                                                                                                           |
+|--------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|
+| subject                              | Logical id der Patient Ressource                                                                                                                    |
+| encounter.start                      | Startzeitpunkt des Einrichtungskontakt-Encounters, der zeitlich zur NTproBNP-Messung gehört.                                                        |
+| encounter.end                        | Stoppzeitpunkt des Einrichtungskontakt-Encounters, der zeitlich zur NTproBNP-Messung gehört.                                                        |
+| serviceType                          | ServiceType (Stationsschlüssel) des Einrichtungskontakt-Encounters, der zeitlich zur NTproBNP-Messung gehört.                                       |
+| NTproBNP.date                        | Datum (effectiveDateTime) der Observation mit der NTproBNP-Messung.                                                                                 |
+| NTproBNP.valueQuantity.value         | Numerischer Wert (valueQuantity.value) der Observation mit der NTproBNP-Messung.                                                                    |
+| NTproBNP.valueQuantity.comparator    | Komparator (valueQuantity.comparator, falls vorhanden) der Observation mit der NTproBNP-Messung, welcher den numerischen Wert qualifiziert.         |
+| NTproBNP.valueCodeableConcept.code   | Kodierter Wert (valueCodeableConcept.code) der Observation mit der NTproBNP-Messung, für Fälle in denen die Messung nicht numerisch abgelegt wurde. |
+| NTproBNP.valueCodeableConcept.system | Codesystem zu NTproBNP.valueCodeableConcept.code                                                                                                    |
+| NTproBNP.code                        | Loinc-Code (code.coding.code) der Observation mit der NTproBNP-Messung.                                                                             |
+| NTproBNP.codeSystem                  | CodeSystem (code.coding.system) der Observation mit der NTproBNP-Messung.                                                                           |
+| NTproBNP.unit                        | Code der Einheit (valueQuantity.code) der NTproBNP-Messung.                                                                                         |
+| NTproBNP.unitSystem                  | Codesystem der Einheit (valueQuantity.code) der NTproBNP-Messung.                                                                                   |
+| gender                               | Geschlecht (gender) der Patient Ressource                                                                                                           |
+| birthdate                            | Geburtsdatum (birthDate) der Patient Ressource                                                                                                      |
 
 **Diagnosen.csv**
 
 Diese Tabelle enthält alle Diagnosen der Patienten aus Kohorte.csv, die einen der im Antrag genannten ICD-Kodes enthalten.
 
-|Variable             | Bedeutung|
-|---------------------|----------|
-|condition.id               |Ressourcen ID der Condition Ressource|
-|clinicalStatus.code        |Code des ClinicalStatus|
-|clinicalStatus.system      |Codesystem des ClinicalStatus|
-|verificationStatus.code    |Code des verificationStatus|
-|verificationStatus.system  |CodeSystem des verificationStatus|
-|code                       |ICD-Code|
-|code.system                |Codesystem des ICD Codes|
-|subject                    |ID der zugehörigen Patient Ressource|
-|encounter.id               |ID der zugehörigen Encounter Ressource|
-|diagnosis.use.code         |Encounter.diagnosis.use.coding.code mit dem die Condition im zugehörigen Encounter beschrieben ist|
-|diagnosis.use.system         |Encounter.diagnosis.use.coding.system mit dem die Condition im zugehörigen Encounter beschrieben ist|
+| Variable                  | Bedeutung                                                                                            |
+|---------------------------|------------------------------------------------------------------------------------------------------|
+| condition.id              | Ressourcen ID der Condition Ressource                                                                |
+| clinicalStatus.code       | Code des ClinicalStatus                                                                              |
+| clinicalStatus.system     | Codesystem des ClinicalStatus                                                                        |
+| verificationStatus.code   | Code des verificationStatus                                                                          |
+| verificationStatus.system | CodeSystem des verificationStatus                                                                    |
+| code                      | ICD-Code                                                                                             |
+| code.system               | Codesystem des ICD Codes                                                                             |
+| subject                   | ID der zugehörigen Patient Ressource                                                                 |
+| encounter.id              | ID der zugehörigen Encounter Ressource                                                               |
+| diagnosis.use.code        | Encounter.diagnosis.use.coding.code mit dem die Condition im zugehörigen Encounter beschrieben ist   |
+| diagnosis.use.system      | Encounter.diagnosis.use.coding.system mit dem die Condition im zugehörigen Encounter beschrieben ist |
 
 **smith_select.log**
 
