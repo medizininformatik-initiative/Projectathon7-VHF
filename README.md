@@ -11,7 +11,7 @@ CodeSysteme/Ressourcen/Profile und der konzeptionelle Ablauf der Abfrage beschri
 
 ## Verwendung
 
-### polarctl (Docker)
+### dupctl (Docker)
 
 Eine einfache und reproduzierbare Ausführung der SMITH PheP DUPs wird über das dupctl Command Line Interface (cli) 
 sichergestellt. Nach der Installation der cli (siehe [dupctl][dupctl]) wird das DUP Skript über eine Kommandozeile 
@@ -23,7 +23,7 @@ dupctl retrieve --dup vhf [...]
 
 ### Manuelle Ausführung
 
-Bei Bedarf können die POLAR-Analysen auch ohne den Einsatz von Docker durchgeführt werden.
+Bei Bedarf können DUPs auch ohne den Einsatz von Docker durchgeführt werden.
 
 *Die manuelle Ausführung ist **nicht** durch das downloaden/klonen dieses Repositories möglich!*
 Stattdessen muss das Workpackage in Form eines Archivs mittels folgenden Links heruntergeladen werden. Das Archiv
