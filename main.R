@@ -6,11 +6,13 @@ source("install-dependencies.R")
 # source config
 source("config.R")
 
+PROJECT_NAME <- "VHF"
+
 ### Verzeichnisse
 # Verzeichnis für Zwischenergebnisse/Debug
-OUTPUT_DIR_LOCAL <- "/mnt/outputLocal"
+OUTPUT_DIR_LOCAL <- paste0("/mnt/outputLocal/", PROJECT_NAME)
 # Verzeichnis für Endergebnisse
-OUTPUT_DIR_GLOBAL <- "/mnt/outputGlobal"
+OUTPUT_DIR_GLOBAL <- paste0("/mnt/outputGlobal/", PROJECT_NAME)
 
 # Maximum character length of GET requests to the FHIR server.
 # This value was created by testing.
