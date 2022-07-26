@@ -2,9 +2,10 @@
 
 ## Einführung
 
-Dieses Projekt führt die Select-Anfrage für das SMITH Projekt im Rahmen des 6. Projectathons aus. Hier ist eine 
-zentrale Analyse vorgesehen. Dafür erzeugt dieses Skript zwei Tabellen mit den für die Analyse benötigten Inhalten. 
-Diese Tabellen sollen zentral zusammengeführt und an die datenauswertendende Stelle übergeben werden.
+Dieses Projekt führt das SMITH DUP Vorhofflimmern (VHF) aus. Dafür erzeugt dieses Skript zwei Tabellen mit den für die 
+Analyse benötigten Inhalten. Diese Tabellen sollen entweder zentral erzeugt und an die datenauswertendende Stelle 
+übergeben oder dezentral in den DIZen analysiert werden, das Analyseergebnis muss in diesem Fall manuell an die 
+Biometrie übergeben werden.
 
 Das Readme beschreibt zunächst die technischen Details der Verwendung. Darunter sind die verwendeten 
 CodeSysteme/Ressourcen/Profile und der konzeptionelle Ablauf der Abfrage beschrieben.
