@@ -181,7 +181,9 @@ obs_tables$pat <- unique(obs_tables$pat)
 # prepare key variables for merge
 obs_tables$obs[, subject := sub("Patient/", "", subject)]
 
-# sort out col types
+# backup the NTproBNP.date as date string with day and time
+# after conversion as.Date(...) the day remains but the time is lost
+obs_tables$obs$NTproBNP.date.bak = obs_tables$obs$NTproBNP.date
 obs_tables$obs[, NTproBNP.date := as.Date(NTproBNP.date)]
 
 # merge
@@ -502,7 +504,10 @@ if (nrow(conditions) > 0) {
   conditions <- conditions[encounter.id %in% cohort$encounter.id]
 }
 
-
+# replace the NTproBNP.date (with only day) by the backup (with day and time)
+cohort$NTproBNP.date = cohort$NTproBNP.date.bak
+# remove the date column backup
+cohort <- within(cohort, rm(NTproBNP.date.bak)) 
 # Write result files
 write.csv2(cohort, result_file_cohort)
 write.csv2(conditions, result_file_diagnoses)
