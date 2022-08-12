@@ -34,6 +34,7 @@ debug_dir_con_bundles <- paste0(output_local_bundles, "/Conditions")
 # Result files
 result_file_cohort <- paste0(OUTPUT_DIR_GLOBAL, "/Kohorte.csv")
 result_file_diagnoses <- paste0(OUTPUT_DIR_GLOBAL, "/Diagnosen.csv")
+result_file_full <- paste0(OUTPUT_DIR_GLOBAL, "/Result.csv")
 result_file_log <- paste0(OUTPUT_DIR_GLOBAL, "/retrieve.log")
 
 # remove old files and dirs and create new dirs  (surpress warning if dir exists)
@@ -151,11 +152,11 @@ if (nrow(obs_tables$pat) == 0) {
   stop("No Patients for NTproBNP Observations found - aborting.")
 }
 
-# melt multiple entries/remove indices
+# remove indices in sub table pat in obs_tables 
 obs_tables$pat <-
   fhir_rm_indices(obs_tables$pat, brackets = brackets)
 
-# remove 2 indices
+# expand multiple cell values to multiple lines
 for (i in 1:2) {
   obs_tables$obs <- fhir_melt(
     obs_tables$obs,
@@ -165,19 +166,22 @@ for (i in 1:2) {
     all_columns = TRUE
   )
 }
-
+# remove remaining indices
 obs_tables$obs <-
   fhir_rm_indices(obs_tables$obs, brackets = brackets)
 
+# remove the resource_identifier inserted by fhir_melt
 obs_tables$obs[, resource_identifier := NULL]
 
+# remove all not loinc lines 
 obs_tables$obs <-
   obs_tables$obs[NTproBNP.codeSystem == "http://loinc.org"]
 
 # get rid of resources that have been downloaded multiple times via _include
 obs_tables$pat <- unique(obs_tables$pat)
 
-### Prepare Patient id from initial patient population for Search requests that download associated resources (e.g. consent, encounters, conditions)
+### Prepare Patient id from initial patient population for Search requests that
+### download associated resources (e.g. consent, encounters, conditions)
 
 ### merge observation and patient data
 # prepare key variables for merge
@@ -185,7 +189,7 @@ obs_tables$obs[, subject := sub("Patient/", "", subject)]
 
 # backup the NTproBNP.date as date string with day and time
 # after conversion as.Date(...) the day remains but the time is lost
-obs_tables$obs$NTproBNP.date.bak = obs_tables$obs$NTproBNP.date
+obs_tables$obs$NTproBNP.date.bak <- obs_tables$obs$NTproBNP.date
 obs_tables$obs[, NTproBNP.date := as.Date(NTproBNP.date)]
 
 # merge
@@ -411,8 +415,7 @@ if (nrow(conditions) > 0) {
         all_columns = TRUE
       )
   }
-
-
+  # remove remaining indices and remove resource_identifier column
   conditions <- fhir_rm_indices(conditions, brackets = brackets)
   conditions[, resource_identifier := NULL]
 
@@ -444,24 +447,24 @@ if (nrow(conditions) > 0) {
     all.x = TRUE
   )
 
-  # prepare key variables
+  # prepare key variables for merge (removing ID prefixes caused by join)
   conditions[, subject := sub("Patient/", "", subject)]
   conditions[, encounter := sub("Encounter/", "", encounter)]
 
-  # merge encounter ids coming from the encounter.id vs. ids coming from the condition.encounter element into one column
+  # fill empty values in column encounter.id with the value of column encounter
+  # (which are the encounter IDs from the condition.encounter)
   conditions[is.na(encounter.id), encounter.id := encounter]
   conditions[, encounter := NULL]
 }
 
+### prepare encounter table ###
 
-### prepare encounter table
-# remove diagnosis info and indices
+# remove diagnosis info clumns and indices
 encounters[, c("diagnosis", "diagnosis.use.code", "diagnosis.use.system") :=
              NULL]
-
 encounters <- fhir_rm_indices(encounters, brackets = brackets)
 
-# prepare key variable for merge
+# prepare key variable for merge (removing ID prefixes caused by join)
 encounters[, subject := sub("Patient/", "", subject)]
 
 # sort out col types
@@ -496,7 +499,7 @@ cohort <-
 
 rm(obsdata)
 
-# remove encounters that don't have a NTproBNP observation within their encounter.period
+# only keep encounters that have a NTproBNP observation within their encounter.period
 cohort <-
   cohort[NTproBNP.date >= encounter.start &
            NTproBNP.date <= encounter.end]
@@ -507,12 +510,45 @@ if (nrow(conditions) > 0) {
 }
 
 # replace the NTproBNP.date (with only day) by the backup (with day and time)
-cohort$NTproBNP.date = cohort$NTproBNP.date.bak
+cohort$NTproBNP.date <- cohort$NTproBNP.date.bak
 # remove the date column backup
-cohort <- within(cohort, rm(NTproBNP.date.bak)) 
+cohort[, NTproBNP.date.bak := NULL] #cohort <- within(cohort, rm(NTproBNP.date.bak)) 
+
+
+### Build the result table ### 
+
+result <- cohort[, .(
+  subject,
+  NTproBNP.date,
+  NTproBNP.valueQuantity.value = max(NTproBNP.valueQuantity.value),
+  NTproBNP.valueCodeableConcept.code,
+  NTproBNP.unit,
+  birthdate,
+  gender
+           ), by = encounter.id]
+
+conditionsReduced <- conditions[, .(
+  VHF = as.numeric(grepl("I48.0|I48.1|I48.2|I48.9", code)),
+  MI = as.numeric(grepl("I21|I22|I25.2", code)),
+  HI = as.numeric(grepl("I50", code)),
+  Schlaganfall = as.numeric(grepl("I60|I61|I62|I63|I64|I69", code))
+  ), by = encounter.id]
+
+result <- merge.data.table(
+  x = result,
+  y = conditionsReduced,
+  by = "encounter.id",
+  all.x = TRUE
+)
+
+setcolorder(result, neworder = "subject")
+
 # Write result files
-write.csv2(cohort, result_file_cohort)
-write.csv2(conditions, result_file_diagnoses)
+if (DEBUG) {
+  write.csv2(cohort, result_file_cohort, row.names = FALSE)
+  write.csv2(conditions, result_file_diagnoses, row.names = FALSE)
+}
+write.csv2(result, result_file_full, row.names = FALSE)
 
 # logging
 runtime <- Sys.time() - start
