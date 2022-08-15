@@ -196,7 +196,7 @@ obs_tables$obs[, subject := sub("Patient/", "", subject)]
 
 # backup the NTproBNP.date as date string with day and time
 # after conversion as.Date(...) the day remains but the time is lost
-obs_tables$obs$NTproBNP.date.bak <- obs_tables$obs$NTproBNP.date
+obs_tables$obs$NTproBNP.date.bak <- as.POSIXct(obs_tables$obs$NTproBNP.date, format = "%Y-%M-%dT%H:%M:%S")
 obs_tables$obs[, NTproBNP.date := as.Date(NTproBNP.date)]
 
 # merge
