@@ -519,7 +519,10 @@ cohort[, NTproBNP.date.bak := NULL] #cohort <- within(cohort, rm(NTproBNP.date.b
 
 result <- cohort[, .(
   subject,
-  NTproBNP.date,
+  # fill the date (=timestamp) column with the timestamp of the max NTproBNP
+  # value for every encounter
+  NTproBNP.date = NTproBNP.date[NTproBNP.valueQuantity.value == max(NTproBNP.valueQuantity.value)],
+  # fill the NTproBNP value for every encounter with the maximum value
   NTproBNP.valueQuantity.value = max(NTproBNP.valueQuantity.value),
   NTproBNP.valueCodeableConcept.code,
   NTproBNP.unit,
@@ -527,20 +530,28 @@ result <- cohort[, .(
   gender
            ), by = encounter.id]
 
-conditionsReduced <- conditions[, .(
-  VHF = as.numeric(grepl("I48.0|I48.1|I48.2|I48.9", code)),
-  MI = as.numeric(grepl("I21|I22|I25.2", code)),
-  HI = as.numeric(grepl("I50", code)),
-  Schlaganfall = as.numeric(grepl("I60|I61|I62|I63|I64|I69", code))
-  ), by = encounter.id]
+# remove equal columns which are now present if there were multiple NTproBNP
+# values for the same encounter with different timestamps (now these NTproBNP
+# values have all the same timestamp and so the whole row is equals)
+result <- unique(result)
 
+# for each encounter, extract the Boolean information whether certain diagnoses
+# were present
+conditionsReduced <- conditions[, .(
+  VHF = as.numeric(any(grepl("I48.0|I48.1|I48.2|I48.9", code))),
+  MI = as.numeric(any(grepl("I21|I22|I25.2", code))),
+  HI = as.numeric(any(grepl("I50", code))),
+  Schlaganfall = as.numeric(any(grepl("I60|I61|I62|I63|I64|I69", code)))
+), by = encounter.id]
+
+# merge the result encounters with the diagnoses information 
 result <- merge.data.table(
   x = result,
   y = conditionsReduced,
   by = "encounter.id",
   all.x = TRUE
 )
-
+# bring the subject column to the front again
 setcolorder(result, neworder = "subject")
 
 # Write result files
