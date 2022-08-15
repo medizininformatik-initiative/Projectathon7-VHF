@@ -73,7 +73,14 @@ obs_request <- fhir_url(
   url = fhir_server_url,
   resource = "Observation",
   parameters = c(
-    "code" = "http://loinc.org|33763-4,http://loinc.org|71425-3,http://loinc.org|33762-6,http://loinc.org|83107-3,http://loinc.org|83108-1,http://loinc.org|77622-9,http://loinc.org|77621-1",
+    "code" = paste0(
+      "http://loinc.org|33763-4,",
+      "http://loinc.org|71425-3,",
+      "http://loinc.org|33762-6,",
+      "http://loinc.org|83107-3,",
+      "http://loinc.org|83108-1,",
+      "http://loinc.org|77622-9,",
+      "http://loinc.org|77621-1"),
     "date" = "ge2019-01-01",
     "date" = "le2021-12-31",
     "_include" = "Observation:patient"
