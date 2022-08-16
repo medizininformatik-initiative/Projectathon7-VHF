@@ -22,6 +22,14 @@ FHIR_SERVER_TOKEN <- emptyToNull(Sys.getenv('FHIR_SERVER_TOKEN')) #zB "mytoken"
 # TRUE = peer verification anschalten, FALSE = peer verification ausschalten
 SSL_VERIFY <- as.logical(Sys.getenv('SSL_VERIFY', "TRUE"))
 
+# Wenn true (= dezentrale Analyse im DIZ), dann wird die Analyse nach dem
+# Retrieval ausgeführt und nur die Ergebnisse der Analyse ins 
+# outputGlobal-Verzeichnis kopiert.
+# Wenn false (= zentrale Analyse), dann wird die Analyse nicht automatisch nach
+# dem Retrieval ausgefüht, sondern die Ergebnisse des Retrieval in das
+# auszuleitenden outputGlobal-Verzeichnis gelegt.
+DECENTRAL_ANALYIS <- as.logical(Sys.getenv('DECENTRAL_ANALYIS', "TRUE"))  
+
 # Das Script lädt zuerst alle passenden Observations, davon ausgehend
 # die zugehörigen Patienten und Conditions.
 # Inf = alle Observation Bundles, ansonsten wird maximal die gegebene Anzahl geladen

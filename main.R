@@ -34,8 +34,13 @@ debug_dir_con_bundles <- paste0(output_local_bundles, "/Conditions")
 # Result files
 result_file_cohort <- paste0(OUTPUT_DIR_GLOBAL, "/Kohorte.csv")
 result_file_diagnoses <- paste0(OUTPUT_DIR_GLOBAL, "/Diagnosen.csv")
-result_file_full <- paste0(OUTPUT_DIR_GLOBAL, "/Result.csv")
 result_file_log <- paste0(OUTPUT_DIR_GLOBAL, "/retrieve.log")
+if (DECENTRAL_ANALYIS) {
+  retrieve_dir = OUTPUT_DIR_LOCAL
+} else {
+  retrieve_dir = OUTPUT_DIR_GLOBAL
+}
+result_file_retrieve <- paste0(retrieve_dir, "/Retrieve.csv")
 
 # remove old files and dirs and create new dirs  (surpress warning if dir exists)
 unlink(OUTPUT_DIR_GLOBAL, recursive = TRUE)
@@ -566,7 +571,7 @@ if (DEBUG) {
   write.csv2(cohort, result_file_cohort, row.names = FALSE)
   write.csv2(conditions, result_file_diagnoses, row.names = FALSE)
 }
-write.csv2(result, result_file_full, row.names = FALSE)
+write.csv2(result, result_file_retrieve, row.names = FALSE)
 
 # logging
 runtime <- Sys.time() - start
