@@ -23,24 +23,24 @@ MAX_REQUEST_STRING_LENGTH <- 1800
 output_local_errors <- paste0(OUTPUT_DIR_LOCAL, "/Errors")
 output_local_bundles <- paste0(OUTPUT_DIR_LOCAL, "/Bundles")
 # Error files
-error_file <- paste0(output_local_errors, "/error_message.txt")
-error_file_obs <- paste0(output_local_errors, "/observation_error.xml")
-error_file_enc <- paste0(output_local_errors, "/encounter_error.xml")
-error_file_con <- paste0(output_local_errors, "/condition_error.xml")
+error_file <- paste0(output_local_errors, "/ErrorMessage.txt")
+error_file_obs <- paste0(output_local_errors, "/ObservationError.xml")
+error_file_enc <- paste0(output_local_errors, "/EncounterError.xml")
+error_file_con <- paste0(output_local_errors, "/ConditionError.xml")
 # Debug files
 debug_dir_obs_bundles <- paste0(output_local_bundles, "/Observations")
 debug_dir_enc_bundles <- paste0(output_local_bundles, "/Encounter")
 debug_dir_con_bundles <- paste0(output_local_bundles, "/Conditions")
 # Result files
-result_file_cohort <- paste0(OUTPUT_DIR_GLOBAL, "/Kohorte.csv")
-result_file_diagnoses <- paste0(OUTPUT_DIR_GLOBAL, "/Diagnosen.csv")
-result_file_log <- paste0(OUTPUT_DIR_GLOBAL, "/retrieve.log")
+result_file_cohort <- paste0(OUTPUT_DIR_LOCAL, "/Kohorte.csv")
+result_file_diagnoses <- paste0(OUTPUT_DIR_LOCAL, "/Diagnosen.csv")
 if (DECENTRAL_ANALYIS) {
   retrieve_dir = OUTPUT_DIR_LOCAL
 } else {
   retrieve_dir = OUTPUT_DIR_GLOBAL
 }
 result_file_retrieve <- paste0(retrieve_dir, "/Retrieve.csv")
+result_file_log <- paste0(OUTPUT_DIR_GLOBAL, "/Logging.log")
 
 # remove old files and dirs and create new dirs  (surpress warning if dir exists)
 unlink(OUTPUT_DIR_GLOBAL, recursive = TRUE)
