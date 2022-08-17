@@ -561,8 +561,7 @@ write(
   paste0(
     "main.R finished at ", Sys.time(), ".\n",
     "Extracted ", length(cohort$encounter.id), " Encounters based on ", length(unique(cohort$subject)), " Patients.\n",
-    "R script execution took ", round(runtime, 2), " ", attr(runtime, "units"), ".\n",
-    "Data Quality script execution took ", round(runtime_DQ, 2), " ", attr(runtime, "units"), ".\n"
+    "R script execution took ", round(runtime, 2), " ", attr(runtime, "units"), ".\n"
   ),
   file = con
 )
