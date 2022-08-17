@@ -437,18 +437,8 @@ if (nrow(conditions) > 0) {
   # add diagnosis use info to condition table
   message(
     "Merging Condition and Encounter data based on Condition id.\n",
-    "Number of unique Condition ids in Condition data: ",
-    length(unique(conditions$condition.id)),
-    " in ",
-    nrow(conditions),
-    " rows",
-    "\n",
-    "Number of unique Condition ids in Encounter data: ",
-    length(unique(useInfo$diagnosis)),
-    " in ",
-    nrow(useInfo),
-    " rows",
-    "\n"
+    "Number of unique Condition ids in Condition data: ", length(unique(conditions$condition.id)), " in ", nrow(conditions), " rows", "\n",
+    "Number of unique Condition ids in Encounter data: ", length(unique(useInfo$diagnosis)), " in ", nrow(useInfo), " rows", "\n"
   )
 
   conditions <- merge.data.table(
@@ -486,18 +476,8 @@ encounters[, encounter.end := as.Date(encounter.end)]
 # merge based on subject id and temporal relation of observation date and encounter times
 message(
   "Merging Observation and Encounter data based on Subject id and time.\n",
-  "Number of unique Subject ids in Observation data: ",
-  length(unique(obsdata$subject)),
-  " in ",
-  nrow(obsdata),
-  " rows",
-  "\n",
-  "Number of unique Subject ids in Encounter data: ",
-  length(unique(encounters$subject)),
-  " in ",
-  nrow(encounters),
-  " rows",
-  "\n"
+  "Number of unique Subject ids in Observation data: ", length(unique(obsdata$subject)), " in ", nrow(obsdata), " rows", "\n",
+  "Number of unique Subject ids in Encounter data: ", length(unique(encounters$subject)), " in ", nrow(encounters), " rows", "\n"
 )
 # encounters <- encounters[!grepl(".*-E-[0-9]-A", encounters$encounter.id)]
 cohort <-
@@ -579,19 +559,10 @@ runtime <- Sys.time() - start
 con <- file(result_file_log)
 write(
   paste0(
-    "smith_select.R finished at ",
-    Sys.time(),
-    ".\n",
-    "Extracted ",
-    length(cohort$encounter.id),
-    " Encounters based on ",
-    length(unique(cohort$subject)),
-    " Patients.\n",
-    "R script execution took ",
-    round(runtime, 2),
-    " ",
-    attr(runtime, "units"),
-    "."
+    "main.R finished at ", Sys.time(), ".\n",
+    "Extracted ", length(cohort$encounter.id), " Encounters based on ", length(unique(cohort$subject)), " Patients.\n",
+    "R script execution took ", round(runtime, 2), " ", attr(runtime, "units"), ".\n",
+    "Data Quality script execution took ", round(runtime_DQ, 2), " ", attr(runtime, "units"), ".\n"
   ),
   file = con
 )
