@@ -10,9 +10,9 @@ PROJECT_NAME <- "VHF"
 
 ### Verzeichnisse
 # Verzeichnis für Zwischenergebnisse/Debug
-OUTPUT_DIR_LOCAL <- paste0("/mnt/outputLocal/", PROJECT_NAME)
+OUTPUT_DIR_LOCAL <- paste0(OUTPUT_DIR_BASE, "/outputLocal/", PROJECT_NAME)
 # Verzeichnis für Endergebnisse
-OUTPUT_DIR_GLOBAL <- paste0("/mnt/outputGlobal/", PROJECT_NAME)
+OUTPUT_DIR_GLOBAL <- paste0(OUTPUT_DIR_BASE, "/outputGlobal/", PROJECT_NAME)
 
 # Maximum character length of GET requests to the FHIR server.
 # This value was created by testing.
