@@ -16,8 +16,8 @@ test:
   services:
   - name: knoppiks/blaze:0.17-expose
     alias: blaze
-    command: ["-c", "BASE_URL=http://blaze:8080 java -jar blaze-standalone.jar -m blaze.core"]
-    entrypoint: ["/bin/sh"]
+    command: [ "-c", "BASE_URL=http://blaze:8080 java -jar blaze-standalone.jar -m blaze.core" ]
+    entrypoint: [ "/bin/sh" ]
   variables:
     FF_NETWORK_PER_BUILD: 1
     TEST_DATA_BASE: https://github.com/medizininformatik-initiative/kerndatensatz-testdaten/raw/b2c4292/Test_Data/Vorhofflimmern

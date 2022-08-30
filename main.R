@@ -62,7 +62,7 @@ if (!SSL_VERIFY) {
 fhir_server_url <-
   if (startsWith(FHIR_SERVER_ENDPOINT, "/")) {
     strtrim(FHIR_SERVER_ENDPOINT, width = nchar(FHIR_SERVER_ENDPOINT) - 1)
-  } else{
+  } else {
     FHIR_SERVER_ENDPOINT
   }
 
@@ -164,7 +164,7 @@ if (nrow(obs_tables$pat) == 0) {
   stop("No Patients for NTproBNP Observations found - aborting.")
 }
 
-# remove indices in sub table pat in obs_tables 
+# remove indices in sub table pat in obs_tables
 obs_tables$pat <-
   fhir_rm_indices(obs_tables$pat, brackets = brackets)
 
@@ -185,7 +185,7 @@ obs_tables$obs <-
 # remove the resource_identifier inserted by fhir_melt
 obs_tables$obs[, resource_identifier := NULL]
 
-# remove all not loinc lines 
+# remove all not loinc lines
 obs_tables$obs <-
   obs_tables$obs[NTproBNP.codeSystem == "http://loinc.org"]
 
@@ -237,7 +237,7 @@ patient_ids <- obsdata$subject #all patient ids
 
 # remaining number of characters in the url that can be used for patient IDs
 # (assume maximal length of 1800)
-nchar_for_ids <- MAX_REQUEST_STRING_LENGTH - nchar(paste0(fhir_server_url, "Encounter", "&_profile=", PROFILE_ENC)) 
+nchar_for_ids <- MAX_REQUEST_STRING_LENGTH - nchar(paste0(fhir_server_url, "Encounter", "&_profile=", PROFILE_ENC))
 
 # reduce the chunk size until number of characters is small enough
 patient_ids_chunk_size <- length(patient_ids)
@@ -463,7 +463,7 @@ if (nrow(conditions) > 0) {
 
 # remove diagnosis info clumns and indices
 encounters[, c("diagnosis", "diagnosis.use.code", "diagnosis.use.system") :=
-             NULL]
+               NULL]
 encounters <- fhir_rm_indices(encounters, brackets = brackets)
 
 # prepare key variable for merge (removing ID prefixes caused by join)
@@ -504,10 +504,10 @@ if (nrow(conditions) > 0) {
 # replace the NTproBNP.date (with only day) by the backup (with day and time)
 cohort$NTproBNP.date <- cohort$NTproBNP.date.bak
 # remove the date column backup
-cohort[, NTproBNP.date.bak := NULL] #cohort <- within(cohort, rm(NTproBNP.date.bak)) 
+cohort[, NTproBNP.date.bak := NULL] #cohort <- within(cohort, rm(NTproBNP.date.bak))
 
 
-### Build the result table ### 
+### Build the result table ###
 
 result <- cohort[, .(
   subject,
@@ -520,7 +520,7 @@ result <- cohort[, .(
   NTproBNP.unit,
   birthdate,
   gender
-           ), by = encounter.id]
+), by = encounter.id]
 
 # remove equal columns which are now present if there were multiple NTproBNP
 # values for the same encounter with different timestamps (now these NTproBNP
@@ -536,7 +536,7 @@ conditionsReduced <- conditions[, .(
   Schlaganfall = as.numeric(any(grepl("I60|I61|I62|I63|I64|I69", code)))
 ), by = encounter.id]
 
-# merge the result encounters with the diagnoses information 
+# merge the result encounters with the diagnoses information
 result <- merge.data.table(
   x = result,
   y = conditionsReduced,
