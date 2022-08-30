@@ -39,8 +39,8 @@ DEBUG <- as.logical(Sys.getenv('DEBUG', "FALSE"))
 # Verbose-Level des fhircrackr
 VERBOSE <- as.integer(Sys.getenv('VERBOSE', "0"))
 
-
-OUTPUT_DIR_BASE <- Sys.getenv('OUTPUT_DIR_BASE', '..')
+# Directory where 'outputLocal' and 'outputGlobal' directories are located 
+OUTPUT_DIR_BASE <- Sys.getenv('OUTPUT_DIR_BASE', '.')
 
 ### Profile, der gesuchten Resourcen:
 #Encounter
