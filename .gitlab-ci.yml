@@ -8,7 +8,7 @@ build:
   stage: build
   tags: [ "docker" ]
   script:
-  - docker build -f Dockerfile -t ${CI_REGISTRY}/${CI_PROJECT_NAME}:${CI_PIPELINE_IID} .
+  - docker build -f retrieval/Dockerfile -t ${CI_REGISTRY}/${CI_PROJECT_NAME}:${CI_PIPELINE_IID} retrieval/
 
 test:
   stage: test
@@ -23,6 +23,7 @@ test:
     TEST_DATA_BASE: https://github.com/medizininformatik-initiative/kerndatensatz-testdaten/raw/b2c4292/Test_Data/Vorhofflimmern
   image: ghcr.io/knoppiks/blazectl:latest
   script:
+  - cd retrieval
   - (cd test && cat files.txt | xargs -i -n 1 wget -q ${TEST_DATA_BASE}/{})
   - blazectl --no-progress upload --server http://blaze:8080/fhir/ test -c 4
   - blazectl count-resources --server http://blaze:8080/fhir/

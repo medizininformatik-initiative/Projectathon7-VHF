@@ -42,7 +42,7 @@ VERBOSE <- as.integer(Sys.getenv('VERBOSE', "0"))
 DATA_QUALITY_REPORT <- as.logical(Sys.getenv('DATA_QUALITY_REPORT', "TRUE"))
 
 
-OUTPUT_DIR_BASE <- Sys.getenv('OUTPUT_DIR_BASE', '.')
+OUTPUT_DIR_BASE <- Sys.getenv('OUTPUT_DIR_BASE', '..')
 
 ### Profile, der gesuchten Resourcen:
 #Encounter
