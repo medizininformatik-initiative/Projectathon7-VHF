@@ -1,10 +1,10 @@
 ### Preparation
 start <- Sys.time()
 # load/install a packages
-source("analysis/install-dependencies.R")
+source("install-dependencies.R")
 
 # source config
-source("analysis/config.R")
+source("config.R")
 
 PROJECT_NAME <- "VHF"
 
