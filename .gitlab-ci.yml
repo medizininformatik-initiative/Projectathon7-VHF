@@ -1,61 +1,61 @@
 stages:
-- test
 - build
+- test
+- publish
+- cleanup
 
-.test:
-  stage: test
-  tags: ["docker"]
-  script:
-  - docker login -u "${CI_REGISTRY_USER}" -p "${CI_REGISTRY_PASSWORD}" ${CI_REGISTRY}
-  - docker build -f Dockerfile -t ${CI_REGISTRY}/${CI_PROJECT_NAME}:${CI_JOB_ID} .
-  - docker run -e MAX_BUNDLES="10" -e FHIR_SERVER_ENDPOINT="${!FHIR_ENDPOINT}" ${CI_REGISTRY}/${CI_PROJECT_NAME}:${CI_JOB_ID}
-  after_script:
-  - docker rmi -f ${CI_REGISTRY}/${CI_PROJECT_NAME}:${CI_JOB_ID}
-  allow_failure: true # TODO Remove if valid test data available
-
-test-blaze:
-  extends: .test
-  variables:
-    FHIR_ENDPOINT: FHIR_TEST_SERVER_BLAZE
-
-test-hapi:
-  extends: .test
-  variables:
-    FHIR_ENDPOINT: FHIR_TEST_SERVER_HAPI
-
-.build-image:
+build:
   stage: build
-  tags: ["docker"]
+  tags: [ "docker" ]
+  script:
+  - docker build -f Dockerfile -t ${CI_REGISTRY}/${CI_PROJECT_NAME}:${CI_PIPELINE_IID} .
+
+test:
+  stage: test
+  tags: [ "docker" ]
+  services:
+  - name: knoppiks/blaze:0.17-expose
+    alias: blaze
+    command: ["-c", "BASE_URL=http://blaze:8080 java -jar blaze-standalone.jar -m blaze.core"]
+    entrypoint: ["/bin/sh"]
+  variables:
+    FF_NETWORK_PER_BUILD: 1
+    TEST_DATA_BASE: https://github.com/medizininformatik-initiative/kerndatensatz-testdaten/raw/b2c4292/Test_Data/Vorhofflimmern
+  image: ghcr.io/knoppiks/blazectl:latest
+  script:
+  - (cd test && cat files.txt | xargs -i -n 1 wget -q ${TEST_DATA_BASE}/{})
+  - blazectl --no-progress upload --server http://blaze:8080/fhir/ test -c 4
+  - docker run --network "$HOSTNAME-job-$CI_JOB_ID-network" -e MAX_BUNDLES="10" -e FHIR_SERVER_ENDPOINT="http://blaze:8080/fhir/" ${CI_REGISTRY}/${CI_PROJECT_NAME}:${CI_PIPELINE_IID}
+
+.publish-image:
+  stage: publish
+  tags: [ "docker" ]
   script:
   - docker login -u "${CI_REGISTRY_USER}" -p "${CI_REGISTRY_PASSWORD}" ${CI_REGISTRY}
   - "echo \"DUP Version: ${version}\" >> version.txt"
-  - docker build -f Dockerfile --pull -t ${image} .
+  - docker tag ${CI_REGISTRY}/${CI_PROJECT_NAME}:${CI_PIPELINE_IID} ${image}
   - docker push ${image}
 
-build-image:latest:
-  extends: .build-image
+publish-image:latest:
+  extends: .publish-image
   before_script:
   - image="${CI_REGISTRY}/${CI_PROJECT_NAME}"
   - version="${CI_COMMIT_SHORT_SHA}"
-  after_script:
-  - docker rmi -f "${CI_REGISTRY}/${CI_PROJECT_NAME}"
   only:
   - master
 
-build-image:branch:
-  extends: .build-image
+publish-image:branch:
+  extends: .publish-image
   before_script:
   - image="${CI_REGISTRY}/${CI_PROJECT_NAME}:${CI_COMMIT_REF_SLUG}"
   - version="${CI_COMMIT_REF_SLUG}"
-  after_script:
-  - docker rmi -f "${CI_REGISTRY}/${CI_PROJECT_NAME}:${CI_COMMIT_REF_SLUG}"
   only:
   - branches
   except:
   - master
 
-build-image:tag:
-  extends: .build-image
+publish-image:tag:
+  extends: .publish-image
   before_script:
   - image="${CI_REGISTRY}/${CI_PROJECT_NAME}:$(echo ${CI_COMMIT_TAG} | cut -c 2-)"
   - version="${CI_COMMIT_TAG}"
@@ -64,8 +64,8 @@ build-image:tag:
   only:
   - tags
 
-.build-archive:
-  stage: build
+.publish-archive:
+  stage: publish
   script:
   - "echo \"DUP Version: ${version}\" >> version.txt"
   artifacts:
@@ -75,8 +75,8 @@ build-image:tag:
     - "install-dependencies.*"
     - "version.txt"
 
-build-archive:latest:
-  extends: .build-archive
+publish-archive:latest:
+  extends: .publish-archive
   before_script:
   - version="${CI_COMMIT_SHORT_SHA}"
   artifacts:
@@ -84,8 +84,8 @@ build-archive:latest:
   only:
   - master
 
-build-archive:branch:
-  extends: .build-archive
+publish-archive:branch:
+  extends: .publish-archive
   before_script:
   - version="${CI_COMMIT_REF_SLUG}"
   artifacts:
@@ -95,11 +95,19 @@ build-archive:branch:
   except:
   - master
 
-build-archive:tag:
-  extends: .build-archive
+publish-archive:tag:
+  extends: .publish-archive
   before_script:
   - version="${CI_COMMIT_TAG}"
   artifacts:
     name: "${CI_PROJECT_NAME}-${CI_COMMIT_TAG}"
   only:
   - tags
+
+cleanup:
+  stage: cleanup
+  tags: [ "docker" ]
+  when: always
+  script:
+  - docker rmi ${CI_REGISTRY}/${CI_PROJECT_NAME}:${CI_PIPELINE_IID}
+  allow_failure: true
