@@ -8,6 +8,7 @@ COPY install-dependencies.* ./
 RUN /bin/bash -e install-dependencies.sh
 
 COPY config.R ./config.R
+COPY data-quality ./data-quality
 COPY main.R ./main.R
 
 COPY version.txt ./

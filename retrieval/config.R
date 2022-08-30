@@ -38,8 +38,6 @@ MAX_BUNDLES <- as.double(Sys.getenv('MAX_BUNDLES', "Inf"))
 DEBUG <- as.logical(Sys.getenv('DEBUG', "FALSE"))
 # Verbose-Level des fhircrackr
 VERBOSE <- as.integer(Sys.getenv('VERBOSE', "0"))
-# Run the Data Quality Check
-DATA_QUALITY_REPORT <- as.logical(Sys.getenv('DATA_QUALITY_REPORT', "TRUE"))
 
 
 OUTPUT_DIR_BASE <- Sys.getenv('OUTPUT_DIR_BASE', '..')

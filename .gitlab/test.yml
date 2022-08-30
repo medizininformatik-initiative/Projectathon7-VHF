@@ -1,0 +1,26 @@
+.retrieval::test:
+  tags: [ "docker" ]
+  services:
+  - name: knoppiks/blaze:0.17-expose
+    alias: blaze
+    command: [ "-c", "BASE_URL=http://blaze:8080 java -jar blaze-standalone.jar -m blaze.core" ]
+    entrypoint: [ "/bin/sh" ]
+  variables:
+    FF_NETWORK_PER_BUILD: 1
+    TEST_DATA_BASE: https://github.com/medizininformatik-initiative/kerndatensatz-testdaten/raw/b2c4292/Test_Data/Vorhofflimmern
+  image: ghcr.io/knoppiks/blazectl:latest
+  script:
+  - cd ${SUB_DIR}
+  - (cd test && cat files.txt | xargs -i -n 1 wget -q ${TEST_DATA_BASE}/{})
+  - blazectl --no-progress upload --server http://blaze:8080/fhir/ test -c 4
+  - blazectl count-resources --server http://blaze:8080/fhir/
+  - docker run --network "$HOSTNAME-job-$CI_JOB_ID-network" -e MAX_BUNDLES="10" -e FHIR_SERVER_ENDPOINT="http://blaze:8080/fhir/" -v ${PWD}/output:/mnt ${IMAGE_NAME}:${CI_PIPELINE_IID}
+  artifacts:
+    paths:
+    - retrieval/**/VHF/*
+
+.analysis::test:
+  tags: [ "docker" ]
+  script:
+  - cd ${SUB_DIR}
+  - docker run -v ${PWD}/output:/mnt ${IMAGE_NAME}:${CI_PIPELINE_IID}

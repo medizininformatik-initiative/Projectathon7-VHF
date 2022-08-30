@@ -4,107 +4,75 @@ stages:
 - publish
 - cleanup
 
-build:
-  stage: build
-  tags: [ "docker" ]
-  script:
-  - cd retrieval
-  - "echo \"DUP Version: ${CI_COMMIT_TAG:-${CI_COMMIT_REF_SLUG/master/${CI_COMMIT_SHORT_SHA}}}\" >> version.txt"
-  - docker build -f Dockerfile -t ${CI_REGISTRY}/${CI_PROJECT_NAME}:${CI_PIPELINE_IID} .
+include:
+- local: .gitlab/docker.yml
+- local: .gitlab/test.yml
+- local: .gitlab/archive.yml
 
-test:
-  stage: test
-  tags: [ "docker" ]
-  services:
-  - name: knoppiks/blaze:0.17-expose
-    alias: blaze
-    command: [ "-c", "BASE_URL=http://blaze:8080 java -jar blaze-standalone.jar -m blaze.core" ]
-    entrypoint: [ "/bin/sh" ]
+###
+
+.retrieval:
   variables:
-    FF_NETWORK_PER_BUILD: 1
-    TEST_DATA_BASE: https://github.com/medizininformatik-initiative/kerndatensatz-testdaten/raw/b2c4292/Test_Data/Vorhofflimmern
-  image: ghcr.io/knoppiks/blazectl:latest
-  script:
-  - cd retrieval
-  - (cd test && cat files.txt | xargs -i -n 1 wget -q ${TEST_DATA_BASE}/{})
-  - blazectl --no-progress upload --server http://blaze:8080/fhir/ test -c 4
-  - blazectl count-resources --server http://blaze:8080/fhir/
-  - docker run --network "$HOSTNAME-job-$CI_JOB_ID-network" -e MAX_BUNDLES="10" -e FHIR_SERVER_ENDPOINT="http://blaze:8080/fhir/" -v ${PWD}/output:/mnt ${CI_REGISTRY}/${CI_PROJECT_NAME}:${CI_PIPELINE_IID}
-  artifacts:
-    paths:
-    - retrieval/output/outputGlobal/VHF/
-    - retrieval/output/outputLocal/VHF/
+    SUB_DIR: "retrieval"
+    IMAGE_NAME: "${CI_REGISTRY}/${CI_PROJECT_NAME}"
 
-.publish-image:
+.analysis:
+  variables:
+    SUB_DIR: "analysis"
+    IMAGE_NAME: "${CI_REGISTRY}/${CI_PROJECT_NAME}-analysis"
+
+###
+
+retrieval::build:
+  stage: build
+  extends: [".retrieval", ".build"]
+
+analysis::build:
+  stage: build
+  extends: [".analysis", ".build"]
+
+
+retrieval::test:
+  needs: ["retrieval::build"]
+  stage: test
+  extends: [".retrieval", ".retrieval::test"]
+
+analysis::test:
+  needs: ["analysis::build", "retrieval::test"]
+  dependencies: ["retrieval::test"]
+  stage: test
+  extends: [".analysis", ".analysis::test"]
+
+
+retrieval::publish-image:
+  needs: ["retrieval::test"]
   stage: publish
-  tags: [ "docker" ]
-  script:
-  - docker login -u "${CI_REGISTRY_USER}" -p "${CI_REGISTRY_PASSWORD}" ${CI_REGISTRY}
-  - docker tag ${CI_REGISTRY}/${CI_PROJECT_NAME}:${CI_PIPELINE_IID} ${image}
-  - docker push ${image}
+  extends: [".retrieval", ".push"]
 
-publish-image:latest:
-  extends: .publish-image
-  before_script:
-  - image="${CI_REGISTRY}/${CI_PROJECT_NAME}"
-  only:
-  - master
-
-publish-image:branch:
-  extends: .publish-image
-  before_script:
-  - image="${CI_REGISTRY}/${CI_PROJECT_NAME}:${CI_COMMIT_REF_SLUG}"
-  only:
-  - branches
-  except:
-  - master
-
-publish-image:tag:
-  extends: .publish-image
-  before_script:
-  - image="${CI_REGISTRY}/${CI_PROJECT_NAME}:$(echo ${CI_COMMIT_TAG} | cut -c 2-)"
-  only:
-  - tags
-
-.publish-archive:
+analysis::publish-image:
+  needs: ["analysis::test"]
   stage: publish
-  script:
-  - cd retrieval
-  - "echo \"DUP Version: ${CI_COMMIT_TAG:-${CI_COMMIT_REF_SLUG/master/${CI_COMMIT_SHORT_SHA}}}\" >> version.txt"
-  artifacts:
-    paths:
-    - retrieval/*.Rproj
-    - retrieval/*.R
-    - retrieval/install-dependencies.*
-    - retrieval/version.txt"
+  extends: [".analysis", ".push"]
 
-publish-archive:latest:
-  extends: .publish-archive
-  artifacts:
-    name: "${CI_PROJECT_NAME}-latest"
-  only:
-  - master
+retrieval::publish-archive:
+  needs: ["retrieval::test"]
+  stage: publish
+  extends: [".retrieval", ".retrieval::publish"]
 
-publish-archive:branch:
-  extends: .publish-archive
-  artifacts:
-    name: "${CI_PROJECT_NAME}-${CI_COMMIT_REF_SLUG}"
-  only:
-  - branches
-  except:
-  - master
+analysis::publish-archive:
+  needs: ["analysis::test"]
+  stage: publish
+  extends: [".analysis", ".analysis::publish"]
 
-publish-archive:tag:
-  extends: .publish-archive
-  artifacts:
-    name: "${CI_PROJECT_NAME}-${CI_COMMIT_TAG}"
-  only:
-  - tags
 
-cleanup:
-  stage: cleanup
-  tags: [ "docker" ]
+retrieval::cleanup:
+  needs: ["retrieval::publish-image"]
   when: always
-  script:
-  - docker rmi ${CI_REGISTRY}/${CI_PROJECT_NAME}:${CI_PIPELINE_IID}
-  allow_failure: true
+  stage: cleanup
+  extends: [".retrieval", ".cleanup"]
+
+analysis::cleanup:
+  needs: ["analysis::publish-image"]
+  when: always
+  stage: cleanup
+  extends: [".analysis", ".cleanup"]
