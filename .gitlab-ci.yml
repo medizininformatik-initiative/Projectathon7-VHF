@@ -8,6 +8,7 @@ build:
   stage: build
   tags: [ "docker" ]
   script:
+  - "echo \"DUP Version: ${CI_COMMIT_TAG:-${CI_COMMIT_REF_SLUG/master/${CI_COMMIT_SHORT_SHA}}}\" >> version.txt"
   - docker build -f retrieval/Dockerfile -t ${CI_REGISTRY}/${CI_PROJECT_NAME}:${CI_PIPELINE_IID} retrieval/
 
 test:
@@ -38,7 +39,6 @@ test:
   tags: [ "docker" ]
   script:
   - docker login -u "${CI_REGISTRY_USER}" -p "${CI_REGISTRY_PASSWORD}" ${CI_REGISTRY}
-  - "echo \"DUP Version: ${version}\" >> version.txt"
   - docker tag ${CI_REGISTRY}/${CI_PROJECT_NAME}:${CI_PIPELINE_IID} ${image}
   - docker push ${image}
 
@@ -46,7 +46,6 @@ publish-image:latest:
   extends: .publish-image
   before_script:
   - image="${CI_REGISTRY}/${CI_PROJECT_NAME}"
-  - version="${CI_COMMIT_SHORT_SHA}"
   only:
   - master
 
@@ -54,7 +53,6 @@ publish-image:branch:
   extends: .publish-image
   before_script:
   - image="${CI_REGISTRY}/${CI_PROJECT_NAME}:${CI_COMMIT_REF_SLUG}"
-  - version="${CI_COMMIT_REF_SLUG}"
   only:
   - branches
   except:
@@ -64,16 +62,13 @@ publish-image:tag:
   extends: .publish-image
   before_script:
   - image="${CI_REGISTRY}/${CI_PROJECT_NAME}:$(echo ${CI_COMMIT_TAG} | cut -c 2-)"
-  - version="${CI_COMMIT_TAG}"
-  after_script:
-  - docker rmi -f "${CI_REGISTRY}/${CI_PROJECT_NAME}:$(echo ${CI_COMMIT_TAG} | cut -c 2-)"
   only:
   - tags
 
 .publish-archive:
   stage: publish
   script:
-  - "echo \"DUP Version: ${version}\" >> version.txt"
+  - "echo \"DUP Version: ${CI_COMMIT_TAG:-${CI_COMMIT_REF_SLUG/master/${CI_COMMIT_SHORT_SHA}}}\" >> version.txt"
   artifacts:
     paths:
     - "*.Rproj"
@@ -83,8 +78,6 @@ publish-image:tag:
 
 publish-archive:latest:
   extends: .publish-archive
-  before_script:
-  - version="${CI_COMMIT_SHORT_SHA}"
   artifacts:
     name: "${CI_PROJECT_NAME}-latest"
   only:
@@ -92,8 +85,6 @@ publish-archive:latest:
 
 publish-archive:branch:
   extends: .publish-archive
-  before_script:
-  - version="${CI_COMMIT_REF_SLUG}"
   artifacts:
     name: "${CI_PROJECT_NAME}-${CI_COMMIT_REF_SLUG}"
   only:
@@ -103,8 +94,6 @@ publish-archive:branch:
 
 publish-archive:tag:
   extends: .publish-archive
-  before_script:
-  - version="${CI_COMMIT_TAG}"
   artifacts:
     name: "${CI_PROJECT_NAME}-${CI_COMMIT_TAG}"
   only:

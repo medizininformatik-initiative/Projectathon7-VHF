@@ -11,7 +11,7 @@ COPY config.R ./config.R
 COPY data-quality ./data-quality
 COPY main.R ./main.R
 
-COPY ../version.txt ./
+COPY version.txt ./
 
 ENV OUTPUT_DIR_BASE="/mnt"
 
