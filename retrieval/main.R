@@ -35,11 +35,6 @@ debug_dir_con_bundles <- paste0(output_local_bundles, "/Conditions")
 # Result files
 result_file_cohort <- paste0(OUTPUT_DIR_LOCAL, "/Kohorte.csv")
 result_file_diagnoses <- paste0(OUTPUT_DIR_LOCAL, "/Diagnosen.csv")
-if (DECENTRAL_ANALYIS) {
-  retrieve_dir = OUTPUT_DIR_LOCAL
-} else {
-  retrieve_dir = OUTPUT_DIR_GLOBAL
-}
 result_file_log <- paste0(OUTPUT_DIR_GLOBAL, "/Logging.log")
 
 # remove old files and dirs and create new dirs  (surpress warning if dir exists)
