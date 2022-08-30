@@ -32,8 +32,8 @@ test:
   - docker run --network "$HOSTNAME-job-$CI_JOB_ID-network" -e MAX_BUNDLES="10" -e FHIR_SERVER_ENDPOINT="http://blaze:8080/fhir/" -v ${PWD}/output:/mnt ${CI_REGISTRY}/${CI_PROJECT_NAME}:${CI_PIPELINE_IID}
   artifacts:
     paths:
-    - output/outputGlobal/VHF/
-    - output/outputLocal/VHF/
+    - retrieval/output/outputGlobal/VHF/
+    - retrieval/output/outputLocal/VHF/
 
 .publish-image:
   stage: publish
