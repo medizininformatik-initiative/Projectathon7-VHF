@@ -31,6 +31,8 @@ error_file_con <- paste0(output_local_errors, "/ConditionError.xml")
 debug_dir_obs_bundles <- paste0(output_local_bundles, "/Observations")
 debug_dir_enc_bundles <- paste0(output_local_bundles, "/Encounter")
 debug_dir_con_bundles <- paste0(output_local_bundles, "/Conditions")
+data_quality_report_file <- paste0(OUTPUT_DIR_GLOBAL, "/DQ-Report.html")
+
 # Result files
 result_file_cohort <- paste0(OUTPUT_DIR_LOCAL, "/Kohorte.csv")
 result_file_diagnoses <- paste0(OUTPUT_DIR_LOCAL, "/Diagnosen.csv")
@@ -547,11 +549,14 @@ result <- merge.data.table(
 setcolorder(result, neworder = "subject")
 
 # Write result files
-if (DEBUG) {
-  write.csv2(cohort, result_file_cohort, row.names = FALSE)
-  write.csv2(conditions, result_file_diagnoses, row.names = FALSE)
-}
+write.csv2(cohort, result_file_cohort, row.names = FALSE)
+write.csv2(conditions, result_file_diagnoses, row.names = FALSE)
 write.csv2(result, result_file_retrieve, row.names = FALSE)
+
+##DQ Report
+if (DATA_QUALITY_REPORT) {
+  rmarkdown::render("data-quality/report.Rmd", output_format = "html_document", output_file = data_quality_report_file)
+}
 
 # logging
 runtime <- Sys.time() - start
