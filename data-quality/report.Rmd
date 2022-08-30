@@ -1,0 +1,251 @@
+---
+title: "DQ report - SMITH"
+output:
+  html_document:
+    df_print: paged
+---
+
+
+```{r include=FALSE}
+### LIBRARIES ------------------------
+library(knitr)
+library(dataquieR)
+library(data.table)
+library(lubridate)
+
+```
+
+```{r include=FALSE}
+### READ DATA -------------------
+
+# only the fallback if we start knitr directly from R Studio
+if (!exists("result_file_cohort")) {
+  result_file_cohort <- paste0(OUTPUT_DIR_BASE, "/outputLocal/", PROJECT_NAME, "/Kohorte.csv")
+}
+
+if(!file.exists(result_file_cohort)){
+  write("Ergebnisse nicht gefunden.", file = error_file)
+  stop("Results not found - aborting.")
+}
+
+# read result csv
+cohort_report <- read.csv(result_file_cohort, sep = ";", colClasses = "character")
+
+# read metadata
+metadata_report <- read.csv("metadata.csv")
+checks_report <- read.csv("contradictions.csv")
+missings_report <- read.csv("missing-codes.csv")
+
+metadata_report$VAR_NAMES
+
+# select columns supported with metadata from cohort
+if(!all( metadata_report$VAR_NAMES %in% colnames(cohort_report) )){
+  write("Metadaten passen nicht zur Kohorte.", file = error_file)
+  stop("Metadata does not match Cohort - aborting.")
+}
+cohort_report <- cohort_report[,metadata_report$VAR_NAMES]
+
+#extract known data types
+datatyp_report <- as.data.table(t(metadata_report$DATA_TYPE))
+colnames(datatyp_report) <- metadata_report$VAR_NAMES
+
+#extract known value labels
+value_labels <- as.data.table(t(metadata_report$VALUE_LABELS[3:7]))
+colnames(value_labels) <- metadata_report$VAR_NAMES[3:7]
+# function that returns only labels in string as list
+get_labels <- function(string) {
+  # regex to split at | num = : \s?\|?\s?\d\s\=\s
+  # [-1] removes 1 = at start
+  return(strsplit(string, "\\s?\\|?\\s?\\d\\s\\=\\s")[[1]][-1])
+}
+value_labels <- sapply(value_labels, get_labels)
+
+#set up missing codes
+missing_unknown <- missings_report$CODE_VALUE[2]
+#item has integer/string type but cannot be converted to date for age calculation
+missing_datetime <- missings_report$CODE_VALUE[3]
+#item has correct type but is missing in value labels
+missing_label <- missings_report$CODE_VALUE[4]
+
+
+### Transform to dataquiR format -------------------
+
+# function that sets integer values according to labels and missing codes
+apply_labels <- function(vector, labels) {
+
+  # unify casing, trim whitespace
+  vector <- tolower(vector)
+  labels <- tolower(labels)
+  vector <- trimws(vector, which = "both")
+  labels <- trimws(labels, which = "both")
+
+  r <- NULL
+  for(item in vector) {
+    # default assumes value of item is missing in value labels
+    value <- missing_label
+    # if item is whitespace or NA set value to NA for correct dataquiR missingness
+    if(item == "" || is.na(item) ) value <- NA
+    else {
+      i <- 0
+      for(l in labels) {
+        i <- i + 1
+        # if item is found in labels set value to corresponding integer
+        if(item == l) value <- i
+      }
+    }
+    r <- c(r,value)
+  }
+
+  return(r)
+}
+
+calculate_age <- function(vector) {
+
+  # ws is assinged missing code for wrong format as well
+  # # unify casing, trim whitespace
+  # vector <- tolower(vector)
+  # vector <- trimws(vector, which = "both")
+
+  #convert to datetime with at least years (YYYY or any YYYY-MM... format)
+  r <- parse_date_time(vector, "ymd", truncated = 2)
+
+  # calculate age with lubridate period
+  r <- lapply(r, function(x) {as.period(interval(x, Sys.Date()), unit = "year")$year} )
+  r <- unlist(r)
+
+  for (i in 1:length(r) ) {
+    if( is.na( r[i] ) && !is.na(vector[i]) ) r[i] <- missing_datetime
+  }
+
+  return(r)
+}
+
+
+#apply labels and fix typing per column - missmatched typing is returned as NA (NOT as missing code)
+cohort_report$NTproBNP.date <- parse_date_time(cohort_report$NTproBNP.date, "ymd", truncated = 2)
+cohort_report$NTproBNP.valueQuantity.value <- as.double(cohort_report$NTproBNP.valueQuantity.value)
+cohort_report$NTproBNP.code <- as.integer( apply_labels(cohort_report$NTproBNP.code, value_labels$NTproBNP.code) )
+cohort_report$NTproBNP.codeSystem <- as.integer(  apply_labels(cohort_report$NTproBNP.codeSystem, value_labels$NTproBNP.codeSystem) )
+cohort_report$NTproBNP.unit <- as.integer( apply_labels(cohort_report$NTproBNP.unit, value_labels$NTproBNP.unit) )
+cohort_report$NTproBNP.unitSystem <- as.integer( apply_labels(cohort_report$NTproBNP.unitSystem, value_labels$NTproBNP.unitSystem) )
+cohort_report$gender <- as.integer( apply_labels(cohort_report$gender, value_labels$gender) )
+cohort_report$birthdate <- as.integer(calculate_age(cohort_report$birthdate))
+cohort_report$encounter.start <- parse_date_time(cohort_report$encounter.start, "ymd", truncated = 2)
+cohort_report$encounter.end <- parse_date_time(cohort_report$encounter.end, "ymd", truncated = 2)
+
+# verify correct typing
+#sapply(cohort_report, class)
+
+```
+
+```{r include=FALSE}
+### GENERATE REPORTS ----------------------
+#import missing list
+
+smith_dq_report <- dq_report(study_data = cohort_report,
+                          meta_data  = metadata_report,
+                          check_table = checks_report,
+                          MISSING_LIST = missings_report,
+                          label_col  = LABEL)
+
+```
+
+## Data Quality report for the 6. Projectathon of MII: SMITH
+
+#### This report was created with the [dataquieR](https://dataquality.ship-med.uni-greifswald.de/tutorials2.html) Package for R.
+
+## Result of contradiction checks:
+```{r message=FALSE, warning=FALSE,echo=FALSE}
+
+smith_dq_report$long_format$con_contradictions$results[[1]]$SummaryPlot
+
+
+```
+
+### Contradiction checks as Table:
+
+```{r message=FALSE, warning=FALSE,echo=FALSE}
+
+smith_dq_report$long_format$con_contradictions$results[[1]]$SummaryTable
+
+```
+
+## Results of limit checks:
+```{r message=FALSE, warning=FALSE,echo=FALSE}
+
+smith_dq_report$long_format$con_limit_deviations$results[[1]]$SummaryPlotList$ntprobnp
+
+```
+
+### Limit checks as Table:
+
+```{r message=FALSE, warning=FALSE,echo=FALSE,out.width="100%"}
+
+smith_dq_report$long_format$con_limit_deviations$results[[1]]$SummaryTable
+
+```
+
+# Information about distribution:
+
+```{r message=FALSE, warning=FALSE,echo=FALSE}
+## Age:
+#smith_dq_report$long_format$con_limit_deviations$results[[1]]$SummaryPlotList$birthdate
+
+```
+
+## Gender:
+#### 1 = male | 2 = female | 3 = other | 4 = unknown
+```{r message=FALSE, warning=FALSE,echo=FALSE}
+
+smith_dq_report$long_format$con_limit_deviations$results[[1]]$SummaryPlotList$gender
+
+```
+
+## Age:
+#### Age was calculated from birthdates in YYYY... format.
+```{r message=FALSE, warning=FALSE,echo=FALSE}
+
+smith_dq_report$long_format$con_limit_deviations$results[[1]]$SummaryPlotList$age
+
+```
+
+## LOINC Codes:
+#### 1 = other | 2 = 33763-4 | 3 = 71425-3 | 4 = 33762-6 | 5 = 83107-3 | 6 =  83108-1 | 7 = 77622-9 | 8 = 77621-1
+```{r message=FALSE, warning=FALSE,echo=FALSE}
+
+smith_dq_report$long_format$con_limit_deviations$results[[1]]$SummaryPlotList$NTproBNP.code
+
+```
+
+
+# Information about completness:
+
+```{r message=FALSE, warning=FALSE,echo=FALSE,out.width="100%"}
+
+#Plot
+#smith_dq_report$long_format$com_item_missingness$results[[1]]$SummaryPlot
+smith_dq_report$long_format$com_item_missingness$results[[1]]$SummaryTable
+
+
+```
+
+# Plot of completness with missing codes:
+#### MISSING 9991100: Missing - reason unknown
+#### MISSING 9991200: Deleted - Datetime format not supported
+#### MISSING 9991300: Deleted - not in VALUE_LABELS
+Regarding completeness and missing codes:
+If a field has the wrong datatype it is evaluated to NA and tracked under Sysmiss in the completeness table. If a field has the correct typing but an undefined value (for example any string as a gender other than 'male', 'female', 'other', 'unknown') the missing code 9991300 is used instead.
+```{r message=FALSE, warning=FALSE,echo=FALSE,out.width="100%"}
+
+#Plot
+smith_dq_report$long_format$com_item_missingness$results[[1]]$SummaryPlot
+
+
+```
+
+# Further possible analysis with dataquieR:
+```{r message=FALSE, warning=FALSE,echo=FALSE,out.width="100%"}
+
+smith_dq_report$app_mat$ApplicabilityPlot
+
+```
