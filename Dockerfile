@@ -10,4 +10,6 @@ COPY main.R main.R
 
 COPY version.txt ./
 
+ENV OUTPUT_DIR_BASE="/mnt"
+
 CMD ["Rscript", "main.R"]
