@@ -1,14 +1,15 @@
 ### Preparation
 start <- Sys.time()
 
-# to run this script correctly, we need to be in the analysis subdirectory
-# this should only be relevant for manually execution
-if (grepl(".*/retrieval", getwd())) {
-  setwd("..")
-}
-if (!grepl(".*/analysis", getwd())) {
-  setwd(paste0(getwd(), "/analysis"))
-}
+# # To run this script correctly, we need to be in the analysis subdirectory
+# # This should only be relevant for manually execution, but causes an error
+# # in docker (Error = cannot change working directory).
+# if (grepl(".*/retrieval", getwd())) {
+#   setwd("..")
+# }
+# if (!grepl(".*/analysis", getwd())) {
+#   setwd(paste0(getwd(), "/analysis"))
+# }
 
 # load/install a packages
 source("install-dependencies.R")
