@@ -40,7 +40,7 @@ DEBUG <- as.logical(Sys.getenv('DEBUG', "FALSE"))
 VERBOSE <- as.integer(Sys.getenv('VERBOSE', "0"))
 
 # Directory where 'outputLocal' and 'outputGlobal' directories are located 
-OUTPUT_DIR_BASE <- Sys.getenv('OUTPUT_DIR_BASE', '.')
+OUTPUT_DIR_BASE <- Sys.getenv('OUTPUT_DIR_BASE', '..')
 
 ### Profile, der gesuchten Resourcen:
 #Encounter
