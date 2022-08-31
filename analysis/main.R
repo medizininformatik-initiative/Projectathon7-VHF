@@ -1,5 +1,15 @@
 ### Preparation
 start <- Sys.time()
+
+# to run this script correctly, we need to be in the analysis subdirectory
+# this should only be relevant for manually execution
+if (grepl(".*/retrieval", getwd())) {
+  setwd("..")
+}
+if (!grepl(".*/analysis", getwd())) {
+  setwd(paste0(getwd(), "/analysis"))
+}
+
 # load/install a packages
 source("install-dependencies.R")
 
