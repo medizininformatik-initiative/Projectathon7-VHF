@@ -37,12 +37,16 @@ result_file_log <- paste0(OUTPUT_DIR_GLOBAL, "/Analysis.log")
 
 result_file_retrieve <- paste0(retrieve_dir, "/Retrieve.csv")
 
-# TODO WIP
-
 # Load retrieval result files
 cohort <- fread(retrieve_result_file_cohort)
 conditions <- fread(retrieve_result_file_diagnoses)
 
+# remove invalid rows
+cohort <- cohort[
+   is.na(NTproBNP.valueQuantity.comparator) & # has comparator -> invalid
+  !is.na(NTproBNP.valueQuantity.value) &      # missing value -> invalid
+  !is.na(NTproBNP.unit)                       # missing unit -> invalid
+]
 
 ### Build the result table ###
 result <- cohort[, .(
