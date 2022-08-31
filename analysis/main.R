@@ -1,4 +1,7 @@
-### Preparation
+###############
+# Preparation #
+###############
+
 start <- Sys.time()
 
 # # To run this script correctly, we need to be in the analysis subdirectory
@@ -19,10 +22,14 @@ source("config.R")
 
 PROJECT_NAME <- "VHF"
 
-### Verzeichnisse
-# Verzeichnis für Zwischenergebnisse/Debug
+
+#########################
+# Directories and Files #
+#########################
+
+# Directory for intermediate results / debug
 OUTPUT_DIR_LOCAL <- paste0(OUTPUT_DIR_BASE, "/outputLocal/", PROJECT_NAME)
-# Verzeichnis für Endergebnisse
+# Directory for final results
 OUTPUT_DIR_GLOBAL <- paste0(OUTPUT_DIR_BASE, "/outputGlobal/", PROJECT_NAME)
 if (DECENTRAL_ANALYIS) {
   retrieve_dir = OUTPUT_DIR_LOCAL
@@ -37,18 +44,27 @@ result_file_log <- paste0(OUTPUT_DIR_GLOBAL, "/Analysis.log")
 
 result_file_retrieve <- paste0(retrieve_dir, "/Retrieve.csv")
 
+
+####################################
+# Load and Clean Retrieval Results #
+####################################
+
 # Load retrieval result files
 cohort <- fread(retrieve_result_file_cohort)
 conditions <- fread(retrieve_result_file_diagnoses)
 
-# remove invalid rows
+# remove invalid data rows
 cohort <- cohort[
    is.na(NTproBNP.valueQuantity.comparator) & # has comparator -> invalid
   !is.na(NTproBNP.valueQuantity.value) &      # missing value -> invalid
   !is.na(NTproBNP.unit)                       # missing unit -> invalid
 ]
 
-### Build the result table ###
+
+##########################
+# Build the Result Table #
+##########################
+
 result <- cohort[, .(
   subject,
   # fill the date (=timestamp) column with the timestamp of the max NTproBNP
