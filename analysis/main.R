@@ -29,6 +29,9 @@ if (DECENTRAL_ANALYIS) {
   retrieve_dir = OUTPUT_DIR_GLOBAL
 }
 
+# Result files
+result_file_log <- paste0(OUTPUT_DIR_GLOBAL, "/Analysis.log")
+
 result_file_retrieve <- paste0(retrieve_dir, "/Retrieve.csv")
 
 # TODO WIP
