@@ -110,7 +110,6 @@ result <- cohort[, .(
   NTproBNP.date = NTproBNP.date[NTproBNP.valueQuantity.value == max(NTproBNP.valueQuantity.value)],
   # fill the NTproBNP value for every encounter with the maximum value
   NTproBNP.valueQuantity.value = max(NTproBNP.valueQuantity.value),
-  NTproBNP.valueCodeableConcept.code,
   NTproBNP.unit,
   birthdate,
   gender
@@ -124,9 +123,9 @@ result <- unique(result)
 # for each encounter, extract the Boolean information whether certain diagnoses
 # were present
 conditionsReduced <- conditions[, .(
-  VHF = as.numeric(any(grepl("I48.0|I48.1|I48.2|I48.9", code))),
-  MI = as.numeric(any(grepl("I21|I22|I25.2", code))),
-  HI = as.numeric(any(grepl("I50", code))),
+  Vorhofflimmern = as.numeric(any(grepl("I48.0|I48.1|I48.2|I48.9", code))),
+  Myokardinfarkt = as.numeric(any(grepl("I21|I22|I25.2", code))),
+  Herzinsuffizienz = as.numeric(any(grepl("I50", code))),
   Schlaganfall = as.numeric(any(grepl("I60|I61|I62|I63|I64|I69", code)))
 ), by = encounter.id]
 
@@ -137,6 +136,13 @@ result <- merge.data.table(
   by = "encounter.id",
   all.x = TRUE
 )
+
+# fill missing diagnosis values with 0
+result[is.na(Vorhofflimmern), Vorhofflimmern := 0]
+result[is.na(Myokardinfarkt), Myokardinfarkt := 0]
+result[is.na(Herzinsuffizienz), Herzinsuffizienz := 0]
+result[is.na(Schlaganfall), Schlaganfall := 0]
+
 # bring the subject column to the front again
 setcolorder(result, neworder = "subject")
 
