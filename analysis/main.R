@@ -56,9 +56,47 @@ conditions <- fread(retrieve_result_file_diagnoses)
 # remove invalid data rows
 cohort <- cohort[
    is.na(NTproBNP.valueQuantity.comparator) & # has comparator -> invalid
-  !is.na(NTproBNP.valueQuantity.value) &      # missing value -> invalid
-  !is.na(NTproBNP.unit)                       # missing unit -> invalid
+  !is.na(NTproBNP.valueQuantity.value)        # missing value -> invalid
 ]
+
+
+###############
+# Unify Units #
+###############
+
+# all valid NTproBNP units taken from http://www.unitslab.com/node/163
+units <- c(
+  "pg/mL", 1, #(Reference Unit as first value)
+  "ng/L", 1,
+  "pg/dL", 100,
+  "pg/100mL", 100,
+  "pg%", 100,
+  "pg/L", 1000,
+  "pmol/L", 0.1182
+)
+units <- matrix(units, length(units) / 2, 2, byrow = TRUE)
+unitNames <- units[, 1] 
+unitFactors <- as.numeric(units[, 2]) 
+
+# remove data rows with invalid units
+unitsPattern <- paste(unitNames, collapse = "|")
+cohort <- cohort[ 
+  grepl(unitsPattern, NTproBNP.unit, ignore.case = TRUE)
+]
+
+# now really unify
+for (i in 2:length(unitNames)) {
+  # Convert value
+  cohort[
+    NTproBNP.unit == unitNames[i], 
+    NTproBNP.valueQuantity.value := NTproBNP.valueQuantity.value * unitFactors[i]
+  ]
+  # Convert unit
+  cohort[
+    NTproBNP.unit == unitNames[i], 
+    NTproBNP.unit := unitNames[1]
+  ]
+}
 
 
 ##########################
