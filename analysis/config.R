@@ -20,4 +20,4 @@ DATA_QUALITY_REPORT <- as.logical(Sys.getenv('DATA_QUALITY_REPORT', "TRUE"))
 DECENTRAL_ANALYIS <- as.logical(Sys.getenv('DECENTRAL_ANALYIS', "TRUE"))
 
 # Directory where 'outputLocal' and 'outputGlobal' directories are located 
-OUTPUT_DIR_BASE <- Sys.getenv('OUTPUT_DIR_BASE', '..')
+OUTPUT_DIR_BASE <- Sys.getenv('OUTPUT_DIR_BASE', '.')
