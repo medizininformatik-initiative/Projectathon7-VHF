@@ -1,5 +1,16 @@
 ### Preparation
 start <- Sys.time()
+
+# # To run this script correctly, we need to be in the retrieval subdirectory.
+# # This should only be relevant for manually execution, but causes an error
+# # in docker (Error = cannot change working directory).
+# if (grepl(".*/analysis", getwd())) {
+#   setwd("..")
+# }
+# if (!grepl(".*/retrieval", getwd())) {
+#   setwd(paste0(getwd(), "/retrieval"))
+# }
+
 # load/install a packages
 source("install-dependencies.R")
 
@@ -31,18 +42,11 @@ error_file_con <- paste0(output_local_errors, "/ConditionError.xml")
 debug_dir_obs_bundles <- paste0(output_local_bundles, "/Observations")
 debug_dir_enc_bundles <- paste0(output_local_bundles, "/Encounter")
 debug_dir_con_bundles <- paste0(output_local_bundles, "/Conditions")
-data_quality_report_file <- paste0(OUTPUT_DIR_GLOBAL, "/DQ-Report.html")
 
 # Result files
 result_file_cohort <- paste0(OUTPUT_DIR_LOCAL, "/Kohorte.csv")
 result_file_diagnoses <- paste0(OUTPUT_DIR_LOCAL, "/Diagnosen.csv")
-if (DECENTRAL_ANALYIS) {
-  retrieve_dir = OUTPUT_DIR_LOCAL
-} else {
-  retrieve_dir = OUTPUT_DIR_GLOBAL
-}
-result_file_retrieve <- paste0(retrieve_dir, "/Retrieve.csv")
-result_file_log <- paste0(OUTPUT_DIR_GLOBAL, "/Logging.log")
+result_file_log <- paste0(OUTPUT_DIR_GLOBAL, "/Retrieval.log")
 
 # remove old files and dirs and create new dirs  (surpress warning if dir exists)
 unlink(OUTPUT_DIR_GLOBAL, recursive = TRUE)
@@ -508,55 +512,9 @@ cohort$NTproBNP.date <- cohort$NTproBNP.date.bak
 # remove the date column backup
 cohort[, NTproBNP.date.bak := NULL] #cohort <- within(cohort, rm(NTproBNP.date.bak))
 
-
-### Build the result table ###
-
-result <- cohort[, .(
-  subject,
-  # fill the date (=timestamp) column with the timestamp of the max NTproBNP
-  # value for every encounter
-  NTproBNP.date = NTproBNP.date[NTproBNP.valueQuantity.value == max(NTproBNP.valueQuantity.value)],
-  # fill the NTproBNP value for every encounter with the maximum value
-  NTproBNP.valueQuantity.value = max(NTproBNP.valueQuantity.value),
-  NTproBNP.valueCodeableConcept.code,
-  NTproBNP.unit,
-  birthdate,
-  gender
-), by = encounter.id]
-
-# remove equal columns which are now present if there were multiple NTproBNP
-# values for the same encounter with different timestamps (now these NTproBNP
-# values have all the same timestamp and so the whole row is equals)
-result <- unique(result)
-
-# for each encounter, extract the Boolean information whether certain diagnoses
-# were present
-conditionsReduced <- conditions[, .(
-  VHF = as.numeric(any(grepl("I48.0|I48.1|I48.2|I48.9", code))),
-  MI = as.numeric(any(grepl("I21|I22|I25.2", code))),
-  HI = as.numeric(any(grepl("I50", code))),
-  Schlaganfall = as.numeric(any(grepl("I60|I61|I62|I63|I64|I69", code)))
-), by = encounter.id]
-
-# merge the result encounters with the diagnoses information
-result <- merge.data.table(
-  x = result,
-  y = conditionsReduced,
-  by = "encounter.id",
-  all.x = TRUE
-)
-# bring the subject column to the front again
-setcolorder(result, neworder = "subject")
-
 # Write result files
 write.csv2(cohort, result_file_cohort, row.names = FALSE)
 write.csv2(conditions, result_file_diagnoses, row.names = FALSE)
-write.csv2(result, result_file_retrieve, row.names = FALSE)
-
-##DQ Report
-if (DATA_QUALITY_REPORT) {
-  rmarkdown::render("data-quality/report.Rmd", output_format = "html_document", output_file = data_quality_report_file)
-}
 
 # logging
 runtime <- Sys.time() - start

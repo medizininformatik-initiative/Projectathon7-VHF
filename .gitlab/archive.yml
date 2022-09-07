@@ -1,0 +1,20 @@
+.retrieval::publish:
+  script:
+  - "echo \"DUP Version: ${CI_COMMIT_TAG:-${CI_COMMIT_REF_SLUG/master/${CI_COMMIT_SHORT_SHA}}}\" >> version.txt"
+  artifacts:
+    paths:
+    - retrieval/*.Rproj
+    - retrieval/*.R
+    - retrieval/install-dependencies.*
+    - retrieval/version.txt
+
+.analysis::publish:
+  script:
+  - "echo \"DUP Version: ${CI_COMMIT_TAG:-${CI_COMMIT_REF_SLUG/master/${CI_COMMIT_SHORT_SHA}}}\" >> version.txt"
+  artifacts:
+    paths:
+    - analysis/*.Rproj
+    - analysis/*.R
+    - analysis/install-dependencies.*
+    - analysis/version.txt
+    - analysis/data-quality
