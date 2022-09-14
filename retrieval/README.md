@@ -1,42 +1,16 @@
-# ![Status: Entwurf](https://img.shields.io/badge/Status-Entwurf-yellow.svg) SMITH VHF Vorhofflimmern
-
-## Einführung
-
-Dieses Projekt führt das SMITH DUP Vorhofflimmern (VHF) aus. Dafür erzeugt dieses Skript zwei Tabellen mit den für die
-Analyse benötigten Inhalten. Diese Tabellen sollen entweder zentral erzeugt und an die datenauswertendende Stelle
-übergeben oder dezentral in den DIZen analysiert werden, das Analyseergebnis muss in diesem Fall manuell an die
-Biometrie übergeben werden.
-
-Das Readme beschreibt zunächst die technischen Details der Verwendung. Darunter sind die verwendeten
-CodeSysteme/Ressourcen/Profile und der konzeptionelle Ablauf der Abfrage beschrieben.
+# VHF Vorhofflimmern Retrieval
 
 ## Verwendung
 
-### dupctl (Docker)
-
-Eine einfache und reproduzierbare Ausführung der SMITH PheP DUPs wird über das dupctl Command Line Interface (cli)
-sichergestellt. Nach der Installation der cli (siehe [dupctl][dupctl]) wird das DUP Skript über eine Kommandozeile
-wie folgt gestartet:
+### dupctl
 
 ```bash
 dupctl retrieve --dup vhf [...]
 ```
 
-### Manuelle Ausführung
+### Manuell
 
-Bei Bedarf können DUPs auch ohne den Einsatz von Docker durchgeführt werden.
-
-*Die manuelle Ausführung ist **nicht** durch das downloaden/klonen dieses Repositories möglich!*
-Stattdessen muss das Workpackage in Form eines Archivs mittels folgenden Links heruntergeladen werden. Das Archiv
-enthält alle nötigen Skripte und Libraries für eine manuelle Ausführung mittels R.
-
-<div align="center"><a href="https://git.smith.care/smith/uc-phep/dup/vhf/-/jobs/artifacts/master/download?job=build-archive:latest">Download als ZIP Archiv</a></div>
-
-* **R Version: 4.2.0**
-
-* **CRAN Snaphot Datum: 2022-06-22**
-
-Die weiteren Schritte der manuellen Ausführung sind in der [DUP README][readme] erläutert.
+siehe [VHF Readme](../README.md#manuelle-ausführung)
 
 ## Output
 
@@ -256,7 +230,3 @@ Prinzipiell geht das Skript wie folgt vor:
 4) Filtere die Encounter, sodass nur die Encounter übrig bleiben, in deren `period` eine NTproBNP Observation liegt.
 
 5) Filtere die Diagnosen, sodass nur Diagnosen übrig bleiben, die zu den Encountern aus 4) gehören.
-
-
-[dupctl]: https://git.smith.care/smith/uc-phep/dup-control
-[readme]: https://git.smith.care/smith/uc-phep/dup/readme
