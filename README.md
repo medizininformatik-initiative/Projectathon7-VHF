@@ -33,10 +33,14 @@ Für weitere Informationen bzgl. Analysis: [VHF Analysis README](analysis/README
 Bei Bedarf können DUPs auch ohne den Einsatz von Docker durchgeführt werden.
 
 *Die manuelle Ausführung ist **nicht** durch das downloaden/klonen dieses Repositories möglich!*
-Stattdessen muss das Workpackage in Form eines Archivs mittels folgenden Links heruntergeladen werden. Das Archiv
-enthält alle nötigen Skripte und Libraries für eine manuelle Ausführung mittels R.
+Stattdessen muss das Workpackage in Form von Archiven mittels folgender Links heruntergeladen werden. Die Archive
+enthalten alle nötigen Skripte für eine manuelle Ausführung mittels R.
 
-<div align="center"><a href="https://git.smith.care/smith/uc-phep/dup/vhf/-/jobs/artifacts/master/download?job=build-archive:latest">Download als ZIP Archiv</a></div>
+<div align="center">
+    Download als ZIP Archiv:
+    <a href="https://git.smith.care/smith/uc-phep/dup/vhf/-/jobs/artifacts/master/download?job=retrieval::publish-archive">[Retrieval]</a>
+    <a href="https://git.smith.care/smith/uc-phep/dup/vhf/-/jobs/artifacts/master/download?job=analysis::publish-archive">[Analysis]</a>
+</div>
 
 * **R Version: 4.2.0**
 
