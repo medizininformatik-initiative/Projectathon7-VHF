@@ -130,7 +130,12 @@ obs_description <- fhir_table_description(
     NTproBNP.valueCodeableConcept.system = "valueCodeableConcept/coding/system",
     NTproBNP.code = "code/coding/code",
     NTproBNP.codeSystem = "code/coding/system",
-    NTproBNP.unit = "valueQuantity/code",
+    NTproBNP.unit = "valueQuantity/code", # should be the SI unit
+    NTproBNP.unitLabel = "valueQuantity/unit", # some DIZ write the SI unit not
+                                               # in the "valueQuantity/code"
+                                               # but in this field which should
+                                               # be used in FHIR as a human
+                                               # readable unit description !?
     NTproBNP.unitSystem = "valueQuantity/system"
   )
 )
