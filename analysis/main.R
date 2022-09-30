@@ -59,6 +59,11 @@ cohort <- cohort[
   !is.na(NTproBNP.valueQuantity.value)        # missing value -> invalid
 ]
 
+# Some DIZ write the SI unit not in the "valueQuantity/code" which was imported
+# in the field "NTproBNP.unit" but in the "valueQuantity/unit" which was
+# imported in the "NTproBNP.unitLabel". This label should only be used in FHIR
+# as a human readable unit description. So we fix this error here.
+cohort[is.na(NTproBNP.unit), NTproBNP.unit := NTproBNP.unitLabel]
 
 ###############
 # Unify Units #
