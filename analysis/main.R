@@ -1,18 +1,14 @@
+############################################################
+# Note for manual execution: Working Directory must be the #
+#                            directory of this Script!     #
+############################################################
+
+
 ###############
 # Preparation #
 ###############
 
 start <- Sys.time()
-
-# # To run this script correctly, we need to be in the analysis subdirectory
-# # This should only be relevant for manually execution, but causes an error
-# # in docker (Error = cannot change working directory).
-# if (grepl(".*/retrieval", getwd())) {
-#   setwd("..")
-# }
-# if (!grepl(".*/analysis", getwd())) {
-#   setwd(paste0(getwd(), "/analysis"))
-# }
 
 # load/install a packages
 source("install-dependencies.R")
@@ -31,11 +27,7 @@ PROJECT_NAME <- "VHF"
 OUTPUT_DIR_LOCAL <- paste0(OUTPUT_DIR_BASE, "/outputLocal/", PROJECT_NAME)
 # Directory for final results
 OUTPUT_DIR_GLOBAL <- paste0(OUTPUT_DIR_BASE, "/outputGlobal/", PROJECT_NAME)
-if (DECENTRAL_ANALYIS) {
-  retrieve_dir = OUTPUT_DIR_LOCAL
-} else {
-  retrieve_dir = OUTPUT_DIR_GLOBAL
-}
+retrieve_dir = ifelse(DECENTRAL_ANALYIS, OUTPUT_DIR_LOCAL, OUTPUT_DIR_GLOBAL)
 
 # Result files
 retrieve_result_file_cohort <- paste0(OUTPUT_DIR_LOCAL, "/Kohorte.csv")
