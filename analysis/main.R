@@ -34,6 +34,8 @@ retrieve_result_file_cohort <- paste0(OUTPUT_DIR_LOCAL, "/Kohorte.csv")
 retrieve_result_file_diagnoses <- paste0(OUTPUT_DIR_LOCAL, "/Diagnosen.csv")
 result_file_log <- paste0(OUTPUT_DIR_GLOBAL, "/Analysis.log")
 result_file_retrieve <- paste0(retrieve_dir, "/Retrieve.csv")
+analysisResultPlotFile <- paste0(OUTPUT_DIR_GLOBAL, "/Analyis-Plot.pdf")
+analysisResultTextFile <- paste0(OUTPUT_DIR_GLOBAL, "/Analyis.txt")
 data_quality_report_file <- paste0(OUTPUT_DIR_GLOBAL, "/DQ-Report.html")
 
 ####################################
@@ -47,7 +49,8 @@ conditions <- fread(retrieve_result_file_diagnoses)
 # remove invalid data rows
 cohort <- cohort[
    is.na(NTproBNP.valueQuantity.comparator) & # has comparator -> invalid
-  !is.na(NTproBNP.valueQuantity.value)        # missing value -> invalid
+  !is.na(NTproBNP.valueQuantity.value) &      # missing value -> invalid
+   NTproBNP.valueQuantity.value >= 0          # ignore NTproBNP values < 0
 ]
 
 # Some DIZ write the SI unit not in the "valueQuantity/code" which was imported
@@ -152,4 +155,84 @@ if (DEBUG) {
 if (DATA_QUALITY_REPORT) {
   rmarkdown::render("data-quality/report.Rmd", output_format = "html_document", output_file = data_quality_report_file)
 }
+
+####################################
+# Start Analysis from S. Zeynalova #
+####################################
+
+# create roc curve
+# Explanation of the graph:
+# Sens - Sensitivity
+# Spec - Specificity
+# PV+  - Percentage of false negatives for VHF among all test negatives
+# PV- - Proportion of false positives among all test positives
+pdf(analysisResultPlotFile)
+roc <- ROC(test = result$NTproBNP.valueQuantity.value, stat = result$Vorhofflimmern, plot = "ROC", main = "NTproBNP(Gesamt)", AUC = TRUE)
+dev.off()
+
+sink(analysisResultTextFile)
+
+cat("###########################\n")
+cat("# Results of VHF Analysis #\n")
+cat("###########################\n\n")
+
+cat(paste0("Date: ", Sys.time(), "\n\n"))
+
+cat(paste0("ROC Area Under Curve: "), roc$AUC, "\n\n")
+
+# create different CUT points for NTproBNP
+cuts <- c(500, 900, 1000, 1200, 2000)
+
+cat("NtProBNP Threshold Values Analysis\n")
+cat("----------------------------------\n\n")
+
+for (k in c(1 : length(cuts))) {
+  colName <- "NTproBNP.valueQuantity.value_cut"
+  result[[colName]] <- ifelse(result$NTproBNP.valueQuantity.value < cuts[k], 0, 1)
+
+  cat(paste0("Threshold Value: ", cuts[k], "\n"))
+
+  CrossTable(result$Vorhofflimmern, 
+             result[[colName]], 
+             prop.c = TRUE, 
+             digits = 2, 
+             prop.chisq = FALSE, 
+             format = "SPSS")
+  
+  table <- xtabs(~result[[colName]] + result$Vorhofflimmern)
+  test <- rowSums(table)
+  sick <- colSums(table)
+  
+  # sensitivity
+  sensitivity <- table[2, 2] / sick[2]
+  cat(paste0("Sensitivity: ", sensitivity, "\n"))
+  
+  # specifity
+  specifity <- table[1, 1] / sick[1]
+  cat(paste0("Specifity:   ", specifity, "\n"))
+  
+  # npw - the positive predictive value
+  ppv <- table[2, 2] / test[2]
+  cat(paste0("PV+:         ", ppv, "\n"))
+
+  # npw - Der negativepredictive value
+  npv <- table[1, 1] / test[1]
+  cat(paste0("PV-:         ", npv, "\n\n\n"))
+}
+
+#Multivarite Analyse, VHF in Abhängigkeit von NTproBNP, adjustiert mit Alter und Geschlecht
+
+
+result$NTproBNP.date <- as.POSIXct(result$NTproBNP.date, format = "%Y")
+result$birthdate <- as.POSIXct(result$birthdate, format = "%Y")
+result$age <- year(result$NTproBNP.date) - year(result$birthdate)
+
+logit <- glm(Vorhofflimmern ~ NTproBNP.valueQuantity.value + age + gender,
+             family = binomial,
+             data = result
+)
+
+summary(logit)
+
+sink()
 
