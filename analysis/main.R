@@ -238,16 +238,55 @@ for (i in c(1 : length(cuts))) {
 
 #Multivarite Analyse, VHF in Abhängigkeit von NTproBNP, adjustiert mit Alter und Geschlecht
 
+cat("GLM Analysis\n")
+cat("------------\n\n")
 
+# calculate age by birthdate and NTproBNP date
 result$NTproBNP.date <- as.POSIXct(result$NTproBNP.date, format = "%Y")
 result$birthdate <- as.POSIXct(result$birthdate, format = "%Y")
 result$age <- year(result$NTproBNP.date) - year(result$birthdate)
 
-logit <- glm(Vorhofflimmern ~ NTproBNP.valueQuantity.value + age + gender,
-             family = binomial,
-             data = result
-)
+# glm(...) throws an error if one of the so called contrast values (vector)
+# has always the same value -> we must identify these contrast values and
+# remove them from our analysis
 
+# all contrast values we want to consider
+contrast_names = c("NTproBNP.valueQuantity.value", "age", "gender")
+# list for all contratst we want to use in glm(...) is filled
+# by the given contrast column names
+contrasts <- list()
+for (i in 1 : length(contrast_names)) {
+  colName <- contrast_names[i] # get column name i
+  con <- result[[colName]]     # get result column with colum name i
+  contrasts[i] <- list(con)    # add result column as list item to contrasts
+}
+
+# now remove all invalid constrast (= contrast
+# vectors where all values are equal)
+for (i in c(length(contrasts) : 1)) {
+  con <- contrasts[i][[1]] # get the contrast vector i
+  first_con <- con[1]      # get th first element of contrast vector i
+  # if all values are equal in the contrast vector
+  if (all(con == first_con)) {
+    # log information in the output file
+    cat(paste0("All values of '", contrast_names[i], "' have the same value '", first_con, "' -> '", contrast_names[i], "' is ignored.\n"))
+    # remove the invalid contrast vector
+    contrasts <- contrasts[- i]
+  } else {
+    # The values are not all the same -> replace
+    # contrast vector by its column name in the
+    # result table. We only need the names to
+    # construct the glm(...) formula.
+    contrasts[i] <- contrast_names[i]
+  }
+}
+
+cat("\n")
+
+# constrcut the formula for glm(...) 
+logit_formula <- as.formula(paste("Vorhofflimmern ~ ", paste(contrasts, collapse = "+")))
+logit <- glm(logit_formula, family = binomial, data = result)
+# print logit to the output file
 summary(logit)
 
 sink()
