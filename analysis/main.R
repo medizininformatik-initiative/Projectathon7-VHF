@@ -34,8 +34,8 @@ retrieve_result_file_cohort <- paste0(OUTPUT_DIR_LOCAL, "/Kohorte.csv")
 retrieve_result_file_diagnoses <- paste0(OUTPUT_DIR_LOCAL, "/Diagnosen.csv")
 result_file_log <- paste0(OUTPUT_DIR_GLOBAL, "/Analysis.log")
 result_file_retrieve <- paste0(retrieve_dir, "/Retrieve.csv")
-analysisResultPlotFile <- paste0(OUTPUT_DIR_GLOBAL, "/Analyis-Plot.pdf")
-analysisResultTextFile <- paste0(OUTPUT_DIR_GLOBAL, "/Analyis.txt")
+analysis_result_plot_file <- paste0(OUTPUT_DIR_GLOBAL, "/Analysis-Plot.pdf")
+analysis_result_text_file <- paste0(OUTPUT_DIR_GLOBAL, "/Analysis.txt")
 data_quality_report_file <- paste0(OUTPUT_DIR_GLOBAL, "/DQ-Report.html")
 
 ####################################
@@ -160,17 +160,7 @@ if (DATA_QUALITY_REPORT) {
 # Start Analysis from S. Zeynalova #
 ####################################
 
-# create roc curve
-# Explanation of the graph:
-# Sens - Sensitivity
-# Spec - Specificity
-# PV+  - Percentage of false negatives for VHF among all test negatives
-# PV- - Proportion of false positives among all test positives
-pdf(analysisResultPlotFile)
-roc <- ROC(test = result$NTproBNP.valueQuantity.value, stat = result$Vorhofflimmern, plot = "ROC", main = "NTproBNP(Gesamt)", AUC = TRUE)
-dev.off()
-
-sink(analysisResultTextFile)
+sink(analysis_result_text_file)
 
 cat("###########################\n")
 cat("# Results of VHF Analysis #\n")
@@ -178,6 +168,26 @@ cat("###########################\n\n")
 
 cat(paste0("Date: ", Sys.time(), "\n\n"))
 
+# stop analysis if the result table has only 0 or 1 row
+resultRows <- nrow(result)
+if (resultRows < 2) {
+  errorMessage <- paste("Result table has", resultRows, "rows -> abort analysis\n")
+  cat(errorMessage)
+  sink()
+  stop(errorMessage)
+}
+
+# create roc curve
+# Explanation of the graph:
+# Sens - Sensitivity
+# Spec - Specificity
+# PV+  - Percentage of false negatives for VHF among all test negatives
+# PV- - Proportion of false positives among all test positives
+pdf(analysis_result_plot_file)
+roc <- ROC(test = result$NTproBNP.valueQuantity.value, stat = result$Vorhofflimmern, plot = "ROC", main = "NTproBNP(Gesamt)", AUC = TRUE)
+dev.off()
+
+# print AUC to the text file
 cat(paste0("ROC Area Under Curve: "), roc$AUC, "\n\n")
 
 # create different CUT points for NTproBNP
@@ -199,25 +209,31 @@ for (k in c(1 : length(cuts))) {
              prop.chisq = FALSE, 
              format = "SPSS")
   
-  table <- xtabs(~result[[colName]] + result$Vorhofflimmern)
-  test <- rowSums(table)
-  sick <- colSums(table)
+  cut_indicators <- result[[colName]]        # get the cuts vector
+  if (length(unique(cut_indicators)) == 1) { # can never be 0 here!
+    # log information in the output file
+    cat(paste0("All cut value for threshold ", cuts[i], " have the same value '", cut_indicators[1],"' -> sensitivity, specifity, PV+ and PV- not available.\n\n\n"))
+  } else {
+    table <- xtabs(~result[[colName]] + result$Vorhofflimmern)
+    test <- rowSums(table)
+    sick <- colSums(table)
+    
+    # sensitivity
+    sensitivity <- table[2, 2] / sick[2]
+    cat(paste0("Sensitivity: ", sensitivity, "\n"))
+    
+    # specifity
+    specifity <- table[1, 1] / sick[1]
+    cat(paste0("Specifity:   ", specifity, "\n"))
+    
+    # npw - the positive predictive value
+    ppv <- table[2, 2] / test[2]
+    cat(paste0("PV+:         ", ppv, "\n"))
   
-  # sensitivity
-  sensitivity <- table[2, 2] / sick[2]
-  cat(paste0("Sensitivity: ", sensitivity, "\n"))
-  
-  # specifity
-  specifity <- table[1, 1] / sick[1]
-  cat(paste0("Specifity:   ", specifity, "\n"))
-  
-  # npw - the positive predictive value
-  ppv <- table[2, 2] / test[2]
-  cat(paste0("PV+:         ", ppv, "\n"))
-
-  # npw - Der negativepredictive value
-  npv <- table[1, 1] / test[1]
-  cat(paste0("PV-:         ", npv, "\n\n\n"))
+    # npw - Der negativepredictive value
+    npv <- table[1, 1] / test[1]
+    cat(paste0("PV-:         ", npv, "\n\n\n"))
+  }
 }
 
 #Multivarite Analyse, VHF in Abhängigkeit von NTproBNP, adjustiert mit Alter und Geschlecht
@@ -235,4 +251,3 @@ logit <- glm(Vorhofflimmern ~ NTproBNP.valueQuantity.value + age + gender,
 summary(logit)
 
 sink()
-
