@@ -196,11 +196,11 @@ cuts <- c(500, 900, 1000, 1200, 2000)
 cat("NtProBNP Threshold Values Analysis\n")
 cat("----------------------------------\n\n")
 
-for (k in c(1 : length(cuts))) {
+for (i in c(1 : length(cuts))) {
   colName <- "NTproBNP.valueQuantity.value_cut"
-  result[[colName]] <- ifelse(result$NTproBNP.valueQuantity.value < cuts[k], 0, 1)
+  result[[colName]] <- ifelse(result$NTproBNP.valueQuantity.value < cuts[i], 0, 1)
 
-  cat(paste0("Threshold Value: ", cuts[k], "\n"))
+  cat(paste0("Threshold Value: ", cuts[i], "\n"))
 
   CrossTable(result$Vorhofflimmern, 
              result[[colName]], 
