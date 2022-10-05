@@ -191,7 +191,7 @@ dev.off()
 cat(paste0("ROC Area Under Curve: "), roc$AUC, "\n\n")
 
 # create different CUT points for NTproBNP
-cuts <- c(500, 900, 1000, 1200, 2000)
+cuts <- c(1 : 20) * 100
 
 cat("NtProBNP Threshold Values Analysis\n")
 cat("----------------------------------\n\n")
