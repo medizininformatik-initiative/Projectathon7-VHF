@@ -27,3 +27,5 @@ source("main.R")
 # subfolder and runs the analysis script
 setwd(paste0(working_dir, "/analysis"))
 source("main.R")
+
+setwd(working_dir)
