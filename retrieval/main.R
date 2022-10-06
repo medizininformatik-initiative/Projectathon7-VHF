@@ -242,10 +242,11 @@ obsdata <- merge.data.table(
 
 rm(obs_tables)
 
-#split patient id list into smaller chunks that can be used in a GET url
-#(split because we don't want to exceed allowed URL length)
-patient_ids <- obsdata$subject #all patient ids
+# get all patient IDs (if they are absolute, we need to change them to relative)
+patient_ids <- sapply(strsplit(obsdata$subject, split = '/', fixed = TRUE), tail, 1)
 
+# split patient id list into smaller chunks that can be used in a GET url
+# (split because we don't want to exceed allowed URL length)
 # remaining number of characters in the url that can be used for patient IDs
 # (assume maximal length of 1800)
 nchar_for_ids <- MAX_REQUEST_STRING_LENGTH - nchar(paste0(fhir_server_url, "Encounter", "&_profile=", PROFILE_ENC))
