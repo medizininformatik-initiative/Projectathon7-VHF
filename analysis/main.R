@@ -29,11 +29,12 @@ OUTPUT_DIR_LOCAL <- paste0(OUTPUT_DIR_BASE, "/outputLocal/", PROJECT_NAME)
 OUTPUT_DIR_GLOBAL <- paste0(OUTPUT_DIR_BASE, "/outputGlobal/", PROJECT_NAME)
 retrieve_dir = ifelse(DECENTRAL_ANALYIS, OUTPUT_DIR_LOCAL, OUTPUT_DIR_GLOBAL)
 
+# Result files from retrieve -> here the input files
+retrieve_result_file_cohort <- paste0(retrieve_dir, "/Kohorte.csv")
+retrieve_result_file_diagnoses <- paste0(retrieve_dir, "/Diagnosen.csv")
 # Result files
-retrieve_result_file_cohort <- paste0(OUTPUT_DIR_LOCAL, "/Kohorte.csv")
-retrieve_result_file_diagnoses <- paste0(OUTPUT_DIR_LOCAL, "/Diagnosen.csv")
+merged_retrieve_results_file <- paste0(retrieve_dir, "/Retrieve.csv")
 result_file_log <- paste0(OUTPUT_DIR_GLOBAL, "/Analysis.log")
-result_file_retrieve <- paste0(retrieve_dir, "/Retrieve.csv")
 analysis_result_plot_file <- paste0(OUTPUT_DIR_GLOBAL, "/Analysis-Plot.pdf")
 analysis_result_text_file <- paste0(OUTPUT_DIR_GLOBAL, "/Analysis.txt")
 data_quality_report_file <- paste0(OUTPUT_DIR_GLOBAL, "/DQ-Report.html")
@@ -148,7 +149,7 @@ setcolorder(result, neworder = "subject")
 
 # Write result files
 if (DEBUG) {
-  write.csv2(result, result_file_retrieve, row.names = FALSE)
+  write.csv2(result, merged_retrieve_results_file, row.names = FALSE)
 }
 
 # Runs the Data Quality Report

@@ -23,6 +23,7 @@ PROJECT_NAME <- "VHF"
 OUTPUT_DIR_LOCAL <- paste0(OUTPUT_DIR_BASE, "/outputLocal/", PROJECT_NAME)
 # Verzeichnis für Endergebnisse
 OUTPUT_DIR_GLOBAL <- paste0(OUTPUT_DIR_BASE, "/outputGlobal/", PROJECT_NAME)
+result_dir <- ifelse(DECENTRAL_ANALYIS, OUTPUT_DIR_LOCAL, OUTPUT_DIR_GLOBAL)
 
 # Maximum character length of GET requests to the FHIR server.
 # This value was created by testing.
@@ -43,8 +44,8 @@ debug_dir_enc_bundles <- paste0(output_local_bundles, "/Encounter")
 debug_dir_con_bundles <- paste0(output_local_bundles, "/Conditions")
 
 # Result files
-result_file_cohort <- paste0(OUTPUT_DIR_LOCAL, "/Kohorte.csv")
-result_file_diagnoses <- paste0(OUTPUT_DIR_LOCAL, "/Diagnosen.csv")
+result_file_cohort <- paste0(result_dir, "/Kohorte.csv")
+result_file_diagnoses <- paste0(result_dir, "/Diagnosen.csv")
 result_file_log <- paste0(OUTPUT_DIR_GLOBAL, "/Retrieval.log")
 
 # remove old files and dirs and create new dirs  (surpress warning if dir exists)
