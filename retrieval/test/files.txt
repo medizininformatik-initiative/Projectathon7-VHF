@@ -1,4 +1,4 @@
-VHF-Testdaten_04-MixedCases_VHF-MIXED-TEST-CASE-0001-a-VHF-MIXED-TEST-CASE-0001-a.ndjson
-VHF-Testdaten_04-MixedCases_VHF-MIXED-TEST-CASE-0001-b-VHF-MIXED-TEST-CASE-0001-b.ndjson
-VHF-Testdaten_04-MixedCases_VHF-MIXED-TEST-CASE-0001-c-VHF-MIXED-TEST-CASE-0001-c.ndjson
-VHF-Testdaten_04-MixedCases_VHF-MIXED-TEST-CASE-0001-d-VHF-MIXED-TEST-CASE-0001-d.ndjson
+VHF-Testdaten_04-MixedCases_a.ndjson
+VHF-Testdaten_04-MixedCases_b.ndjson
+VHF-Testdaten_04-MixedCases_c.ndjson
+VHF-Testdaten_04-MixedCases_d.ndjson
