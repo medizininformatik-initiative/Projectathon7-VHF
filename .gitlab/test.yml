@@ -7,7 +7,7 @@
     entrypoint: [ "/bin/sh" ]
   variables:
     FF_NETWORK_PER_BUILD: 1
-    TEST_DATA_BASE: https://github.com/medizininformatik-initiative/kerndatensatz-testdaten/raw/b2c4292/Test_Data/Vorhofflimmern
+    TEST_DATA_BASE: https://github.com/medizininformatik-initiative/kerndatensatz-testdaten/raw/6be5073/Test_Data/Vorhofflimmern
   image: ghcr.io/knoppiks/blazectl:latest
   script:
   - (cd ${SUB_DIR}/test && cat files.txt | xargs -i -n 1 wget -q ${TEST_DATA_BASE}/{})
