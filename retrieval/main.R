@@ -93,7 +93,7 @@ obs_request <- fhir_url(
       "http://loinc.org|77622-9,",
       "http://loinc.org|77621-1"),
     "date" = "ge2019-01-01",
-    "date" = "le2021-12-31",
+    "date" = "le2022-12-31",
     "_include" = "Observation:patient"
   )
 )
