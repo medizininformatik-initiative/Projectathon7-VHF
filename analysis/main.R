@@ -67,10 +67,16 @@ for (runOption in runOptions) {
   
   # remove invalid data rows
   cohort <- cohort[
-    (is.na(NTproBNP.valueQuantity.comparator) | isWithComparator) & # !isWithComparator and has comparator -> invalid
-     !is.na(NTproBNP.valueQuantity.value) &                         # missing value -> invalid
-     NTproBNP.valueQuantity.value >= 0                              # NTproBNP value < 0 -> invalid
+      !is.na(NTproBNP.valueQuantity.value) & # missing value -> invalid
+      NTproBNP.valueQuantity.value >= 0      # NTproBNP value < 0 -> invalid
   ]
+
+  sizeBeforeRemove <- nrow(cohort)
+  # remove columns with comparator if they should be exluded
+  if (!isWithComparator) {
+    cohort <- cohort[is.na(NTproBNP.valueQuantity.comparator)]
+  }
+  valuesWithComparatorCount <- sizeBeforeRemove - nrow(cohort)
   
   # Some DIZ write the SI unit not in the "valueQuantity/code" which was imported
   # in the field "NTproBNP.unit" but in the "valueQuantity/unit" which was
@@ -165,7 +171,6 @@ for (runOption in runOptions) {
   # bring the subject column to the front again
   setcolorder(result, neworder = "subject")
   
-  
   # Write result files
   if (DEBUG) {
     write.csv2(result, merged_retrieve_results_file, row.names = FALSE)
@@ -201,12 +206,14 @@ for (runOption in runOptions) {
   
   # stop analysis if the result table has only 0 or 1 row
   if (tooFewDataRowsToAnalyze) {
-    errorMessage <- paste("Result table has", resultRows, "rows -> abort analysis\n")
+    errorMessage <- paste("Result table has", resultRows, "row(s) -> abort analysis\n")
     cat(errorMessage)
     sink()
     dev.off()
     stop(errorMessage)
   }
+  
+  cat(paste0("Run Option: ", runOption, ifelse(isWithComparator, "", paste0(" (", valuesWithComparatorCount, " Observations with comparator removed)"))), "\n\n")
   
   # print AUC to the text file
   cat(paste0("ROC Area Under Curve NTproBNP(Gesamt): "), roc$AUC, "\n\n")
@@ -234,7 +241,7 @@ for (runOption in runOptions) {
     
     if (all(cuts == cuts[1])) { # all cuts have the same value (all 0 or all 1) -> no further calculations 
       # log information in the output file
-      cat(paste0("All cut value for threshold ", thresholds[i], " have the same value '", cuts[1],"' -> sensitivity, specifity, PV+ and PV- not available.\n\n\n"))
+      cat(paste0("All NTproBNP values are greater than ", thresholds[i]," -> sensitivity, specifity, PV+ and PV- not available.\n\n\n"))
     } else {
       table <- xtabs(~cuts + result$Vorhofflimmern)
       test <- rowSums(table)
