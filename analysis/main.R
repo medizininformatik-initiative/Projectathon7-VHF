@@ -161,32 +161,35 @@ if (DATA_QUALITY_REPORT) {
 # Start Analysis from S. Zeynalova #
 ####################################
 
-sink(analysis_result_text_file)
-
-cat("###########################\n")
-cat("# Results of VHF Analysis #\n")
-cat("###########################\n\n")
-
-cat(paste0("Date: ", Sys.time(), "\n\n"))
-
-# stop analysis if the result table has only 0 or 1 row
 resultRows <- nrow(result)
-if (resultRows < 2) {
-  errorMessage <- paste("Result table has", resultRows, "rows -> abort analysis\n")
-  cat(errorMessage)
-  sink()
-  stop(errorMessage)
-}
+tooFewDataRowsToAnalyze <- resultRows < 2;
 
-# create roc curve
+# plot roc curve to pdf
 # Explanation of the graph:
 # Sens - Sensitivity
 # Spec - Specificity
 # PV+  - Percentage of false negatives for VHF among all test negatives
 # PV- - Proportion of false positives among all test positives
-pdf(analysis_result_plot_file)
-roc <- ROC(test = result$NTproBNP.valueQuantity.value, stat = result$Vorhofflimmern, plot = "ROC", main = "NTproBNP(Gesamt)", AUC = TRUE)
-dev.off()
+if (!tooFewDataRowsToAnalyze) {
+  pdf(analysis_result_plot_file)
+  roc <- ROC(test = result$NTproBNP.valueQuantity.value, stat = result$Vorhofflimmern, plot = "ROC", main = "NTproBNP(Gesamt)", AUC = TRUE)
+  dev.off()
+}
+
+# start text file logging
+sink(analysis_result_text_file)
+cat("###########################\n")
+cat("# Results of VHF Analysis #\n")
+cat("###########################\n\n")
+cat(paste0("Date: ", Sys.time(), "\n\n"))
+
+# stop analysis if the result table has only 0 or 1 row
+if (tooFewDataRowsToAnalyze) {
+  errorMessage <- paste("Result table has", resultRows, "rows -> abort analysis\n")
+  cat(errorMessage)
+  sink()
+  stop(errorMessage)
+}
 
 # print AUC to the text file
 cat(paste0("ROC Area Under Curve: "), roc$AUC, "\n\n")
@@ -284,7 +287,7 @@ for (i in c(length(contrasts) : 1)) {
 
 cat("\n")
 
-# constrcut the formula for glm(...) 
+# construct the formula for glm(...) 
 logit_formula <- as.formula(paste("Vorhofflimmern ~ ", paste(contrasts, collapse = "+")))
 logit <- glm(logit_formula, family = binomial, data = result)
 # print logit to the output file
