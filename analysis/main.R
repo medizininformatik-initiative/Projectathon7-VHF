@@ -228,15 +228,15 @@ for (i in c(1 : length(cuts))) {
     
     # specifity
     specifity <- table[1, 1] / sick[1]
-    cat(paste0("Specifity:   ", specifity, "\n"))
+    cat(paste0("  Specifity: ", specifity, "\n"))
     
     # npw - the positive predictive value
     ppv <- table[2, 2] / test[2]
-    cat(paste0("PV+:         ", ppv, "\n"))
+    cat(paste0("        PV+: ", ppv, "\n"))
   
     # npw - Der negativepredictive value
     npv <- table[1, 1] / test[1]
-    cat(paste0("PV-:         ", npv, "\n\n\n"))
+    cat(paste0("        PV-: ", npv, "\n\n"))
   }
 }
 
