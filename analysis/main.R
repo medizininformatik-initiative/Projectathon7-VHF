@@ -173,7 +173,6 @@ tooFewDataRowsToAnalyze <- resultRows < 2;
 if (!tooFewDataRowsToAnalyze) {
   pdf(analysis_result_plot_file)
   roc <- ROC(test = result$NTproBNP.valueQuantity.value, stat = result$Vorhofflimmern, plot = "ROC", main = "NTproBNP(Gesamt)", AUC = TRUE)
-  dev.off()
 }
 
 # start text file logging
@@ -188,37 +187,39 @@ if (tooFewDataRowsToAnalyze) {
   errorMessage <- paste("Result table has", resultRows, "rows -> abort analysis\n")
   cat(errorMessage)
   sink()
+  dev.off()
   stop(errorMessage)
 }
 
 # print AUC to the text file
-cat(paste0("ROC Area Under Curve: "), roc$AUC, "\n\n")
+cat(paste0("ROC Area Under Curve NTproBNP(Gesamt): "), roc$AUC, "\n\n")
 
 # create different CUT points for NTproBNP
-cuts <- c(1 : 20) * 100
+thresholds <- c(1 : 20) * 100
 
 cat("NtProBNP Threshold Values Analysis\n")
 cat("----------------------------------\n\n")
 
-for (i in c(1 : length(cuts))) {
-  colName <- "NTproBNP.valueQuantity.value_cut"
-  result[[colName]] <- ifelse(result$NTproBNP.valueQuantity.value < cuts[i], 0, 1)
+for (i in c(1 : length(thresholds))) {
 
-  cat(paste0("Threshold Value: ", cuts[i], "\n"))
+  cutsColumnlName <- "NTproBNP.valueQuantity.value_cut"
+  cuts <- result[[cutsColumnlName]] <- ifelse(result$NTproBNP.valueQuantity.value < thresholds[i], 0, 1)
 
+  cat(paste0("Threshold Value: ", thresholds[i], "\n"))
+  cat("---------------------\n")
+  
   CrossTable(result$Vorhofflimmern, 
-             result[[colName]], 
+             cuts, 
              prop.c = TRUE, 
              digits = 2, 
              prop.chisq = FALSE, 
              format = "SPSS")
   
-  cut_indicators <- result[[colName]]        # get the cuts vector
-  if (length(unique(cut_indicators)) == 1) { # can never be 0 here!
+  if (all(cuts == cuts[1])) { # all cuts have the same value (all 0 or all 1) -> no further calculations 
     # log information in the output file
-    cat(paste0("All cut value for threshold ", cuts[i], " have the same value '", cut_indicators[1],"' -> sensitivity, specifity, PV+ and PV- not available.\n\n\n"))
+    cat(paste0("All cut value for threshold ", thresholds[i], " have the same value '", cuts[1],"' -> sensitivity, specifity, PV+ and PV- not available.\n\n\n"))
   } else {
-    table <- xtabs(~result[[colName]] + result$Vorhofflimmern)
+    table <- xtabs(~cuts + result$Vorhofflimmern)
     test <- rowSums(table)
     sick <- colSums(table)
     
@@ -237,6 +238,11 @@ for (i in c(1 : length(cuts))) {
     # npw - Der negativepredictive value
     npv <- table[1, 1] / test[1]
     cat(paste0("        PV-: ", npv, "\n\n"))
+
+    # add the ROC plot to the pdf and the AUC value to the text file
+    rocTitle <- paste0("NtproBNP_cut", thresholds[i],  " BY VHF")
+    roc <- ROC(test = cuts, stat = result$Vorhofflimmern, plot = "ROC", main = rocTitle)
+    cat(paste0("ROC Area Under Curve (Threshold ", thresholds[i], "): "), roc$AUC, "\n\n\n")
   }
 }
 
@@ -294,3 +300,5 @@ logit <- glm(logit_formula, family = binomial, data = result)
 summary(logit)
 
 sink()
+dev.off()
+
