@@ -220,27 +220,37 @@ for (runOption in runOptions) {
 
   # Order to run the anlaysis and filter the data.
   # The syntax means the following:
-  #   If the column name does *not* start with a
-  #   minus sign '-', then the analysis should be
-  #   performed for this value.
-  #   If the column name starts with a minus sign
-  #   '-', then the data should be filtered for
-  #   all rows, where this value is 1. Filtere
-  #   means that this rows with a 1 value are
-  #   removed.
-  analysisOrder <- c("Vorhofflimmern",
-                     "Herzinsuffizienz")
-  # analysisOrder <- c("Vorhofflimmern",
-  #                    "Herzinsuffizienz",
-  #                    "-Myokardinfarkt",
-  #                    "-Schlaganfall",
-  #                    "Vorhofflimmern",
-  #                    "Herzinsuffizienz",
-  #                    "-Herzinsuffizienz",
-  #                    "Vorhofflimmern")
+  #
+  #   If the column name (first word of the option)
+  #   does *not* start with a minus sign '-', then
+  #   the analysis should beperformed for this value.
+  #
+  #   If the column name (first word of the option)
+  #   starts with a minus sign '-', then the data
+  #   should be filtered for all rows, where this
+  #   value is 1. Filtere means that this rows with
+  #   a 1 value are removed.
+  analysisOrder <- c("Vorhofflimmern with all other diagnoses",
+                     "Herzinsuffizienz with all other diagnoses",
+                     "-Myokardinfarkt",
+                     "-Schlaganfall",
+                     "Vorhofflimmern without Myokardinfarkt and Schlaganfall",
+                     "Herzinsuffizienz without Myokardinfarkt and Schlaganfall",
+                     "-Herzinsuffizienz",
+                     "Vorhofflimmern without Myokardinfarkt, Schlaganfall and Herzinsuffizienz")
   
-  for (analyisOption in analysisOrder) {
+  for (fullAnalysisOption in analysisOrder) {
+    
+    # extract first word of the full analysis option -> current column name
+    analyisOption <- unlist(strsplit(fullAnalysisOption, split = "\\s+"))[1]
 
+    # filter data on analysisOptions that starts with '-'
+    if (startsWith(analyisOption, '-')) {
+      analyisOption <- substr(analyisOption, 2, nchar(analyisOption))
+      result <- result[result[[analyisOption]] != 1]
+      next
+    }
+    
     resultRows <- nrow(result)
   
     # check possible data problems
@@ -270,7 +280,7 @@ for (runOption in runOptions) {
     cat("###########################\n\n")
     cat(paste0("Date: ", Sys.time(), "\n\n"))
 
-    cat(paste0("Current Analysis for ", analyisOption, "\n"))
+    cat(paste0("Current Analysis: ", fullAnalysisOption, "\n"))
     cat(paste0("Run Option: ", runOption, ifelse(filterComparatorValues, paste0(" (", removedObservationsCount, " Observations with comparator removed)"), "")), "\n\n")
   
     cat(comparatorFrequencies, "\n", sep = "\n")
@@ -294,7 +304,7 @@ for (runOption in runOptions) {
       
         cat(paste0("Threshold Value: ", thresholds[i], "\n"))
         cat("---------------------\n")
-        cat(analyisOption, "\n")
+        cat(fullAnalysisOption, "\n")
         CrossTable(result[[analyisOption]], 
                    cuts, 
                    prop.c = TRUE, 
