@@ -48,7 +48,9 @@ sink(analysis_result_text_file)
 ####################################
 
 cohort <- fread(retrieve_result_file_cohort)
-runOptions <- c("Incl. Comparator", "Excl. Comparator")
+conditions <- fread(retrieve_result_file_diagnoses)
+
+runOptions <- c("Incl. Comparators", "Excl. Comparators")
 
 # if there are no values or only values with comparator -> remove second run option
 if (length(unique(cohort$NTproBNP.valueQuantity.comparator)) == 1) {
@@ -58,12 +60,6 @@ if (length(unique(cohort$NTproBNP.valueQuantity.comparator)) == 1) {
 for (runOption in runOptions) {
 
   isWithComparator <- runOption == "Incl. Comparator"
-  
-  # Load retrieval result files
-  if (!isWithComparator) { # prevent double fread() on runOption 1
-    cohort <- fread(retrieve_result_file_cohort)
-  }
-  conditions <- fread(retrieve_result_file_diagnoses)
   
   # remove invalid data rows
   cohort <- cohort[
