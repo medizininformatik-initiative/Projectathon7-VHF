@@ -133,7 +133,7 @@ for (runOption in runOptions) {
   ]
   
   # now really unify
-  for (i in 2:length(unitNames)) {
+  for (i in 2 : length(unitNames)) {
     # Convert value
     cohort[
       NTproBNP.unit == unitNames[i], 
@@ -219,7 +219,8 @@ for (runOption in runOptions) {
   #   all rows, where this value is 1. Filtere
   #   means that this rows with a 1 value are
   #   removed.
-  analysisOrder <- c("Vorhofflimmern")
+  analysisOrder <- c("Vorhofflimmern",
+                     "Herzinsuffizienz")
   # analysisOrder <- c("Vorhofflimmern",
   #                    "Herzinsuffizienz",
   #                    "-Myokardinfarkt",
@@ -239,8 +240,8 @@ for (runOption in runOptions) {
     if (resultRows < 2) {
       errorMessage <- paste0("Result table has ", resultRows, " rows -> abort analysis\n")
     }
-    if (all(result$Vorhofflimmern == result$Vorhofflimmern[1])) { # only 0 or only 1 in this diagnosis column
-      errorMessage <- paste0("All Vorhofflimmern diagnoses have the same value ", result$Vorhofflimmern[1], " -> abort analysis\n")
+    if (all(result[[analyisOption]] == result[[analyisOption]][1])) { # only 0 or only 1 in this diagnosis column
+      errorMessage <- paste0("All ", analyisOption ," diagnoses have the same value ", result[[analyisOption]][1], " -> abort analysis\n")
     }
     hasError <- nchar(errorMessage) > 0
     
@@ -251,7 +252,7 @@ for (runOption in runOptions) {
     # PV+  - Percentage of false negatives for VHF among all test negatives
     # PV- - Proportion of false positives among all test positives
     if (!hasError) {
-      roc <- ROC(test = result$NTproBNP.valueQuantity.value, stat = result$Vorhofflimmern, plot = "ROC", main = "NTproBNP(Gesamt)", AUC = TRUE)
+      roc <- ROC(test = result$NTproBNP.valueQuantity.value, stat = result[[analyisOption]], plot = "ROC", main = "NTproBNP(Gesamt)", AUC = TRUE)
     }
     
     # start text file logging
@@ -259,11 +260,12 @@ for (runOption in runOptions) {
     cat("# Results of VHF Analysis #\n")
     cat("###########################\n\n")
     cat(paste0("Date: ", Sys.time(), "\n\n"))
+
+    cat(paste0("Current Analysis for ", analyisOption, "\n"))
+    cat(paste0("Run Option: ", runOption, ifelse(filterComparatorValues, paste0(" (", removedObservationsCount, " Observations with comparator removed)"), "")), "\n\n")
   
     cat(comparatorFrequencies, "\n", sep = "\n")
     
-    cat(paste0("Run Option: ", runOption, ifelse(filterComparatorValues, paste0(" (", removedObservationsCount, " Observations with comparator removed)"), "")), "\n\n")
-  
     # run analysis if the result table has not only 0 or 1 row and not all diagnoses values are the same
     if (!hasError) {
       
@@ -283,8 +285,8 @@ for (runOption in runOptions) {
       
         cat(paste0("Threshold Value: ", thresholds[i], "\n"))
         cat("---------------------\n")
-        
-        CrossTable(result$Vorhofflimmern, 
+        cat(analyisOption, "\n")
+        CrossTable(result[[analyisOption]], 
                    cuts, 
                    prop.c = TRUE, 
                    digits = 2, 
@@ -295,7 +297,7 @@ for (runOption in runOptions) {
           # log information in the output file
           cat(paste0("All NTproBNP values are greater than ", thresholds[i]," -> sensitivity, specifity, PV+ and PV- not available.\n\n\n"))
         } else {
-          table <- xtabs(~cuts + result$Vorhofflimmern)
+          table <- xtabs(~cuts + result[[analyisOption]])
           test <- rowSums(table)
           sick <- colSums(table)
           
@@ -317,7 +319,7 @@ for (runOption in runOptions) {
       
           # add the ROC plot to the pdf and the AUC value to the text file
           rocTitle <- paste0("NtproBNP_cut", thresholds[i],  " BY VHF")
-          roc <- ROC(test = cuts, stat = result$Vorhofflimmern, plot = "ROC", main = rocTitle)
+          roc <- ROC(test = cuts, stat = result[[analyisOption]], plot = "ROC", main = rocTitle)
           cat(paste0("ROC Area Under Curve (Threshold ", thresholds[i], "): "), roc$AUC, "\n\n\n")
         }
       }
@@ -370,14 +372,15 @@ for (runOption in runOptions) {
       cat("\n")
       
       # construct the formula for glm(...) 
-      logit_formula <- as.formula(paste("Vorhofflimmern ~ ", paste(contrasts, collapse = "+")))
+      logit_formula <- as.formula(paste(analyisOption, " ~ ", paste(contrasts, collapse = "+")))
       logit <- glm(logit_formula, family = binomial, data = result)
       summaryText <- capture.output(summary(logit)) # https://www.r-bloggers.com/2015/02/export-r-output-to-a-file/
-      cat(summaryText, sep = "\n") # summaryText is a list -> print list with line breaks   
+      cat(summaryText, sep = "\n") # summaryText is a list -> print list with line breaks
     } else {
-      cat(errorMessage)
+      cat(errorMessage, "\n")
       message(errorMessage)
-    } 
+    }
+    cat("\n")
   }
 }
   
