@@ -53,13 +53,24 @@ conditions <- fread(retrieve_result_file_diagnoses)
 runOptions <- c("Incl. Comparators", "Excl. Comparators")
 
 # if there are no values or only values with comparator -> remove second run option
-if (length(unique(cohort$NTproBNP.valueQuantity.comparator)) == 1) {
-  runOptions <- runOptions[- 2]
+comparators <- unique(cohort$NTproBNP.valueQuantity.comparator)
+comparatorsCount <- length(comparators)
+hasComparators <- comparatorsCount > 1 | !anyNA(comparators)
+if (comparatorsCount == 1) {
+  if (hasComparators) { # the only value is N.A. -> means there are no comparators
+    runOptions <- c("All NTproBNP values have no comparator")
+  } else {
+    runOptions <- c(paste0("All NTproBNP values have the same comparator ", comparators[1]))
+  }
+} else if (hasComparators) {
+  runOptions <- c(paste0("All NTproBNP values have a comparator of ", paste(comparators, collapse = ', ')))
 }
 
 for (runOption in runOptions) {
 
-  isWithComparator <- runOption == "Incl. Comparator"
+  runOption <- runOptions[1]
+
+  filterData <- runOption != runOptions[1] # only 1 run option -> the only run is with all values
   
   # remove invalid data rows
   cohort <- cohort[
@@ -69,10 +80,10 @@ for (runOption in runOptions) {
 
   sizeBeforeRemove <- nrow(cohort)
   # remove columns with comparator if they should be exluded
-  if (!isWithComparator) {
+  if (filterData) { 
     cohort <- cohort[is.na(NTproBNP.valueQuantity.comparator)]
   }
-  valuesWithComparatorCount <- sizeBeforeRemove - nrow(cohort)
+  removedObservationsCount <- sizeBeforeRemove - nrow(cohort)
   
   # Some DIZ write the SI unit not in the "valueQuantity/code" which was imported
   # in the field "NTproBNP.unit" but in the "valueQuantity/unit" which was
@@ -182,7 +193,17 @@ for (runOption in runOptions) {
   ####################################
   
   resultRows <- nrow(result)
-  tooFewDataRowsToAnalyze <- resultRows < 2;
+
+  # check possible data problems
+  errorMessage <- ""
+  # not enough data rows 
+  if (resultRows < 2) {
+    errorMessage <- paste0("Result table has ", resultRows, " rows -> abort analysis\n")
+  }
+  if (all(result$Vorhofflimmern == result$Vorhofflimmern[1])) { # only 0 or only 1 in this diagnosis column
+    errorMessage <- paste0("All Vorhofflimmern diagnoses have the same value ", result$Vorhofflimmern[1], " -> abort analysis\n")
+  }
+  hasError <- nchar(errorMessage) > 0
   
   # plot roc curve to pdf
   # Explanation of the graph:
@@ -190,7 +211,7 @@ for (runOption in runOptions) {
   # Spec - Specificity
   # PV+  - Percentage of false negatives for VHF among all test negatives
   # PV- - Proportion of false positives among all test positives
-  if (!tooFewDataRowsToAnalyze) {
+  if (!hasError) {
     roc <- ROC(test = result$NTproBNP.valueQuantity.value, stat = result$Vorhofflimmern, plot = "ROC", main = "NTproBNP(Gesamt)", AUC = TRUE)
   }
   
@@ -200,16 +221,10 @@ for (runOption in runOptions) {
   cat("###########################\n\n")
   cat(paste0("Date: ", Sys.time(), "\n\n"))
   
-  # stop analysis if the result table has only 0 or 1 row
-  if (tooFewDataRowsToAnalyze) {
-    errorMessage <- paste("Result table has", resultRows, "row(s) -> abort analysis\n")
-    cat(errorMessage)
-    sink()
-    dev.off()
-    stop(errorMessage)
-  }
-  
-  cat(paste0("Run Option: ", runOption, ifelse(isWithComparator, "", paste0(" (", valuesWithComparatorCount, " Observations with comparator removed)"))), "\n\n")
+  cat(paste0("Run Option: ", runOption, ifelse(filterData, paste0(" (", removedObservationsCount, " Observations with comparator removed)"), "")), "\n\n")
+
+  # run analysis if the result table has not only 0 or 1 row and not all diagnoses values are the same
+  if (!hasError) {
   
   # print AUC to the text file
   cat(paste0("ROC Area Under Curve NTproBNP(Gesamt): "), roc$AUC, "\n\n")
@@ -319,6 +334,7 @@ for (runOption in runOptions) {
   # print logit to the output file
   summary(logit)
 
+  } 
 }
 
 sink()
