@@ -181,10 +181,10 @@ for (runOption in runOptions) {
   # for each encounter, extract the Boolean information whether certain diagnoses
   # were present
   conditionsReduced <- conditions[, .(
-    Vorhofflimmern = as.numeric(any(grepl("I48.0|I48.1|I48.2|I48.9", code))),
-    Myokardinfarkt = as.numeric(any(grepl("I21|I22|I25.2", code))),
-    Herzinsuffizienz = as.numeric(any(grepl("I50", code))),
-    Schlaganfall = as.numeric(any(grepl("I60|I61|I62|I63|I64|I69", code)))
+    AtrialFibrillation = as.numeric(any(grepl("I48.0|I48.1|I48.2|I48.9", code))),
+    MyocardialInfarction = as.numeric(any(grepl("I21|I22|I25.2", code))),
+    HeartFailure = as.numeric(any(grepl("I50", code))),
+    Stroke = as.numeric(any(grepl("I60|I61|I62|I63|I64|I69", code)))
   ), by = encounter.id]
   
   # merge the result encounters with the diagnoses information
@@ -196,10 +196,10 @@ for (runOption in runOptions) {
   )
   
   # fill missing diagnosis values with 0
-  result[is.na(Vorhofflimmern), Vorhofflimmern := 0]
-  result[is.na(Myokardinfarkt), Myokardinfarkt := 0]
-  result[is.na(Herzinsuffizienz), Herzinsuffizienz := 0]
-  result[is.na(Schlaganfall), Schlaganfall := 0]
+  result[is.na(AtrialFibrillation), AtrialFibrillation := 0]
+  result[is.na(MyocardialInfarction), MyocardialInfarction := 0]
+  result[is.na(HeartFailure), HeartFailure := 0]
+  result[is.na(Stroke), Stroke := 0]
   
   # bring the subject column to the front again
   setcolorder(result, neworder = "subject")
@@ -230,14 +230,14 @@ for (runOption in runOptions) {
   #   should be filtered for all rows, where this
   #   value is 1. Filtere means that this rows with
   #   a 1 value are removed.
-  analysisOrder <- c("Vorhofflimmern with all other diagnoses",
-                     "Herzinsuffizienz with all other diagnoses",
-                     "-Myokardinfarkt",
-                     "-Schlaganfall",
-                     "Vorhofflimmern without Myokardinfarkt and Schlaganfall",
-                     "Herzinsuffizienz without Myokardinfarkt and Schlaganfall",
-                     "-Herzinsuffizienz",
-                     "Vorhofflimmern without Myokardinfarkt, Schlaganfall and Herzinsuffizienz")
+  analysisOrder <- c("AtrialFibrillation with all other diagnoses",
+                     "HeartFailure with all other diagnoses",
+                     "-MyocardialInfarction",
+                     "-Stroke",
+                     "AtrialFibrillation without MyocardialInfarction and Stroke",
+                     "HeartFailure without MyocardialInfarction and Stroke",
+                     "-HeartFailure",
+                     "AtrialFibrillation without MyocardialInfarction, Stroke and HeartFailure")
   
   for (fullAnalysisOption in analysisOrder) {
     
@@ -271,7 +271,7 @@ for (runOption in runOptions) {
     # PV+  - Percentage of false negatives for VHF among all test negatives
     # PV- - Proportion of false positives among all test positives
     if (!hasError) {
-      roc <- ROC(test = result$NTproBNP.valueQuantity.value, stat = result[[analysisOption]], plot = "ROC", main = "NTproBNP(Gesamt)", AUC = TRUE)
+      roc <- ROC(test = result$NTproBNP.valueQuantity.value, stat = result[[analysisOption]], plot = "ROC", main = "NTproBNP(Full)", AUC = TRUE)
     }
     
     # start text file logging
@@ -289,7 +289,7 @@ for (runOption in runOptions) {
     if (!hasError) {
       
       # print AUC to the text file
-      cat(paste0("ROC Area Under Curve NTproBNP(Gesamt): "), roc$AUC, "\n\n")
+      cat(paste0("ROC Area Under Curve NTproBNP(Full): "), roc$AUC, "\n\n")
       
       # create different CUT points for NTproBNP
       thresholds <- c(1 : 60) * 50
@@ -339,7 +339,7 @@ for (runOption in runOptions) {
           # add the ROC plot to the pdf and the AUC value to the text file
           rocTitle <- paste0("NtproBNP_cut", thresholds[i],  " BY VHF")
           roc <- ROC(test = cuts, stat = result[[analysisOption]], plot = "ROC", main = rocTitle)
-          cat(paste0("ROC Area Under Curve (Threshold ", thresholds[i], "): "), roc$AUC, "\n\n\n")
+          cat(paste0("ROC Area Under Curve (Cut ", thresholds[i], "): "), roc$AUC, "\n\n\n")
         }
       }
       
