@@ -50,37 +50,37 @@ sink(analysis_result_text_file)
 cohort <- fread(retrieve_result_file_cohort)
 conditions <- fread(retrieve_result_file_diagnoses)
 
-runOptions <- c("Incl. Comparators", "Excl. Comparators")
-
-# if there are no values or only values with comparator -> remove second run option
+# check the data if there are values with and/or without comparators
 comparators <- unique(cohort$NTproBNP.valueQuantity.comparator)
 comparatorsCount <- length(comparators)
-hasComparators <- comparatorsCount > 1 | !anyNA(comparators)
+hasExactValues <- anyNA(comparators)
+hasComparators <- comparatorsCount > 1 || !hasExactValues
 if (comparatorsCount == 1) {
-  if (hasComparators) { # the only value is N.A. -> means there are no comparators
-    runOptions <- c("All NTproBNP values have no comparator")
-  } else {
+  if (hasComparators) { # the only value is a comparator
     runOptions <- c(paste0("All NTproBNP values have the same comparator ", comparators[1]))
+  } else { # the only value is N.A. -> means there are no comparators
+    runOptions <- c("All NTproBNP values have no comparator")
   }
-} else if (hasComparators) {
-  runOptions <- c(paste0("All NTproBNP values have a comparator of ", paste(comparators, collapse = ', ')))
+} else if (hasComparators && !hasExactValues) { # there are only values with different comparators
+  runOptions <- c(paste0("All NTproBNP values have a comparator of ", paste(comparators, collapse = ', ')))  
+} else { # there are values with and values witthout a comparator -> the only case with 2 run options
+  runOptions <- c("Incl. Comparators", "Excl. Comparators")  
 }
 
+# run the same analysis with the first run option with all values and with
+# a possibly existing second run option without all values with comparators
 for (runOption in runOptions) {
 
-  runOption <- runOptions[1]
-
-  filterData <- runOption != runOptions[1] # only 1 run option -> the only run is with all values
-  
   # remove invalid data rows
   cohort <- cohort[
       !is.na(NTproBNP.valueQuantity.value) & # missing value -> invalid
       NTproBNP.valueQuantity.value >= 0      # NTproBNP value < 0 -> invalid
   ]
 
+  filterComparatorValues <- runOption != runOptions[1] # the 1. run option iswith all values and the 2. with filtered
   sizeBeforeRemove <- nrow(cohort)
   # remove columns with comparator if they should be exluded
-  if (filterData) { 
+  if (filterComparatorValues) { 
     cohort <- cohort[is.na(NTproBNP.valueQuantity.comparator)]
   }
   removedObservationsCount <- sizeBeforeRemove - nrow(cohort)
@@ -221,7 +221,7 @@ for (runOption in runOptions) {
   cat("###########################\n\n")
   cat(paste0("Date: ", Sys.time(), "\n\n"))
   
-  cat(paste0("Run Option: ", runOption, ifelse(filterData, paste0(" (", removedObservationsCount, " Observations with comparator removed)"), "")), "\n\n")
+  cat(paste0("Run Option: ", runOption, ifelse(filterComparatorValues, paste0(" (", removedObservationsCount, " Observations with comparator removed)"), "")), "\n\n")
 
   # run analysis if the result table has not only 0 or 1 row and not all diagnoses values are the same
   if (!hasError) {
@@ -346,4 +346,3 @@ message(logText)
 sink()
 dev.off()
 closeAllConnections()
-
