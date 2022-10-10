@@ -242,12 +242,12 @@ for (runOption in runOptions) {
   for (fullAnalysisOption in analysisOrder) {
     
     # extract first word of the full analysis option -> current column name
-    analyisOption <- unlist(strsplit(fullAnalysisOption, split = "\\s+"))[1]
+    analysisOption <- unlist(strsplit(fullAnalysisOption, split = "\\s+"))[1]
 
     # filter data on analysisOptions that starts with '-'
-    if (startsWith(analyisOption, '-')) {
-      analyisOption <- substr(analyisOption, 2, nchar(analyisOption))
-      result <- result[result[[analyisOption]] != 1]
+    if (startsWith(analysisOption, '-')) {
+      analysisOption <- substr(analysisOption, 2, nchar(analysisOption))
+      result <- result[result[[analysisOption]] != 1]
       next
     }
     
@@ -259,8 +259,8 @@ for (runOption in runOptions) {
     if (resultRows < 2) {
       errorMessage <- paste0("Result table has ", resultRows, " rows -> abort analysis\n")
     }
-    if (all(result[[analyisOption]] == result[[analyisOption]][1])) { # only 0 or only 1 in this diagnosis column
-      errorMessage <- paste0("All ", analyisOption ," diagnoses have the same value ", result[[analyisOption]][1], " -> abort analysis\n")
+    if (all(result[[analysisOption]] == result[[analysisOption]][1])) { # only 0 or only 1 in this diagnosis column
+      errorMessage <- paste0("All ", analysisOption ," diagnoses have the same value ", result[[analysisOption]][1], " -> abort analysis\n")
     }
     hasError <- nchar(errorMessage) > 0
     
@@ -271,7 +271,7 @@ for (runOption in runOptions) {
     # PV+  - Percentage of false negatives for VHF among all test negatives
     # PV- - Proportion of false positives among all test positives
     if (!hasError) {
-      roc <- ROC(test = result$NTproBNP.valueQuantity.value, stat = result[[analyisOption]], plot = "ROC", main = "NTproBNP(Gesamt)", AUC = TRUE)
+      roc <- ROC(test = result$NTproBNP.valueQuantity.value, stat = result[[analysisOption]], plot = "ROC", main = "NTproBNP(Gesamt)", AUC = TRUE)
     }
     
     # start text file logging
@@ -305,7 +305,7 @@ for (runOption in runOptions) {
         cat(paste0("Threshold Value: ", thresholds[i], "\n"))
         cat("---------------------\n")
         cat(fullAnalysisOption, "\n")
-        CrossTable(result[[analyisOption]], 
+        CrossTable(result[[analysisOption]], 
                    cuts, 
                    prop.c = TRUE, 
                    digits = 2, 
@@ -316,7 +316,7 @@ for (runOption in runOptions) {
           # log information in the output file
           cat(paste0("All NTproBNP values are greater than ", thresholds[i]," -> sensitivity, specifity, PV+ and PV- not available.\n\n\n"))
         } else {
-          table <- xtabs(~cuts + result[[analyisOption]])
+          table <- xtabs(~cuts + result[[analysisOption]])
           test <- rowSums(table)
           sick <- colSums(table)
           
@@ -338,7 +338,7 @@ for (runOption in runOptions) {
       
           # add the ROC plot to the pdf and the AUC value to the text file
           rocTitle <- paste0("NtproBNP_cut", thresholds[i],  " BY VHF")
-          roc <- ROC(test = cuts, stat = result[[analyisOption]], plot = "ROC", main = rocTitle)
+          roc <- ROC(test = cuts, stat = result[[analysisOption]], plot = "ROC", main = rocTitle)
           cat(paste0("ROC Area Under Curve (Threshold ", thresholds[i], "): "), roc$AUC, "\n\n\n")
         }
       }
@@ -391,7 +391,7 @@ for (runOption in runOptions) {
       cat("\n")
       
       # construct the formula for glm(...) 
-      logit_formula <- as.formula(paste(analyisOption, " ~ ", paste(contrasts, collapse = "+")))
+      logit_formula <- as.formula(paste(analysisOption, " ~ ", paste(contrasts, collapse = "+")))
       logit <- glm(logit_formula, family = binomial, data = result)
       summaryText <- capture.output(summary(logit)) # https://www.r-bloggers.com/2015/02/export-r-output-to-a-file/
       cat(summaryText, sep = "\n") # summaryText is a list -> print list with line breaks
