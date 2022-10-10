@@ -284,7 +284,7 @@ for (runOption in runOptions) {
   #Multivarite Analyse, VHF in Abhängigkeit von NTproBNP, adjustiert mit Alter und Geschlecht
   
   cat("GLM Analysis\n")
-  cat("------------\n\n")
+    cat("------------")
   
   # calculate age by birthdate and NTproBNP date
   result$NTproBNP.date <- as.POSIXct(result$NTproBNP.date, format = "%Y")
@@ -333,9 +333,17 @@ for (runOption in runOptions) {
   logit <- glm(logit_formula, family = binomial, data = result)
     summaryText <- capture.output(summary(logit)) # https://www.r-bloggers.com/2015/02/export-r-output-to-a-file/
     cat(summaryText, sep = "\n") # summaryText is a list -> print list with line breaks   
+  } else {
+    cat(errorMessage)
+    message(errorMessage)
   } 
 }
 
+logText <- paste0("\nFinished: ", Sys.time(), "\n")
+cat(logText)
+message(logText)
+
 sink()
 dev.off()
+closeAllConnections()
 
