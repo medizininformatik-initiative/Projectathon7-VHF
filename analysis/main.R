@@ -230,7 +230,7 @@ for (runOption in runOptions) {
   cat(paste0("ROC Area Under Curve NTproBNP(Gesamt): "), roc$AUC, "\n\n")
   
   # create different CUT points for NTproBNP
-  thresholds <- c(1 : 20) * 100
+    thresholds <- c(1 : 60) * 50
   
   cat("NtProBNP Threshold Values Analysis\n")
   cat("----------------------------------\n\n")
