@@ -331,9 +331,8 @@ for (runOption in runOptions) {
   # construct the formula for glm(...) 
   logit_formula <- as.formula(paste("Vorhofflimmern ~ ", paste(contrasts, collapse = "+")))
   logit <- glm(logit_formula, family = binomial, data = result)
-  # print logit to the output file
-  summary(logit)
-
+    summaryText <- capture.output(summary(logit)) # https://www.r-bloggers.com/2015/02/export-r-output-to-a-file/
+    cat(summaryText, sep = "\n") # summaryText is a list -> print list with line breaks   
   } 
 }
 
