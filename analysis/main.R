@@ -67,6 +67,15 @@ if (comparatorsCount == 1) {
   runOptions <- c("Incl. Comparators", "Excl. Comparators")  
 }
 
+# replace all values by value + 1 if the comparator
+# is ">" or with value - 1 if the comparator is "<"
+if (hasComparators) {
+  value <- cohort$NTproBNP.valueQuantity.value
+  comp <- cohort$NTproBNP.valueQuantity.comparator
+  # You must check N.A. seperately in R!? It is not covered by the last else case :(
+  cohort$NTproBNP.valueQuantity.value <- ifelse(is.na(comp), value, ifelse(comp == ">", value + 1, ifelse(comp == "<", value - 1, value)))
+}
+
 # run the same analysis with the first run option with all values and with
 # a possibly existing second run option without all values with comparators
 for (runOption in runOptions) {
