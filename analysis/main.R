@@ -69,11 +69,19 @@ if (comparatorsCount == 1) {
 
 # replace all values by value + 1 if the comparator
 # is ">" or with value - 1 if the comparator is "<"
+comparatorFrequencies <- ""
 if (hasComparators) {
   value <- cohort$NTproBNP.valueQuantity.value
   comp <- cohort$NTproBNP.valueQuantity.comparator
   # You must check N.A. seperately in R!? It is not covered by the last else case :(
   cohort$NTproBNP.valueQuantity.value <- ifelse(is.na(comp), value, ifelse(comp == ">", value + 1, ifelse(comp == "<", value - 1, value)))
+  
+  # construct a string with the frequencies for all unique comparator values
+  comparatorFrequencies <- paste(comp, value) # paste every value and its comparator in one string
+  comparatorFrequencies <- comparatorFrequencies[!startsWith(comparatorFrequencies, 'NA')] # remove values without comparator
+  comparatorFrequencies <- sort(comparatorFrequencies) # sort the values with comparator alphabetical
+  comparatorFrequencies <- capture.output(table(comparatorFrequencies)) # create frequencies string for the logging file
+  comparatorFrequencies[1] <- "Comparator Frequencies:" # replace the first line with the variable name by a better one
 }
 
 # run the same analysis with the first run option with all values and with
@@ -86,7 +94,7 @@ for (runOption in runOptions) {
       NTproBNP.valueQuantity.value >= 0      # NTproBNP value < 0 -> invalid
   ]
 
-  filterComparatorValues <- runOption != runOptions[1] # the 1. run option iswith all values and the 2. with filtered
+  filterComparatorValues <- runOption != runOptions[1] # the 1. run option is with all values and the 2. with filtered
   sizeBeforeRemove <- nrow(cohort)
   # remove columns with comparator if they should be exluded
   if (filterComparatorValues) { 
@@ -229,6 +237,8 @@ for (runOption in runOptions) {
   cat("# Results of VHF Analysis #\n")
   cat("###########################\n\n")
   cat(paste0("Date: ", Sys.time(), "\n\n"))
+
+  cat(comparatorFrequencies, "\n", sep = "\n")
   
   cat(paste0("Run Option: ", runOption, ifelse(filterComparatorValues, paste0(" (", removedObservationsCount, " Observations with comparator removed)"), "")), "\n\n")
 
