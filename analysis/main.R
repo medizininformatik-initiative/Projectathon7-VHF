@@ -271,7 +271,8 @@ for (runOption in runOptions) {
     # PV+  - Percentage of false negatives for VHF among all test negatives
     # PV- - Proportion of false positives among all test positives
     if (!hasError) {
-      roc <- ROC(test = result$NTproBNP.valueQuantity.value, stat = result[[analysisOption]], plot = "ROC", main = "NTproBNP(Full)", AUC = TRUE)
+      rocTitle <- paste0("NTproBNP(Full) for\n", fullAnalysisOption, "\n(", runOption, ")")
+      roc <- ROC(test = result$NTproBNP.valueQuantity.value, stat = result[[analysisOption]], plot = "ROC", main = rocTitle, AUC = TRUE)
     }
     
     # start text file logging
@@ -337,7 +338,7 @@ for (runOption in runOptions) {
           cat(paste0("        PV-: ", npv, "\n\n"))
       
           # add the ROC plot to the pdf and the AUC value to the text file
-          rocTitle <- paste0("NtproBNP_cut", thresholds[i],  " BY VHF")
+          rocTitle <- paste0("NtproBNP_cut", thresholds[i],  " for\n", fullAnalysisOption, "\n(", runOption, ")")
           roc <- ROC(test = cuts, stat = result[[analysisOption]], plot = "ROC", main = rocTitle)
           cat(paste0("ROC Area Under Curve (Cut ", thresholds[i], "): "), roc$AUC, "\n\n\n")
         }
