@@ -67,8 +67,6 @@ if (comparatorsCount == 1) {
   runOptions <- c("Incl. Comparators", "Excl. Comparators")  
 }
 
-# replace all values by value + 1 if the comparator
-# is ">" or with value - 1 if the comparator is "<"
 comparatorFrequencies <- ""
 if (hasComparators) {
   # store the orinal unmodified value and comparator columns
@@ -83,6 +81,12 @@ if (hasComparators) {
   comparatorFrequencies[1] <- "Comparator Frequencies:" # replace the first line with the variable name by a better one
 }
 
+# Replace all values by value + 1 if the comparator
+# is ">" or with value - 1 if the comparator is "<".
+# You must check N.A. seperately in R!? It is not 
+# covered by the very last else case :(
+cohort$NTproBNP.valueQuantity.value <- ifelse(is.na(comp), value, ifelse(comp == ">", value + 1, ifelse(comp == "<", value - 1, value)))
+
 # run the same analysis with the first run option with all values and with
 # a possibly existing second run option without all values with comparators
 for (runOption in runOptions) {
@@ -93,10 +97,6 @@ for (runOption in runOptions) {
     cohort <- fread(retrieve_result_file_cohort)
   }
   
-  # We have to modify the comparator values with > to value + 1 and with < to value - 1
-  # You must check N.A. seperately in R!? It is not covered by the last else case :(
-  cohort$NTproBNP.valueQuantity.value <- ifelse(is.na(comp), value, ifelse(comp == ">", value + 1, ifelse(comp == "<", value - 1, value)))
-
   # remove invalid data rows
   cohort <- cohort[
       !is.na(NTproBNP.valueQuantity.value) & # missing value -> invalid
