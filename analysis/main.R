@@ -35,8 +35,8 @@ OUTPUT_DIR_GLOBAL <- paste0(OUTPUT_DIR_BASE, "/outputGlobal/", PROJECT_NAME)
 retrieve_dir = ifelse(DECENTRAL_ANALYIS, OUTPUT_DIR_LOCAL, OUTPUT_DIR_GLOBAL)
 
 # Result files from retrieve -> here the input files
-retrieve_result_file_cohort <- paste0(retrieve_dir, "/Kohorte.csv")
-retrieve_result_file_diagnoses <- paste0(retrieve_dir, "/Diagnosen.csv")
+retrieve_result_file_cohort <- paste0(retrieve_dir, "/Cohort.csv")
+retrieve_result_file_diagnoses <- paste0(retrieve_dir, "/Diagnoses.csv")
 # Result files
 merged_retrieve_results_file <- paste0(retrieve_dir, "/Retrieve.csv")
 merged_retrieve_results_file_filtered <- paste0(retrieve_dir, "/Retrieve_filtered.csv")

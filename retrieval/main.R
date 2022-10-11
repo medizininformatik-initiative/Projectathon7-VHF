@@ -40,12 +40,12 @@ error_file_enc <- paste0(output_local_errors, "/EncounterError.xml")
 error_file_con <- paste0(output_local_errors, "/ConditionError.xml")
 # Debug files
 debug_dir_obs_bundles <- paste0(output_local_bundles, "/Observations")
-debug_dir_enc_bundles <- paste0(output_local_bundles, "/Encounter")
+debug_dir_enc_bundles <- paste0(output_local_bundles, "/Encounters")
 debug_dir_con_bundles <- paste0(output_local_bundles, "/Conditions")
 
 # Result files
-result_file_cohort <- paste0(result_dir, "/Kohorte.csv")
-result_file_diagnoses <- paste0(result_dir, "/Diagnosen.csv")
+result_file_cohort <- paste0(result_dir, "/Cohort.csv")
+result_file_diagnoses <- paste0(result_dir, "/Diagnoses.csv")
 result_file_log <- paste0(OUTPUT_DIR_GLOBAL, "/Retrieval.log")
 
 # remove old files and dirs and create new dirs  (surpress warning if dir exists)
