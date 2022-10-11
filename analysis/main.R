@@ -63,9 +63,9 @@ if (comparatorsCount == 1) {
     runOptions <- c("All NTproBNP values have no comparator")
   }
 } else if (hasComparators && !hasExactValues) { # there are only values with different comparators
-  runOptions <- c(paste0("All NTproBNP values have a comparator of ", paste(comparators, collapse = ', ')))  
+  runOptions <- c(paste0("All NTproBNP values have a comparator of ", paste(comparators, collapse = ', ')))
 } else { # there are values with and values witthout a comparator -> the only case with 2 run options
-  runOptions <- c("Incl. Comparators", "Excl. Comparators")  
+  runOptions <- c("Incl. Comparators", "Excl. Comparators")
 }
 
 comparatorFrequencies <- ""
@@ -73,7 +73,7 @@ if (hasComparators) {
   # store the orinal unmodified value and comparator columns
   value <- cohort$NTproBNP.valueQuantity.value
   comp <- cohort$NTproBNP.valueQuantity.comparator
-  
+
   # construct a string with the frequencies for all unique comparator values
   comparatorFrequencies <- paste(comp, value) # paste every value and its comparator in one string
   comparatorFrequencies <- comparatorFrequencies[!startsWith(comparatorFrequencies, 'NA')] # remove values without comparator
@@ -97,31 +97,31 @@ for (runOption in runOptions) {
   if (runOption == runOptions[2]) {
     cohort <- fread(retrieve_result_file_cohort)
   }
-  
+
   # remove invalid data rows
   cohort <- cohort[
-      !is.na(NTproBNP.valueQuantity.value) & # missing value -> invalid
+    !is.na(NTproBNP.valueQuantity.value) & # missing value -> invalid
       NTproBNP.valueQuantity.value >= 0      # NTproBNP value < 0 -> invalid
   ]
 
   filterComparatorValues <- runOption != runOptions[1] # the 1. run option is with all values and the 2. with filtered
   sizeBeforeRemove <- nrow(cohort)
   # remove columns with comparator if they should be exluded
-  if (filterComparatorValues) { 
+  if (filterComparatorValues) {
     cohort <- cohort[is.na(NTproBNP.valueQuantity.comparator)]
   }
   removedObservationsCount <- sizeBeforeRemove - nrow(cohort)
-  
+
   # Some DIZ write the SI unit not in the "valueQuantity/code" which was imported
   # in the field "NTproBNP.unit" but in the "valueQuantity/unit" which was
   # imported in the "NTproBNP.unitLabel". This label should only be used in FHIR
   # as a human readable unit description. So we fix this error here.
   cohort[is.na(NTproBNP.unit), NTproBNP.unit := NTproBNP.unitLabel]
-  
+
   ###############
   # Unify Units #
   ###############
-  
+
   # all valid NTproBNP units taken from http://www.unitslab.com/node/163
   units <- c(
     "pg/mL", 1, #(Reference Unit as first value)
@@ -133,34 +133,34 @@ for (runOption in runOptions) {
     "pmol/L", 0.1182
   )
   units <- matrix(units, length(units) / 2, 2, byrow = TRUE)
-  unitNames <- units[, 1] 
-  unitFactors <- as.numeric(units[, 2]) 
-  
+  unitNames <- units[, 1]
+  unitFactors <- as.numeric(units[, 2])
+
   # remove data rows with invalid units
   unitsPattern <- paste(unitNames, collapse = "|")
-  cohort <- cohort[ 
+  cohort <- cohort[
     grepl(unitsPattern, NTproBNP.unit, ignore.case = TRUE)
   ]
-  
+
   # now really unify
-  for (i in 2 : length(unitNames)) {
+  for (i in 2:length(unitNames)) {
     # Convert value
     cohort[
-      NTproBNP.unit == unitNames[i], 
+      NTproBNP.unit == unitNames[i],
       NTproBNP.valueQuantity.value := NTproBNP.valueQuantity.value * unitFactors[i]
     ]
     # Convert unit
     cohort[
-      NTproBNP.unit == unitNames[i], 
+      NTproBNP.unit == unitNames[i],
       NTproBNP.unit := unitNames[1]
     ]
   }
-  
-  
+
+
   ##########################
   # Build the Result Table #
   ##########################
-  
+
   result <- cohort[, .(
     subject,
     # fill the date (=timestamp) column with the timestamp of the max NTproBNP
@@ -173,12 +173,12 @@ for (runOption in runOptions) {
     birthdate,
     gender
   ), by = encounter.id]
-  
+
   # remove equal columns which are now present if there were multiple NTproBNP
   # values for the same encounter with different timestamps (now these NTproBNP
   # values have all the same timestamp and so the whole row is equals)
   result <- unique(result)
-  
+
   # for each encounter, extract the Boolean information whether certain diagnoses
   # were present
   conditionsReduced <- conditions[, .(
@@ -187,7 +187,7 @@ for (runOption in runOptions) {
     HeartFailure = as.numeric(any(grepl("I50", code))),
     Stroke = as.numeric(any(grepl("I60|I61|I62|I63|I64|I69", code)))
   ), by = encounter.id]
-  
+
   # merge the result encounters with the diagnoses information
   result <- merge.data.table(
     x = result,
@@ -195,27 +195,27 @@ for (runOption in runOptions) {
     by = "encounter.id",
     all.x = TRUE
   )
-  
+
   # fill missing diagnosis values with 0
   result[is.na(AtrialFibrillation), AtrialFibrillation := 0]
   result[is.na(MyocardialInfarction), MyocardialInfarction := 0]
   result[is.na(HeartFailure), HeartFailure := 0]
   result[is.na(Stroke), Stroke := 0]
-  
+
   # bring the subject column to the front again
   setcolorder(result, neworder = "subject")
-  
+
   # Write result files
   if (DEBUG) {
     fileName <- ifelse(runOption == runOptions[1], merged_retrieve_results_file, merged_retrieve_results_file_filtered)
     write.csv2(result, fileName, row.names = FALSE)
   }
-  
+
   # Runs the Data Quality Report
   if (DATA_QUALITY_REPORT) {
     rmarkdown::render("data-quality/report.Rmd", output_format = "html_document", output_file = data_quality_report_file)
   }
-  
+
   ####################################
   # Start Analysis from S. Zeynalova #
   ####################################
@@ -240,9 +240,9 @@ for (runOption in runOptions) {
                      "HeartFailure without MyocardialInfarction and Stroke",
                      "-HeartFailure",
                      "AtrialFibrillation without MyocardialInfarction, Stroke and HeartFailure")
-  
+
   for (fullAnalysisOption in analysisOrder) {
-    
+
     # extract first word of the full analysis option -> current column name
     analysisOption <- unlist(strsplit(fullAnalysisOption, split = "\\s+"))[1]
 
@@ -252,20 +252,20 @@ for (runOption in runOptions) {
       result <- result[result[[analysisOption]] != 1]
       next
     }
-    
+
     resultRows <- nrow(result)
-  
+
     # check possible data problems
     errorMessage <- ""
-    # not enough data rows 
+    # not enough data rows
     if (resultRows < 2) {
       errorMessage <- paste0("Result table has ", resultRows, " rows -> abort analysis\n")
     }
     if (all(result[[analysisOption]] == result[[analysisOption]][1])) { # only 0 or only 1 in this diagnosis column
-      errorMessage <- paste0("All ", analysisOption ," diagnoses have the same value ", result[[analysisOption]][1], " -> abort analysis\n")
+      errorMessage <- paste0("All ", analysisOption, " diagnoses have the same value ", result[[analysisOption]][1], " -> abort analysis\n")
     }
     hasError <- nchar(errorMessage) > 0
-    
+
     # plot roc curve to pdf
     # Explanation of the graph:
     # Sens - Sensitivity
@@ -276,7 +276,7 @@ for (runOption in runOptions) {
       rocTitle <- paste0("NTproBNP(Full) for\n", fullAnalysisOption, "\n(", runOption, ")")
       roc <- ROC(test = result$NTproBNP.valueQuantity.value, stat = result[[analysisOption]], plot = "ROC", main = rocTitle, AUC = TRUE)
     }
-    
+
     # start text file logging
     cat("###########################\n")
     cat("# Results of VHF Analysis #\n")
@@ -285,95 +285,95 @@ for (runOption in runOptions) {
 
     cat(paste0("Current Analysis: ", fullAnalysisOption, "\n"))
     cat(paste0("Run Option: ", runOption, ifelse(filterComparatorValues, paste0(" (", removedObservationsCount, " Observations with comparator removed)"), "")), "\n\n")
-  
+
     cat(comparatorFrequencies, "\n", sep = "\n")
-    
+
     # run analysis if the result table has not only 0 or 1 row and not all diagnoses values are the same
     if (!hasError) {
-      
+
       # print AUC to the text file
       cat(paste0("ROC Area Under Curve NTproBNP(Full): "), roc$AUC, "\n\n")
-      
+
       # create different CUT points for NTproBNP
-      thresholds <- c(1 : 60) * 50
-      
+      thresholds <- c(1:60) * 50
+
       cat("NtProBNP Threshold Values Analysis\n")
       cat("----------------------------------\n\n")
-      
-      for (i in c(1 : length(thresholds))) {
-      
+
+      for (i in c(1:length(thresholds))) {
+
         cutsColumnlName <- "NTproBNP.valueQuantity.value_cut"
         cuts <- result[[cutsColumnlName]] <- ifelse(result$NTproBNP.valueQuantity.value < thresholds[i], 0, 1)
-      
+
         cat(paste0("Threshold Value: ", thresholds[i], "\n"))
         cat("---------------------\n")
         cat(fullAnalysisOption, "\n")
-        CrossTable(result[[analysisOption]], 
-                   cuts, 
-                   prop.c = TRUE, 
-                   digits = 2, 
-                   prop.chisq = FALSE, 
+        CrossTable(result[[analysisOption]],
+                   cuts,
+                   prop.c = TRUE,
+                   digits = 2,
+                   prop.chisq = FALSE,
                    format = "SPSS")
-        
-        if (all(cuts == cuts[1])) { # all cuts have the same value (all 0 or all 1) -> no further calculations 
+
+        if (all(cuts == cuts[1])) { # all cuts have the same value (all 0 or all 1) -> no further calculations
           # log information in the output file
-          cat(paste0("All NTproBNP values are greater than ", thresholds[i]," -> sensitivity, specifity, PV+ and PV- not available.\n\n\n"))
+          cat(paste0("All NTproBNP values are greater than ", thresholds[i], " -> sensitivity, specifity, PV+ and PV- not available.\n\n\n"))
         } else {
           table <- xtabs(~cuts + result[[analysisOption]])
           test <- rowSums(table)
           sick <- colSums(table)
-          
+
           # sensitivity
           sensitivity <- table[2, 2] / sick[2]
           cat(paste0("Sensitivity: ", sensitivity, "\n"))
-          
+
           # specifity
           specifity <- table[1, 1] / sick[1]
           cat(paste0("  Specifity: ", specifity, "\n"))
-          
+
           # npw - the positive predictive value
           ppv <- table[2, 2] / test[2]
           cat(paste0("        PV+: ", ppv, "\n"))
-        
+
           # npw - Der negativepredictive value
           npv <- table[1, 1] / test[1]
           cat(paste0("        PV-: ", npv, "\n\n"))
-      
+
           # add the ROC plot to the pdf and the AUC value to the text file
-          rocTitle <- paste0("NtproBNP_cut", thresholds[i],  " for\n", fullAnalysisOption, "\n(", runOption, ")")
+          rocTitle <- paste0("NtproBNP_cut", thresholds[i], " for\n", fullAnalysisOption, "\n(", runOption, ")")
           roc <- ROC(test = cuts, stat = result[[analysisOption]], plot = "ROC", main = rocTitle)
           cat(paste0("ROC Area Under Curve (Cut ", thresholds[i], "): "), roc$AUC, "\n\n\n")
         }
       }
-      
+
       #Multivarite Analyse, VHF in Abhängigkeit von NTproBNP, adjustiert mit Alter und Geschlecht
-      
+
       cat("GLM Analysis\n")
       cat("------------")
-      
+
       # calculate age by birthdate and NTproBNP date
       result$NTproBNP.date <- as.POSIXct(result$NTproBNP.date, format = "%Y")
       result$birthdate <- as.POSIXct(result$birthdate, format = "%Y")
       result$age <- year(result$NTproBNP.date) - year(result$birthdate)
-      
+
       # glm(...) throws an error if one of the so called contrast values (vector)
       # has always the same value -> we must identify these contrast values and
       # remove them from our analysis
-      
+
       # all contrast values we want to consider
       contrast_names = c("NTproBNP.valueQuantity.value", "age", "gender")
       # list for all contratst we want to use in glm(...) is filled
       # by the given contrast column names
       contrasts <- list()
-      for (i in 1 : length(contrast_names)) {
+      for (i in 1:length(contrast_names)) {
         colName <- contrast_names[i] # get column name i
         con <- result[[colName]]     # get result column with colum name i
         contrasts[i] <- list(con)    # add result column as list item to contrasts
       }
-      
+
       # now remove all invalid constrast (= contrast
       # vectors where all values are equal)
-      for (i in length(contrasts) : 1) {
+      for (i in length(contrasts):1) {
         con <- contrasts[i][[1]] # get the contrast vector i
         first_con <- con[1]      # get th first element of contrast vector i
         # if all values are equal in the contrast vector
@@ -381,7 +381,7 @@ for (runOption in runOptions) {
           # log information in the output file
           cat(paste0("All values of '", contrast_names[i], "' have the same value '", first_con, "' -> '", contrast_names[i], "' is ignored.\n"))
           # remove the invalid contrast vector
-          contrasts <- contrasts[- i]
+          contrasts <- contrasts[-i]
         } else {
           # The values are not all the same -> replace
           # contrast vector by its column name in the
@@ -390,10 +390,10 @@ for (runOption in runOptions) {
           contrasts[i] <- contrast_names[i]
         }
       }
-      
+
       cat("\n")
-      
-      # construct the formula for glm(...) 
+
+      # construct the formula for glm(...)
       logit_formula <- as.formula(paste(analysisOption, " ~ ", paste(contrasts, collapse = "+")))
       logit <- glm(logit_formula, family = binomial, data = result)
       summaryText <- capture.output(summary(logit)) # https://www.r-bloggers.com/2015/02/export-r-output-to-a-file/
@@ -405,7 +405,7 @@ for (runOption in runOptions) {
     cat("\n")
   }
 }
-  
+
 logText <- paste0("\nFinished: ", Sys.time(), "\n")
 cat(logText)
 message(logText)
