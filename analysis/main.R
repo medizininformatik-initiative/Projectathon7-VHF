@@ -45,6 +45,16 @@ analysis_result_plot_file <- paste0(OUTPUT_DIR_GLOBAL, "/Analysis-Plot.pdf")
 analysis_result_text_file <- paste0(OUTPUT_DIR_GLOBAL, "/Analysis.txt")
 data_quality_report_file <- paste0(OUTPUT_DIR_GLOBAL, "/DQ-Report.html")
 
+
+#################################
+# Start the Data Quality Report #
+#################################
+
+# Runs the Data Quality Report
+if (DATA_QUALITY_REPORT) {
+  rmarkdown::render("data-quality/report.Rmd", output_format = "html_document", output_file = data_quality_report_file)
+}
+
 # create pdf plot file and results text file 
 pdf(analysis_result_plot_file)
 sink(analysis_result_text_file)
@@ -216,11 +226,6 @@ for (runOption in runOptions) {
   if (DEBUG) {
     fileName <- ifelse(runOption == runOptions[1], merged_retrieve_results_file, merged_retrieve_results_file_filtered)
     write.csv2(result, fileName, row.names = FALSE)
-  }
-
-  # Runs the Data Quality Report
-  if (DATA_QUALITY_REPORT) {
-    rmarkdown::render("data-quality/report.Rmd", output_format = "html_document", output_file = data_quality_report_file)
   }
 
   ####################################
