@@ -34,6 +34,7 @@ retrieve_result_file_cohort <- paste0(retrieve_dir, "/Kohorte.csv")
 retrieve_result_file_diagnoses <- paste0(retrieve_dir, "/Diagnosen.csv")
 # Result files
 merged_retrieve_results_file <- paste0(retrieve_dir, "/Retrieve.csv")
+merged_retrieve_results_file_filtered <- paste0(retrieve_dir, "/Retrieve_filtered.csv")
 result_file_log <- paste0(OUTPUT_DIR_GLOBAL, "/Analysis.log")
 analysis_result_plot_file <- paste0(OUTPUT_DIR_GLOBAL, "/Analysis-Plot.pdf")
 analysis_result_text_file <- paste0(OUTPUT_DIR_GLOBAL, "/Analysis.txt")
@@ -206,7 +207,8 @@ for (runOption in runOptions) {
   
   # Write result files
   if (DEBUG) {
-    write.csv2(result, merged_retrieve_results_file, row.names = FALSE)
+    fileName <- ifelse(runOption == runOptions[1], merged_retrieve_results_file, merged_retrieve_results_file_filtered)
+    write.csv2(result, fileName, row.names = FALSE)
   }
   
   # Runs the Data Quality Report
