@@ -491,22 +491,42 @@ message(
   "Number of unique Subject ids in Observation data: ", length(unique(obsdata$subject)), " in ", nrow(obsdata), " rows", "\n",
   "Number of unique Subject ids in Encounter data: ", length(unique(encounters$subject)), " in ", nrow(encounters), " rows", "\n"
 )
-# encounters <- encounters[!grepl(".*-E-[0-9]-A", encounters$encounter.id)]
-cohort <-
-  obsdata[encounters, on = .(subject,
-                             NTproBNP.date >= encounter.start,
-                             NTproBNP.date <= encounter.end),
-          c("encounter.id",
-            "encounter.start",
-            "encounter.end",
-            "serviceType") := list(encounter.id, encounter.start, encounter.end, serviceType)][]
 
+# Try to find the encounter to the observations via date check.
+# This check only considers the start date of all encounters
+# of the patient with the current observation and tries to find
+# the closest start date of all encounters in the past. 
+for(i in 1 : nrow(obsdata)) {
+  # get the observation date of the current observation i
+  obs_date <- obsdata[i, NTproBNP.date]
+  # get all encounters for the patient with the current observation
+  obs_subject_encounters <- encounters[subject == obsdata[i, subject]]
+  # get a list of all differences between the observation date and
+  # the encounter start date
+  obs_enc_date_diffs <- obs_date - obs_subject_encounters$encounter.start
+  # if there were encounter start dates after the observation date
+  # then set them to the maximum distance to the observation date
+  obs_enc_date_diffs[obs_enc_date_diffs < 0] <- Inf
+  # find the index of the encounter date with the minimum distance
+  # to the observation date
+  closest_date_diff_index <- which.min(obs_enc_date_diffs)
+  # get this nearest encounter date
+  closest_date_diff <- obs_enc_date_diffs[closest_date_diff_index]
+  # if the result date was not in the future (could be if all encounter
+  # dates are invalid in relation to the observation date)
+  if (closest_date_diff != Inf) {
+    # find the corresponding encounter and merge its properties
+    # to new columns in the observation table
+    closest_encounter <- obs_subject_encounters[closest_date_diff_index, ]
+    obsdata[i, encounter.id := closest_encounter$encounter.id]
+    obsdata[i, encounter.start := closest_encounter$encounter.start]
+    obsdata[i, encounter.end := closest_encounter$encounter.end]
+  }
+}
+
+# the observation table with encounters is now our cohort table
+cohort <- obsdata # it's a copy by reference (type is data.table)
 rm(obsdata)
-
-# only keep encounters that have a NTproBNP observation within their encounter.period
-cohort <-
-  cohort[NTproBNP.date >= encounter.start &
-           NTproBNP.date <= encounter.end]
 
 # filter conditions: only keep conditions belonging to the encounters we have just filtered
 if (nrow(conditions) > 0) {
