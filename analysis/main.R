@@ -230,7 +230,7 @@ for (runOption in runOptions) {
   #   If the column name (first word of the option)
   #   starts with a minus sign '-', then the data
   #   should be filtered for all rows, where this
-  #   value is 1. Filtere means that this rows with
+  #   value is 1. Filtered means that this rows with
   #   a 1 value are removed.
   analysisOrder <- c("AtrialFibrillation with all other diagnoses",
                      "HeartFailure with all other diagnoses",
