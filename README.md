@@ -15,18 +15,36 @@ CodeSysteme/Ressourcen/Profile und der konzeptionelle Ablauf der Abfrage beschri
 ### dupctl (Docker)
 
 Eine einfache und reproduzierbare Ausführung der SMITH PheP DUPs wird über das dupctl Command Line Interface (cli)
-sichergestellt. Nach der Installation der cli (siehe [dupctl][dupctl]) wird das DUP Skript über eine Kommandozeile
-wie folgt gestartet:
+sichergestellt. Dafür sind folgende Schritte nötig:
+
+* Installation dupctl (siehe [DUP Control Readme][dupctl#install]
+* Arbeitsverzeichnis wählen
+
+Wählen Sie ein Verzeichnis, in dem dupctl Kommandos ausgeführt werden sollen. Die Ergebnisse der DUPs werden im
+gleichen Verzeichnis gespeichert! Siehe auch [DUP Control Readme][dupctl#workdir]
+
+* Anlegen einer DUP Control Konfigurationsdatei (`config.toml`)
+
+```toml
+project = "smith"
+registry = "registry.gitlab.com/smith-phep/dup"
+```
+
+* Ausführung des Retrievals
 
 ```bash
 dupctl retrieve --dup vhf [...]
 ```
 Für weitere Informationen bzgl. Retrieval: [VHF Retrieval README](retrieval/README.md)
 
+* Ausführung der Analyse
+
 ```bash
 dupctl analyze --dup vhf [...]
 ```
 Für weitere Informationen bzgl. Analysis: [VHF Analysis README](analysis/README.md)
+
+**Hinweis: Weitere Einstellungsmöglichkeiten von DUP Control sind in der [DUP Control README][dupctl#settings] zu finden.**
 
 ### Manuelle Ausführung
 
@@ -50,4 +68,7 @@ Die weiteren Schritte der manuellen Ausführung sind in der [DUP README][readme]
 
 
 [dupctl]: https://git.smith.care/smith/uc-phep/dup-control
+[dupctl#install]: https://git.smith.care/smith/uc-phep/dup-control#installation
+[dupctl#workdir]: https://git.smith.care/smith/uc-phep/dup-control#working-directory
+[dupctl#settings]: https://git.smith.care/smith/uc-phep/dup-control#global-settings
 [readme]: https://git.smith.care/smith/uc-phep/dup/readme
