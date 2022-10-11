@@ -3,6 +3,11 @@
 #                            directory of this Script!     #
 ############################################################
 
+log <- function(...) {
+  logText <- paste0(...)
+  cat(logText)
+  message(logText)
+}
 
 ###############
 # Preparation #
@@ -43,6 +48,8 @@ data_quality_report_file <- paste0(OUTPUT_DIR_GLOBAL, "/DQ-Report.html")
 # create pdf plot file and results text file 
 pdf(analysis_result_plot_file)
 sink(analysis_result_text_file)
+
+log("Start Analysis: ", start, "\n")
 
 ####################################
 # Load and Clean Retrieval Results #
@@ -253,6 +260,8 @@ for (runOption in runOptions) {
       next
     }
 
+    message(fullAnalysisOption, " (", runOption, "):")
+    
     resultRows <- nrow(result)
 
     # check possible data problems
@@ -304,8 +313,7 @@ for (runOption in runOptions) {
 
         cutsColumnlName <- "NTproBNP.valueQuantity.value_cut"
         cuts <- result[[cutsColumnlName]] <- ifelse(result$NTproBNP.valueQuantity.value < thresholds[i], 0, 1)
-
-        cat(paste0("Threshold Value: ", thresholds[i], "\n"))
+        cat(paste0("\nThreshold Value: ", thresholds[i], "\n"))
         cat("---------------------\n")
         cat(fullAnalysisOption, "\n")
         CrossTable(result[[analysisOption]],
@@ -398,17 +406,15 @@ for (runOption in runOptions) {
       logit <- glm(logit_formula, family = binomial, data = result)
       summaryText <- capture.output(summary(logit)) # https://www.r-bloggers.com/2015/02/export-r-output-to-a-file/
       cat(summaryText, sep = "\n") # summaryText is a list -> print list with line breaks
+      message("done\n")
     } else {
-      cat(errorMessage, "\n")
-      message(errorMessage)
+      log(errorMessage)
     }
     cat("\n")
   }
 }
 
-logText <- paste0("\nFinished: ", Sys.time(), "\n")
-cat(logText)
-message(logText)
+log("Finished Analysis: ", Sys.time(), "\n")
 
 sink()
 dev.off()
