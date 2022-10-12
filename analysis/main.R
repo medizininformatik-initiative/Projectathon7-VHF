@@ -45,6 +45,24 @@ analysis_result_plot_file <- paste0(OUTPUT_DIR_GLOBAL, "/Analysis-Plot.pdf")
 analysis_result_text_file <- paste0(OUTPUT_DIR_GLOBAL, "/Analysis.txt")
 data_quality_report_file <- paste0(OUTPUT_DIR_GLOBAL, "/DQ-Report.html")
 
+###########################
+# Simple Filter Functions #
+###########################
+# all this remove() functions remove Observation
+# rows from the result table regarding a special
+# value of one column
+
+removeMyocardialInfarction <- function() {
+  result <<- result[MyocardialInfarction != 1]
+}
+
+removeStroke <- function() {
+  result <<- result[Stroke != 1]
+}
+
+removeHeartFailure <- function() {
+  result <<- result[HeartFailure != 1]
+}
 
 #################################
 # Start the Data Quality Report #
@@ -232,40 +250,18 @@ for (runOption in runOptions) {
   # Start Analysis from S. Zeynalova #
   ####################################
 
-  # Order to run the anlaysis and filter the data.
-  # The syntax means the following:
+  ###
+  # The real analysis function that produces the text output and the plots.
   #
-  #   If the column name (first word of the option)
-  #   does *not* start with a minus sign '-', then
-  #   the analysis should beperformed for this value.
-  #
-  #   If the column name (first word of the option)
-  #   starts with a minus sign '-', then the data
-  #   should be filtered for all rows, where this
-  #   value is 1. Filtered means that this rows with
-  #   a 1 value are removed.
-  analysisOrder <- c("AtrialFibrillation with all other diagnoses",
-                     "HeartFailure with all other diagnoses",
-                     "-MyocardialInfarction",
-                     "-Stroke",
-                     "AtrialFibrillation without MyocardialInfarction and Stroke",
-                     "HeartFailure without MyocardialInfarction and Stroke",
-                     "-HeartFailure",
-                     "AtrialFibrillation without MyocardialInfarction, Stroke and HeartFailure")
+  # analysisOption 
+  #     String with one of the the diagnoses column name in the result table
+  # analysisOptionDisplay
+  #     String with a specific text for the analysisOption that will be used
+  #     as plot and logging title 
+  ##
+  analyze <- function(analysisOption, analysisOptionDisplay) {
 
-  for (fullAnalysisOption in analysisOrder) {
-
-    # extract first word of the full analysis option -> current column name
-    analysisOption <- unlist(strsplit(fullAnalysisOption, split = "\\s+"))[1]
-
-    # filter data on analysisOptions that starts with '-'
-    if (startsWith(analysisOption, '-')) {
-      analysisOption <- substr(analysisOption, 2, nchar(analysisOption))
-      result <- result[result[[analysisOption]] != 1]
-      next
-    }
-
-    message(fullAnalysisOption, " (", runOption, "):")
+    message(analysisOptionDisplay, " (", runOption, "):")
     
     resultRows <- nrow(result)
 
@@ -287,7 +283,7 @@ for (runOption in runOptions) {
     # PV+  - Percentage of false negatives for VHF among all test negatives
     # PV- - Proportion of false positives among all test positives
     if (!hasError) {
-      rocTitle <- paste0("NTproBNP(Full) for\n", fullAnalysisOption, "\n(", runOption, ")")
+      rocTitle <- paste0("NTproBNP(Full) for\n", analysisOptionDisplay, "\n(", runOption, ")")
       roc <- ROC(test = result$NTproBNP.valueQuantity.value, stat = result[[analysisOption]], plot = "ROC", main = rocTitle, AUC = TRUE)
     }
 
@@ -297,7 +293,7 @@ for (runOption in runOptions) {
     cat("###########################\n\n")
     cat(paste0("Date: ", Sys.time(), "\n\n"))
 
-    cat(paste0("Current Analysis: ", fullAnalysisOption, "\n"))
+    cat(paste0("Current Analysis: ", analysisOptionDisplay, "\n"))
     cat(paste0("Run Option: ", runOption, ifelse(filterComparatorValues, paste0(" (", removedObservationsCount, " Observations with comparator removed)"), "")), "\n\n")
 
     cat(comparatorFrequencies, "\n", sep = "\n")
@@ -320,7 +316,7 @@ for (runOption in runOptions) {
         cuts <- result[[cutsColumnlName]] <- ifelse(result$NTproBNP.valueQuantity.value < thresholds[i], 0, 1)
         cat(paste0("\nThreshold Value: ", thresholds[i], "\n"))
         cat("---------------------\n")
-        cat(fullAnalysisOption, "\n")
+        cat(analysisOptionDisplay, "\n")
         CrossTable(result[[analysisOption]],
                    cuts,
                    prop.c = TRUE,
@@ -353,7 +349,7 @@ for (runOption in runOptions) {
           cat(paste0("        PV-: ", npv, "\n\n"))
 
           # add the ROC plot to the pdf and the AUC value to the text file
-          rocTitle <- paste0("NtproBNP_cut", thresholds[i], " for\n", fullAnalysisOption, "\n(", runOption, ")")
+          rocTitle <- paste0("NtproBNP_cut", thresholds[i], " for\n", analysisOptionDisplay, "\n(", runOption, ")")
           roc <- ROC(test = cuts, stat = result[[analysisOption]], plot = "ROC", main = rocTitle)
           cat(paste0("ROC Area Under Curve (Cut ", thresholds[i], "): "), roc$AUC, "\n\n\n")
         }
@@ -417,6 +413,16 @@ for (runOption in runOptions) {
     }
     cat("\n")
   }
+
+  analyze("AtrialFibrillation", "Atrial Fibrillation with all other diagnoses")
+  analyze("HeartFailure", "Heart Failure with all other diagnoses")
+  removeMyocardialInfarction()
+  removeStroke()
+  analyze("AtrialFibrillation", "Atrial Fibrillation without Myocardial Infarction and Stroke")
+  analyze("HeartFailure", "Heart Failure without Myocardial Infarction and Stroke")
+  removeHeartFailure()
+  analyze("AtrialFibrillation", "Atrial Fibrillation without Myocardial Infarction, Stroke and Heart Failure")
+
 }
 
 log("Finished Analysis: ", Sys.time(), "\n")
@@ -424,3 +430,4 @@ log("Finished Analysis: ", Sys.time(), "\n")
 sink()
 dev.off()
 closeAllConnections()
+
