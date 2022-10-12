@@ -178,7 +178,7 @@ for (runOption in runOptions) {
   ]
 
   # now really unify
-  for (i in 2:length(unitNames)) {
+  for (i in 2 : length(unitNames)) {
     # Convert value
     cohort[
       NTproBNP.unit == unitNames[i],
@@ -311,12 +311,12 @@ for (runOption in runOptions) {
       cat(paste0("ROC Area Under Curve NTproBNP(Full): "), roc$AUC, "\n\n")
 
       # create different CUT points for NTproBNP
-      thresholds <- c(1:60) * 50
+      thresholds <- c(1 : 60) * 50
 
       cat("NtProBNP Threshold Values Analysis\n")
       cat("----------------------------------\n\n")
 
-      for (i in c(1:length(thresholds))) {
+      for (i in c(1 : length(thresholds))) {
 
         cutsColumnlName <- "NTproBNP.valueQuantity.value_cut"
         cuts <- result[[cutsColumnlName]] <- ifelse(result$NTproBNP.valueQuantity.value < thresholds[i], 0, 1)
@@ -375,7 +375,7 @@ for (runOption in runOptions) {
       # list for all contratst we want to use in glm(...) is filled
       # by the given contrast column names
       contrasts <- list()
-      for (i in 1:length(contrast_names)) {
+      for (i in 1 : length(contrast_names)) {
         colName <- contrast_names[i] # get column name i
         con <- result[[colName]]     # get result column with colum name i
         contrasts[i] <- list(con)    # add result column as list item to contrasts
@@ -383,7 +383,7 @@ for (runOption in runOptions) {
 
       # now remove all invalid constrast (= contrast
       # vectors where all values are equal)
-      for (i in length(contrasts):1) {
+      for (i in length(contrasts) : 1) {
         con <- contrasts[i][[1]] # get the contrast vector i
         first_con <- con[1]      # get th first element of contrast vector i
         # if all values are equal in the contrast vector
