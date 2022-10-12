@@ -246,6 +246,12 @@ for (runOption in runOptions) {
     write.csv2(result, fileName, row.names = FALSE)
   }
 
+  # calculate age by birthdate and NTproBNP date (after write result as file)
+  result$NTproBNP.date <- as.POSIXct(result$NTproBNP.date, format = "%Y")
+  result$birthdate <- as.POSIXct(result$birthdate, format = "%Y")
+  result$age <- year(result$NTproBNP.date) - year(result$birthdate)
+  
+  
   ####################################
   # Start Analysis from S. Zeynalova #
   ####################################
@@ -359,11 +365,6 @@ for (runOption in runOptions) {
 
       cat("GLM Analysis\n")
       cat("------------")
-
-      # calculate age by birthdate and NTproBNP date
-      result$NTproBNP.date <- as.POSIXct(result$NTproBNP.date, format = "%Y")
-      result$birthdate <- as.POSIXct(result$birthdate, format = "%Y")
-      result$age <- year(result$NTproBNP.date) - year(result$birthdate)
 
       # glm(...) throws an error if one of the so called contrast values (vector)
       # has always the same value -> we must identify these contrast values and
