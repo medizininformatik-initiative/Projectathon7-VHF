@@ -44,6 +44,10 @@ merged_retrieve_results_file_filtered <- paste0(retrieve_dir, "/Retrieve_filtere
 result_file_log <- paste0(OUTPUT_DIR_GLOBAL, "/Analysis.log")
 analysis_result_plot_file <- paste0(OUTPUT_DIR_GLOBAL, "/Analysis-Plot.pdf")
 analysis_result_text_file <- paste0(OUTPUT_DIR_GLOBAL, "/Analysis.txt")
+
+# files needed in data-quality/report.Rmd
+output_local_errors <- paste0(OUTPUT_DIR_LOCAL, "/Errors")
+error_file <- paste0(output_local_errors, "/ErrorMessage.txt")
 data_quality_report_file <- paste0(OUTPUT_DIR_GLOBAL, "/DQ-Report.html")
 
 ###########################
@@ -69,10 +73,10 @@ removeHeartFailure <- function() {
 # Start the Data Quality Report #
 #################################
 
-# Runs the Data Quality Report
-if (DATA_QUALITY_REPORT) {
-  rmarkdown::render("data-quality/report.Rmd", output_format = "html_document", output_file = data_quality_report_file)
-}
+  # Runs the Data Quality Report
+  if (DATA_QUALITY_REPORT) {
+    rmarkdown::render("data-quality/report.Rmd", output_format = "html_document", output_file = data_quality_report_file)
+  }
 
 # create pdf plot file and results text file 
 pdf(analysis_result_plot_file)

@@ -19,17 +19,17 @@ library(lubridate)
 ### READ DATA -------------------
 
 # only the fallback if we start knitr directly from R Studio
-if (!exists("result_file_cohort")) {
-  result_file_cohort <- paste0(OUTPUT_DIR_BASE, "/outputLocal/", PROJECT_NAME, "/Cohort.csv")
+if (!exists("retrieve_result_file_cohort")) {
+  retrieve_result_file_cohort <- paste0(OUTPUT_DIR_BASE, "/outputLocal/", PROJECT_NAME, "/Cohort.csv")
 }
 
-if(!file.exists(result_file_cohort)){
+if(!file.exists(retrieve_result_file_cohort)){
   write("Ergebnisse nicht gefunden.", file = error_file)
   stop("Results not found - aborting.")
 }
 
 # read result csv
-cohort_report <- read.csv(result_file_cohort, sep = ";", colClasses = "character")
+cohort_report <- read.csv(retrieve_result_file_cohort, sep = ";", colClasses = "character")
 
 # read metadata
 metadata_report <- read.csv("metadata.csv")
