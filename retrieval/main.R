@@ -40,12 +40,12 @@ error_file_enc <- paste0(output_local_errors, "/EncounterError.xml")
 error_file_con <- paste0(output_local_errors, "/ConditionError.xml")
 # Debug files
 debug_dir_obs_bundles <- paste0(output_local_bundles, "/Observations")
-debug_dir_enc_bundles <- paste0(output_local_bundles, "/Encounter")
+debug_dir_enc_bundles <- paste0(output_local_bundles, "/Encounters")
 debug_dir_con_bundles <- paste0(output_local_bundles, "/Conditions")
 
 # Result files
-result_file_cohort <- paste0(result_dir, "/Kohorte.csv")
-result_file_diagnoses <- paste0(result_dir, "/Diagnosen.csv")
+result_file_cohort <- paste0(result_dir, "/Cohort.csv")
+result_file_diagnoses <- paste0(result_dir, "/Diagnoses.csv")
 result_file_log <- paste0(OUTPUT_DIR_GLOBAL, "/Retrieval.log")
 
 # remove old files and dirs and create new dirs  (surpress warning if dir exists)
@@ -232,7 +232,7 @@ message(
   "\n"
 )
 
-obsdata <- merge.data.table(
+observations <- merge.data.table(
   x = obs_tables$obs,
   y = obs_tables$pat,
   by.x = "subject",
@@ -243,7 +243,7 @@ obsdata <- merge.data.table(
 rm(obs_tables)
 
 # get all patient IDs (if they are absolute, we need to change them to relative)
-patient_ids <- sapply(strsplit(obsdata$subject, split = '/', fixed = TRUE), tail, 1)
+patient_ids <- sapply(strsplit(observations$subject, split = '/', fixed = TRUE), tail, 1)
 
 # split patient id list into smaller chunks that can be used in a GET url
 # (split because we don't want to exceed allowed URL length)
@@ -488,25 +488,45 @@ encounters[, encounter.end := as.Date(encounter.end)]
 # merge based on subject id and temporal relation of observation date and encounter times
 message(
   "Merging Observation and Encounter data based on Subject id and time.\n",
-  "Number of unique Subject ids in Observation data: ", length(unique(obsdata$subject)), " in ", nrow(obsdata), " rows", "\n",
+  "Number of unique Subject ids in Observation data: ", length(unique(observations$subject)), " in ", nrow(observations), " rows", "\n",
   "Number of unique Subject ids in Encounter data: ", length(unique(encounters$subject)), " in ", nrow(encounters), " rows", "\n"
 )
-# encounters <- encounters[!grepl(".*-E-[0-9]-A", encounters$encounter.id)]
-cohort <-
-  obsdata[encounters, on = .(subject,
-                             NTproBNP.date >= encounter.start,
-                             NTproBNP.date <= encounter.end),
-          c("encounter.id",
-            "encounter.start",
-            "encounter.end",
-            "serviceType") := list(encounter.id, encounter.start, encounter.end, serviceType)][]
 
-rm(obsdata)
+# Try to find the encounter to the observations via date check.
+# This check only considers the start date of all encounters
+# of the patient with the current observation and tries to find
+# the closest start date of all encounters in the past. 
+for(i in 1 : nrow(observations)) {
+  # get the observation date of the current observation i
+  obs_date <- observations[i, NTproBNP.date]
+  # get all encounters for the patient with the current observation
+  obs_subject_encounters <- encounters[subject == observations[i, subject]]
+  # get a list of all differences between the observation date and
+  # the encounter start date
+  obs_enc_date_diffs <- obs_date - obs_subject_encounters$encounter.start
+  # if there were encounter start dates after the observation date
+  # then set them to the maximum distance to the observation date
+  obs_enc_date_diffs[obs_enc_date_diffs < 0] <- Inf
+  # find the index of the encounter date with the minimum distance
+  # to the observation date
+  closest_date_diff_index <- which.min(obs_enc_date_diffs)
+  # get this nearest encounter date
+  closest_date_diff <- obs_enc_date_diffs[closest_date_diff_index]
+  # if the result date was not in the future (could be if all encounter
+  # dates are invalid in relation to the observation date)
+  if (closest_date_diff != Inf) {
+    # find the corresponding encounter and merge its properties
+    # to new columns in the observation table
+    closest_encounter <- obs_subject_encounters[closest_date_diff_index, ]
+    observations[i, encounter.id := closest_encounter$encounter.id]
+    observations[i, encounter.start := closest_encounter$encounter.start]
+    observations[i, encounter.end := closest_encounter$encounter.end]
+  }
+}
 
-# only keep encounters that have a NTproBNP observation within their encounter.period
-cohort <-
-  cohort[NTproBNP.date >= encounter.start &
-           NTproBNP.date <= encounter.end]
+# the observation table with encounters is now our cohort table
+cohort <- observations # it's a copy by reference (type is data.table)
+rm(observations)
 
 # filter conditions: only keep conditions belonging to the encounters we have just filtered
 if (nrow(conditions) > 0) {

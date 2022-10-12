@@ -20,7 +20,7 @@ library(lubridate)
 
 # only the fallback if we start knitr directly from R Studio
 if (!exists("result_file_cohort")) {
-  result_file_cohort <- paste0(OUTPUT_DIR_BASE, "/outputLocal/", PROJECT_NAME, "/Kohorte.csv")
+  result_file_cohort <- paste0(OUTPUT_DIR_BASE, "/outputLocal/", PROJECT_NAME, "/Cohort.csv")
 }
 
 if(!file.exists(result_file_cohort)){
