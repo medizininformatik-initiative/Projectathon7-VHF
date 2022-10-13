@@ -53,20 +53,19 @@ data_quality_report_file <- paste0(OUTPUT_DIR_GLOBAL, "/DQ-Report.html")
 ###########################
 # Simple Filter Functions #
 ###########################
-# all this remove() functions remove Observation
-# rows from the result table regarding a special
-# value of one column
-
-removeMyocardialInfarction <- function() {
-  result <<- result[MyocardialInfarction != 1]
+# All these remove() functions remove 
+# Observation rows from the 'result' table
+# regarding a special value of one column.
+removeMyocardialInfarction <- function(result) {
+  return(result[MyocardialInfarction != 1])
 }
 
-removeStroke <- function() {
-  result <<- result[Stroke != 1]
+removeStroke <- function(result) {
+  return(result[Stroke != 1])
 }
 
-removeHeartFailure <- function() {
-  result <<- result[HeartFailure != 1]
+removeHeartFailure <- function(result) {
+  return(result[HeartFailure != 1])
 }
 
 #################################
@@ -88,8 +87,16 @@ log("Start Analysis: ", start, "\n")
 # Load and Clean Retrieval Results #
 ####################################
 
-cohort <- fread(retrieve_file_cohort)
-conditions <- fread(retrieve_file_diagnoses)
+#' Builds the merged result table from the input tables an runs
+#' the sub analyses.
+#'
+#' @param cohort the (sub)cohort table that should be analyzed
+#' @param conditions the conditions table from he retrieval (should
+#' be unchanged)
+#' @param cohortOption String with the description of the current
+#' (sub)cohort. Thsi String will be printed to the plot titles and
+#' to the analyses text file.
+prepareRetrievalResultsAndAnalyze <- function(cohort, conditions, cohortOption) {
 
 # check the data if there are values with and/or without comparators
 comparators <- unique(cohort$NTproBNP.valueQuantity.comparator)
@@ -255,16 +262,22 @@ for (comparatorOption in comparatorOptions) {
   result$birthdate <- as.POSIXct(result$birthdate, format = "%Y")
   result$age <- year(result$NTproBNP.date) - year(result$birthdate)
   
-  analyze(result, "AtrialFibrillation", "Atrial Fibrillation with all other diagnoses", comparatorOption, removedObservationsCount)
-  analyze(result, "HeartFailure", "Heart Failure with all other diagnoses", comparatorOption, removedObservationsCount)
-  removeMyocardialInfarction()
-  removeStroke()
-  analyze(result, "AtrialFibrillation", "Atrial Fibrillation without Myocardial Infarction and Stroke", comparatorOption, removedObservationsCount)
-  analyze(result, "HeartFailure", "Heart Failure without Myocardial Infarction and Stroke", comparatorOption, removedObservationsCount)
-  removeHeartFailure()
-  analyze(result, "AtrialFibrillation", "Atrial Fibrillation without Myocardial Infarction, Stroke and Heart Failure", comparatorOption, removedObservationsCount)
+  analyze(result, "AtrialFibrillation", "Atrial Fibrillation with all other diagnoses", comparatorOption, comparatorFrequencies, removedObservationsCount)
+  analyze(result, "HeartFailure",       "Heart Failure with all other diagnoses", comparatorOption, comparatorFrequencies, removedObservationsCount)
+  result <- removeMyocardialInfarction(result)
+  result <- removeStroke(result)
+  analyze(result, "AtrialFibrillation", "Atrial Fibrillation without Myocardial Infarction and Stroke", comparatorOption, comparatorFrequencies, removedObservationsCount)
+  analyze(result, "HeartFailure", "Heart Failure without Myocardial Infarction and Stroke", comparatorOption, comparatorFrequencies, removedObservationsCount)
+  result <- removeHeartFailure(result)
+  analyze(result, "AtrialFibrillation", "Atrial Fibrillation without Myocardial Infarction, Stroke and Heart Failure", comparatorOption, comparatorFrequencies, removedObservationsCount)
 
 }
+}
+
+fullCohort <- fread(retrieve_file_cohort)
+conditions <- fread(retrieve_file_diagnoses)
+
+prepareRetrievalResultsAndAnalyze(fullCohort, conditions, "Cohort: All")
 
 log("Finished Analysis: ", Sys.time(), "\n")
 

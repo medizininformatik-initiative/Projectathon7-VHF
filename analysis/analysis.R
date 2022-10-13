@@ -12,9 +12,11 @@
 #' "Atrial Fibrillation without Myocardial Infarction and Stroke")
 #' @param comparatorOption String that describes the data regarding
 #' containing NTproBNP values with or without comparators
+#' @param comparatorFrequencies String of a table with all unique values
+#' with comparators and its frequencies in this analysis
 #' @param removedObservationsCount number of NTproBNP values removed with
 #' comparator
-analyze <- function(result, analysisOption, analysisOptionDisplay, comparatorOption, removedObservationsCount) {
+analyze <- function(result, analysisOption, analysisOptionDisplay, comparatorOption, comparatorFrequencies, removedObservationsCount) {
   
   message(analysisOptionDisplay, " (", comparatorOption, "):")
   
