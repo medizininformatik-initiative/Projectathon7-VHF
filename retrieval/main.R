@@ -44,9 +44,9 @@ debug_dir_enc_bundles <- paste0(output_local_bundles, "/Encounters")
 debug_dir_con_bundles <- paste0(output_local_bundles, "/Conditions")
 
 # Result files
-result_file_cohort <- paste0(result_dir, "/Cohort.csv")
-result_file_diagnoses <- paste0(result_dir, "/Diagnoses.csv")
-result_file_log <- paste0(OUTPUT_DIR_GLOBAL, "/Retrieval.log")
+retrieve_file_cohort <- paste0(result_dir, "/Cohort.csv")
+retrieve_file_diagnoses <- paste0(result_dir, "/Diagnoses.csv")
+retrieve_file_log <- paste0(OUTPUT_DIR_GLOBAL, "/Retrieval.log")
 
 # remove old files and dirs and create new dirs  (surpress warning if dir exists)
 unlink(OUTPUT_DIR_GLOBAL, recursive = TRUE)
@@ -539,13 +539,13 @@ cohort$NTproBNP.date <- cohort$NTproBNP.date.bak
 cohort[, NTproBNP.date.bak := NULL] #cohort <- within(cohort, rm(NTproBNP.date.bak))
 
 # Write result files
-write.csv2(cohort, result_file_cohort, row.names = FALSE)
-write.csv2(conditions, result_file_diagnoses, row.names = FALSE)
+write.csv2(cohort, retrieve_file_cohort, row.names = FALSE)
+write.csv2(conditions, retrieve_file_diagnoses, row.names = FALSE)
 
 # logging
 runtime <- Sys.time() - start
 
-con <- file(result_file_log)
+con <- file(retrieve_file_log)
 write(
   paste0(
     "main.R finished at ", Sys.time(), ".\n",

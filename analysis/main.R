@@ -36,14 +36,14 @@ OUTPUT_DIR_GLOBAL <- paste0(OUTPUT_DIR_BASE, "/outputGlobal/", PROJECT_NAME)
 retrieve_dir = ifelse(DECENTRAL_ANALYIS, OUTPUT_DIR_LOCAL, OUTPUT_DIR_GLOBAL)
 
 # Result files from retrieve -> here the input files
-retrieve_result_file_cohort <- paste0(retrieve_dir, "/Cohort.csv")
-retrieve_result_file_diagnoses <- paste0(retrieve_dir, "/Diagnoses.csv")
+retrieve_file_cohort <- paste0(retrieve_dir, "/Cohort.csv")
+retrieve_file_diagnoses <- paste0(retrieve_dir, "/Diagnoses.csv")
 # Result files
 merged_retrieve_results_file <- paste0(retrieve_dir, "/Retrieve.csv")
 merged_retrieve_results_file_filtered <- paste0(retrieve_dir, "/Retrieve_filtered.csv")
-result_file_log <- paste0(OUTPUT_DIR_GLOBAL, "/Analysis.log")
-analysis_result_plot_file <- paste0(OUTPUT_DIR_GLOBAL, "/Analysis-Plot.pdf")
-analysis_result_text_file <- paste0(OUTPUT_DIR_GLOBAL, "/Analysis.txt")
+analysis_file_log <- paste0(OUTPUT_DIR_GLOBAL, "/Analysis.log")
+analysis_file_plot <- paste0(OUTPUT_DIR_GLOBAL, "/Analysis-Plot.pdf")
+analysis_file_text <- paste0(OUTPUT_DIR_GLOBAL, "/Analysis.txt")
 
 # files needed in data-quality/report.Rmd
 output_local_errors <- paste0(OUTPUT_DIR_LOCAL, "/Errors")
@@ -79,8 +79,8 @@ removeHeartFailure <- function() {
   }
 
 # create pdf plot file and results text file 
-pdf(analysis_result_plot_file)
-sink(analysis_result_text_file)
+pdf(analysis_file_plot)
+sink(analysis_file_text)
 
 log("Start Analysis: ", start, "\n")
 
@@ -88,8 +88,8 @@ log("Start Analysis: ", start, "\n")
 # Load and Clean Retrieval Results #
 ####################################
 
-cohort <- fread(retrieve_result_file_cohort)
-conditions <- fread(retrieve_result_file_diagnoses)
+cohort <- fread(retrieve_file_cohort)
+conditions <- fread(retrieve_file_diagnoses)
 
 # check the data if there are values with and/or without comparators
 comparators <- unique(cohort$NTproBNP.valueQuantity.comparator)
@@ -135,7 +135,7 @@ for (comparatorOption in comparatorOptions) {
   # Reload cohort file for the second run option because
   # the data were filtered during the first run.
   if (comparatorOption == comparatorOptions[2]) {
-    cohort <- fread(retrieve_result_file_cohort)
+    cohort <- fread(retrieve_file_cohort)
   }
 
   # remove invalid data rows
