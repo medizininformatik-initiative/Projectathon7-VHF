@@ -9,7 +9,7 @@ DEBUG <- as.logical(Sys.getenv('DEBUG', "FALSE"))
 # Verbose-Level des fhircrackr
 VERBOSE <- as.integer(Sys.getenv('VERBOSE', "0"))
 # Run the Data Quality Check
-DATA_QUALITY_REPORT <- as.logical(Sys.getenv('DATA_QUALITY_REPORT', "TRUE"))
+DATA_QUALITY_REPORT <- as.logical(Sys.getenv('DATA_QUALITY_REPORT', "FALSE"))
 
 # Wenn true (= dezentrale Analyse im DIZ), dann wird die Analyse nach dem
 # Retrieval ausgeführt und nur die Ergebnisse der Analyse ins
