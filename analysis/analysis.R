@@ -3,17 +3,18 @@
 ##############################
 
 #' The real analysis function that produces the text output and the plots.
-#' It takes the 'result' table, 'comparatorOption', 'filterComparatorValues' and
-#' 'removedObservationsCount' from the Global Environment and changes
-#' nothing there.
 #'
+#' @param result the data table
 #' @param analysisOption String with one of the the diagnoses column names
 #' in the result table (e.g. "AtrialFibrillation")
 #' @param analysisOptionDisplay String with a specific text for the
 #' analysisOption that will be used as plot and logging title (e.g.
 #' "Atrial Fibrillation without Myocardial Infarction and Stroke")
-##
-analyze <- function(analysisOption, analysisOptionDisplay) {
+#' @param comparatorOption String that describes the data regarding
+#' containing NTproBNP values with or without comparators
+#' @param removedObservationsCount number of NTproBNP values removed with
+#' comparator
+analyze <- function(result, analysisOption, analysisOptionDisplay, comparatorOption, removedObservationsCount) {
   
   message(analysisOptionDisplay, " (", comparatorOption, "):")
   
@@ -48,7 +49,7 @@ analyze <- function(analysisOption, analysisOptionDisplay) {
   cat(paste0("Date: ", Sys.time(), "\n\n"))
   
   cat(paste0("Current Analysis: ", analysisOptionDisplay, "\n"))
-  cat(paste0("Run Option: ", comparatorOption, ifelse(filterComparatorValues, paste0(" (", removedObservationsCount, " Observations with comparator removed)"), "")), "\n\n")
+  cat(paste0("Run Option: ", comparatorOption, ifelse(removedObservationsCount > 0 , paste0(" (", removedObservationsCount, " Observations with comparator removed)"), "")), "\n\n")
   
   cat(comparatorFrequencies, "\n", sep = "\n")
   

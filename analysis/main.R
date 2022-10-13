@@ -144,10 +144,9 @@ for (comparatorOption in comparatorOptions) {
       NTproBNP.valueQuantity.value >= 0      # NTproBNP value < 0 -> invalid
   ]
 
-  filterComparatorValues <- comparatorOption != comparatorOptions[1] # the 1. run option is with all values and the 2. with filtered
   sizeBeforeRemove <- nrow(cohort)
   # remove columns with comparator if they should be exluded
-  if (filterComparatorValues) {
+  if (comparatorOption != comparatorOptions[1]) { # the 1. run option is with all values and the 2. with filtered
     cohort <- cohort[is.na(NTproBNP.valueQuantity.comparator)]
   }
   removedObservationsCount <- sizeBeforeRemove - nrow(cohort)
@@ -256,14 +255,14 @@ for (comparatorOption in comparatorOptions) {
   result$birthdate <- as.POSIXct(result$birthdate, format = "%Y")
   result$age <- year(result$NTproBNP.date) - year(result$birthdate)
   
-  analyze("AtrialFibrillation", "Atrial Fibrillation with all other diagnoses")
-  analyze("HeartFailure", "Heart Failure with all other diagnoses")
+  analyze(result, "AtrialFibrillation", "Atrial Fibrillation with all other diagnoses", comparatorOption, removedObservationsCount)
+  analyze(result, "HeartFailure", "Heart Failure with all other diagnoses", comparatorOption, removedObservationsCount)
   removeMyocardialInfarction()
   removeStroke()
-  analyze("AtrialFibrillation", "Atrial Fibrillation without Myocardial Infarction and Stroke")
-  analyze("HeartFailure", "Heart Failure without Myocardial Infarction and Stroke")
+  analyze(result, "AtrialFibrillation", "Atrial Fibrillation without Myocardial Infarction and Stroke", comparatorOption, removedObservationsCount)
+  analyze(result, "HeartFailure", "Heart Failure without Myocardial Infarction and Stroke", comparatorOption, removedObservationsCount)
   removeHeartFailure()
-  analyze("AtrialFibrillation", "Atrial Fibrillation without Myocardial Infarction, Stroke and Heart Failure")
+  analyze(result, "AtrialFibrillation", "Atrial Fibrillation without Myocardial Infarction, Stroke and Heart Failure", comparatorOption, removedObservationsCount)
 
 }
 
