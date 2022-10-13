@@ -98,14 +98,14 @@ hasExactValues <- anyNA(comparators)
 hasComparators <- comparatorsCount > 1 || !hasExactValues
 if (comparatorsCount == 1) {
   if (hasComparators) { # the only value is a comparator
-    runOptions <- c(paste0("All NTproBNP values have the same comparator ", comparators[1]))
+    comparatorOptions <- c(paste0("All NTproBNP values have the same comparator ", comparators[1]))
   } else { # the only value is N.A. -> means there are no comparators
-    runOptions <- c("All NTproBNP values have no comparator")
+    comparatorOptions <- c("All NTproBNP values have no comparator")
   }
 } else if (hasComparators && !hasExactValues) { # there are only values with different comparators
-  runOptions <- c(paste0("All NTproBNP values have a comparator of ", paste(comparators, collapse = ', ')))
+  comparatorOptions <- c(paste0("All NTproBNP values have a comparator of ", paste(comparators, collapse = ', ')))
 } else { # there are values with and values witthout a comparator -> the only case with 2 run options
-  runOptions <- c("Incl. Comparators", "Excl. Comparators")
+  comparatorOptions <- c("Incl. Comparators", "Excl. Comparators")
 }
 
 comparatorFrequencies <- ""
@@ -130,11 +130,11 @@ cohort$NTproBNP.valueQuantity.value <- ifelse(is.na(comp), value, ifelse(comp ==
 
 # run the same analysis with the first run option with all values and with
 # a possibly existing second run option without all values with comparators
-for (runOption in runOptions) {
 
+for (comparatorOption in comparatorOptions) {
   # Reload cohort file for the second run option because
   # the data were filtered during the first run.
-  if (runOption == runOptions[2]) {
+  if (comparatorOption == comparatorOptions[2]) {
     cohort <- fread(retrieve_result_file_cohort)
   }
 
@@ -144,7 +144,7 @@ for (runOption in runOptions) {
       NTproBNP.valueQuantity.value >= 0      # NTproBNP value < 0 -> invalid
   ]
 
-  filterComparatorValues <- runOption != runOptions[1] # the 1. run option is with all values and the 2. with filtered
+  filterComparatorValues <- comparatorOption != comparatorOptions[1] # the 1. run option is with all values and the 2. with filtered
   sizeBeforeRemove <- nrow(cohort)
   # remove columns with comparator if they should be exluded
   if (filterComparatorValues) {
@@ -247,7 +247,7 @@ for (runOption in runOptions) {
   # Debug? -> Write result table as csv to localOutput
   #           (full data or without comparator values)
   if (DEBUG) {
-    fileName <- ifelse(runOption == runOptions[1], merged_retrieve_results_file, merged_retrieve_results_file_filtered)
+    fileName <- ifelse(comparatorOption == comparatorOptions[1], merged_retrieve_results_file, merged_retrieve_results_file_filtered)
     write.csv2(result, fileName, row.names = FALSE)
   }
 

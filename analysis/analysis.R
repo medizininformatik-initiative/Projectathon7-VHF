@@ -3,7 +3,7 @@
 ##############################
 
 #' The real analysis function that produces the text output and the plots.
-#' It takes the 'result' table, 'runOption', 'filterComparatorValues' and
+#' It takes the 'result' table, 'comparatorOption', 'filterComparatorValues' and
 #' 'removedObservationsCount' from the Global Environment and changes
 #' nothing there.
 #'
@@ -15,7 +15,7 @@
 ##
 analyze <- function(analysisOption, analysisOptionDisplay) {
   
-  message(analysisOptionDisplay, " (", runOption, "):")
+  message(analysisOptionDisplay, " (", comparatorOption, "):")
   
   resultRows <- nrow(result)
   
@@ -37,7 +37,7 @@ analyze <- function(analysisOption, analysisOptionDisplay) {
   # PV+  - Percentage of false negatives for VHF among all test negatives
   # PV- - Proportion of false positives among all test positives
   if (!hasError) {
-    rocTitle <- paste0("NTproBNP(Full) for\n", analysisOptionDisplay, "\n(", runOption, ")")
+    rocTitle <- paste0("NTproBNP(Full) for\n", analysisOptionDisplay, "\n(", comparatorOption, ")")
     roc <- ROC(test = result$NTproBNP.valueQuantity.value, stat = result[[analysisOption]], plot = "ROC", main = rocTitle, AUC = TRUE)
   }
   
@@ -48,7 +48,7 @@ analyze <- function(analysisOption, analysisOptionDisplay) {
   cat(paste0("Date: ", Sys.time(), "\n\n"))
   
   cat(paste0("Current Analysis: ", analysisOptionDisplay, "\n"))
-  cat(paste0("Run Option: ", runOption, ifelse(filterComparatorValues, paste0(" (", removedObservationsCount, " Observations with comparator removed)"), "")), "\n\n")
+  cat(paste0("Run Option: ", comparatorOption, ifelse(filterComparatorValues, paste0(" (", removedObservationsCount, " Observations with comparator removed)"), "")), "\n\n")
   
   cat(comparatorFrequencies, "\n", sep = "\n")
   
@@ -102,7 +102,7 @@ analyze <- function(analysisOption, analysisOptionDisplay) {
         cat(paste0("        PV-: ", npv, "\n\n"))
         
         # add the ROC plot to the pdf and the AUC value to the text file
-        rocTitle <- paste0("NtproBNP_cut", thresholds[i], " for\n", analysisOptionDisplay, "\n(", runOption, ")")
+        rocTitle <- paste0("NtproBNP_cut", thresholds[i], " for\n", analysisOptionDisplay, "\n(", comparatorOption, ")")
         roc <- ROC(test = cuts, stat = result[[analysisOption]], plot = "ROC", main = rocTitle)
         cat(paste0("ROC Area Under Curve (Cut ", thresholds[i], "): "), roc$AUC, "\n\n\n")
       }
