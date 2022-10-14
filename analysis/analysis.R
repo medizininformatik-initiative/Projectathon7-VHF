@@ -1,24 +1,24 @@
-##############################
-# Analysis from S. Zeynalova #
-##############################
-
+#'
 #' The real analysis function that produces the text output and the plots.
 #'
 #' @param result the data table
-#' @param analysisOption String with one of the the diagnoses column names
-#' in the result table (e.g. "AtrialFibrillation")
+#' @param cohortDescription String with a description of the current cohort in
+#' the result table (e.g. "Full cohort", "Males", "Females, Age > 50", ' ...)
+#' @param analysisOption String with one of the the diagnoses column names in
+#' the result table (e.g. "AtrialFibrillation")
 #' @param analysisOptionDisplay String with a specific text for the
-#' analysisOption that will be used as plot and logging title (e.g.
-#' "Atrial Fibrillation without Myocardial Infarction and Stroke")
-#' @param comparatorOption String that describes the data regarding
+#' analysisOption that will be used as plot and logging title (e.g."Atrial
+#' Fibrillation without Myocardial Infarction and Stroke")
+#' @param comparatorOptionDisplay String that describes the data regarding
 #' containing NTproBNP values with or without comparators
-#' @param comparatorFrequencies String of a table with all unique values
+#' @param comparatorFrequenciesText String of a table with all unique values
 #' with comparators and its frequencies in this analysis
 #' @param removedObservationsCount number of NTproBNP values removed with
 #' comparator
-analyze <- function(result, analysisOption, analysisOptionDisplay, comparatorOption, comparatorFrequencies, removedObservationsCount) {
+#' 
+analyze <- function(result, cohortDescription, analysisOption, analysisOptionDisplay, comparatorOptionDisplay, comparatorFrequenciesText, removedObservationsCount) {
   
-  message(analysisOptionDisplay, " (", comparatorOption, "):")
+  message(analysisOptionDisplay, " (", comparatorOptionDisplay, "):")
   
   resultRows <- nrow(result)
   
@@ -35,12 +35,12 @@ analyze <- function(result, analysisOption, analysisOptionDisplay, comparatorOpt
   
   # plot roc curve to pdf
   # Explanation of the graph:
-  # Sens - Sensitivity
-  # Spec - Specificity
-  # PV+  - Percentage of false negatives for VHF among all test negatives
-  # PV- - Proportion of false positives among all test positives
+  # Sens = Sensitivity
+  # Spec = Specificity
+  #  PV+ = Percentage of false negatives for VHF among all test negatives
+  #  PV- = Proportion of false positives among all test positives
   if (!hasError) {
-    rocTitle <- paste0("NTproBNP(Full) for\n", analysisOptionDisplay, "\n(", comparatorOption, ")")
+    rocTitle <- paste0("NTproBNP(Full) for ", cohortDescription, "\n", analysisOptionDisplay, "\n(", comparatorOptionDisplay, ")")
     roc <- ROC(test = result$NTproBNP.valueQuantity.value, stat = result[[analysisOption]], plot = "ROC", main = rocTitle, AUC = TRUE)
   }
   
@@ -50,10 +50,11 @@ analyze <- function(result, analysisOption, analysisOptionDisplay, comparatorOpt
   cat("###########################\n\n")
   cat(paste0("Date: ", Sys.time(), "\n\n"))
   
-  cat(paste0("Current Analysis: ", analysisOptionDisplay, "\n"))
-  cat(paste0("Run Option: ", comparatorOption, ifelse(removedObservationsCount > 0 , paste0(" (", removedObservationsCount, " Observations with comparator removed)"), "")), "\n\n")
+  cat(paste0("    Cohort: ", cohortDescription, "\n"))
+  cat(paste0("  Analysis: ", analysisOptionDisplay, "\n"))
+  cat(paste0("Run Option: ", comparatorOptionDisplay, ifelse(removedObservationsCount > 0 , paste0(" (", removedObservationsCount, " Observations with comparator removed)"), "")), "\n\n")
   
-  cat(comparatorFrequencies, "\n", sep = "\n")
+  cat(comparatorFrequenciesText, "\n\n")
   
   # run analysis if the result table has not only 0 or 1 row and not all diagnoses values are the same
   if (!hasError) {
@@ -105,7 +106,10 @@ analyze <- function(result, analysisOption, analysisOptionDisplay, comparatorOpt
         cat(paste0("        PV-: ", npv, "\n\n"))
         
         # add the ROC plot to the pdf and the AUC value to the text file
-        rocTitle <- paste0("NtproBNP_cut", thresholds[i], " for\n", analysisOptionDisplay, "\n(", comparatorOption, ")")
+        rocTitle <- paste0(
+          "NtproBNP_cut", thresholds[i], " for ", cohortDescription, "\n",
+          analysisOptionDisplay, "\n",
+          "(", comparatorOptionDisplay, ")")
         roc <- ROC(test = cuts, stat = result[[analysisOption]], plot = "ROC", main = rocTitle)
         cat(paste0("ROC Area Under Curve (Cut ", thresholds[i], "): "), roc$AUC, "\n\n\n")
       }
