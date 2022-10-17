@@ -23,7 +23,7 @@ analyze <- function(result, cohortDescription, analysisOption, analysisOptionDis
   resultRows <- nrow(result)
   
   # check possible data problems
-  errorMessage <- ""
+  errorMessage <- NA
   # not enough data rows
   if (resultRows < 2) {
     errorMessage <- paste0("Result table has ", resultRows, " rows -> abort analysis\n")
@@ -31,7 +31,7 @@ analyze <- function(result, cohortDescription, analysisOption, analysisOptionDis
   if (all(result[[analysisOption]] == result[[analysisOption]][1])) { # only 0 or only 1 in this diagnosis column
     errorMessage <- paste0("All ", analysisOption, " diagnoses have the same value ", result[[analysisOption]][1], " -> abort analysis\n")
   }
-  hasError <- nchar(errorMessage) > 0
+  hasError <- !is.na(errorMessage)
   
   # plot roc curve to pdf
   # Explanation of the graph:
