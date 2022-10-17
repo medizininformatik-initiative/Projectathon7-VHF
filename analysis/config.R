@@ -7,7 +7,7 @@ emptyToNull <- function(v) {
 
 DEBUG <- as.logical(Sys.getenv('DEBUG', "FALSE"))
 # Run the Data Quality Check
-DATA_QUALITY_REPORT <- as.logical(Sys.getenv('DATA_QUALITY_REPORT', "FALSE"))
+DATA_QUALITY_REPORT <- as.logical(Sys.getenv('DATA_QUALITY_REPORT', "TRUE"))
 
 # Wenn true (= dezentrale Analyse im DIZ), dann wird die Analyse nach dem
 # Retrieval ausgeführt und nur die Ergebnisse der Analyse ins
