@@ -1,0 +1,138 @@
+########################################################
+### Konfigurationsdatei für das DUP "Vorhofflimmern" ###
+###     für die Ausführung über dupctl (Docker)      ###
+########################################################
+
+### Projektname
+project = "VHF-Projectathon-7"
+### Docker Registry, aus der die Docker-Images für das
+### Retrieval und die Analyse geladen werden (nicht ändern!)
+registry = "registry.gitlab.com/smith-phep/dup"
+
+#######################################
+### Einstellungen für das Retrieval ###
+#######################################
+[retrieve]
+
+### FHIR Endpoint (muss gesetzt werden)
+### Default: -
+### Hier ist als Beispiel ein Testserver ohne Authentifizierung angegeben:
+fhirServerEndpoint = "https://mii-agiop-3p.life.uni-leipzig.de/blaze"
+
+### Falls Authentifizierung, bitte entsprechend anpassen (sonst ignorieren):
+### Username und Passwort für Basic Auth
+### Default: -
+# fhirServerUser =
+# fhirServerPass =
+
+### Alternativ: Token für Bearer Token Auth
+### Default: -
+# fhirServerToken =
+
+### ----------------------------------------###
+### Environment Parameter für das Retrieval ###
+### ----------------------------------------###
+[retrieve.env]
+
+### DECENTRAL_ANALYIS
+### Default: "TRUE"
+###   TRUE = Die Ergebnisse des Retrieval werden in das Verzeichnis
+###          outputLocal geschrieben (das nicht ausgeleitet werden
+###          soll). Die Analyse liest dann die Ergebnisse des
+###          Retrieval aus dem outputLocal und schreibt ihre
+###          Ergebnisse ins Verzeichnis outputGlobal (was dann
+###          ausgeleitet wird).
+###  FALSE = Die Ergebnisse des Retrieval werden in das Verzeichnis
+###          outputGlobal geschrieben (das ausgeleitet wird). Auch
+###          wenn bei dieser Option die Analyse eigentlich nicht im
+###          DIZ ausgeführt werden sollte, kann man sie dennoch
+###          ausführen und auch sie schreibt ihre Ergebnisse in
+###          outputGlobal.
+# DECENTRAL_ANALYIS = "TRUE"
+
+### MAX_BUNDLES
+###    Default: "Inf"
+###             Das Script lädt zuerst alle passenden Observations,
+###             davon ausgehend zugehörige Patienten und Conditions.
+###       Inf = Alle Observaton Bundles werden herunter geladen
+### 1, 2, ... = Maximal wird diese Anzahl Observaton Bundles herunter
+###             geladen
+# MAX_BUNDLES = "Inf"
+
+### DEBUG
+### Default: "FALSE"
+###   TRUE = Zwischenergebnisse werden ins Verzeichnis outputLocal
+###          geschrieben
+###  FALSE = es werden keine Zwischenergebnisse rausgeschrieben
+# DEBUG = "FALSE"
+
+### VERBOSE
+### Default: 0 (= keine Ausgabe)
+### 0 .. 4 = Verbose-Level des fhircrackr
+# VERBOSE = 0
+
+### SSL_VERIFY
+### Default: "TRUE"
+###   TRUE = peer verification anschalten
+###  FALSE = peer verification ausschalten
+# SSL_VERIFY = "TRUE"
+
+### PROFILE_ENC
+### FHIR Profile der zu ladenden Encounter. Es werden nur Encounter
+### mit dem angegebenen Profil gefunden.
+### Default: https://www.medizininformatik-initiative.de/fhir/core/modul-fall/StructureDefinition/KontaktGesundheitseinrichtung
+# PROFILE_ENC = "https://www.medizininformatik-initiative.de/fhir/core/modul-fall/StructureDefinition/KontaktGesundheitseinrichtung"
+
+### PROFILE_OBS
+### FHIR Profile der zu ladenden Observations. Es werden nur Observations
+### mit dem angegebenen Profil gefunden.
+### Default: https://www.medizininformatik-initiative.de/fhir/core/modul-labor/StructureDefinition/ObservationLab
+# PROFILE_OBS = "https://www.medizininformatik-initiative.de/fhir/core/modul-labor/StructureDefinition/ObservationLab"
+
+### PROFILE_CON
+### FHIR Profile der zu ladenden Conditions. Es werden nur Conditions
+### mit dem angegebenen Profil gefunden.
+### Default: https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Diagnose
+# PROFILE_CON = "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Diagnose"
+
+#####################################
+### Einstellungen für die Analyse ###
+#####################################
+
+[analyze]
+
+### im Moment werden alle Parameter der Analyse über die Environment Parameter gesetzt
+
+### --------------------------------------###
+### Environment Parameter für die Analyse ###
+### --------------------------------------###
+[analyze.env]
+
+### DECENTRAL_ANALYIS
+### Default: "TRUE"
+###   TRUE = Die Ergebnisse des Retrieval werden in das Verzeichnis
+###          outputLocal geschrieben (das nicht ausgeleitet werden
+###          soll). Die Analyse liest dann die Ergebnisse des
+###          Retrieval aus dem outputLocal und schreibt ihre
+###          Ergebnisse ins Verzeichnis outputGlobal (was dann
+###          ausgeleitet wird).
+###  FALSE = Die Ergebnisse des Retrieval werden in das Verzeichnis
+###          outputGlobal geschrieben (das ausgeleitet wird). Auch
+###          wenn bei dieser Option die Analyse eigentlich nicht im
+###          DIZ ausgeführt werden sollte, kann man sie dennoch
+###          ausführen und auch sie schreibt ihre Ergebnisse in
+###          outputGlobal.
+# DECENTRAL_ANALYIS = "TRUE"
+
+### DEBUG
+### Default: "FALSE"
+###   TRUE = Zwischenergebnisse werden ins Verzeichnis outputLocal
+###          geschrieben
+###  FALSE = es werden keine Zwischenergebnisse rausgeschrieben
+# DEBUG = "FALSE"
+
+### DATA_QUALITY_REPORT
+### Default: "TRUE"
+###   TRUE = Data Quality Report im outputGlobal erstellen
+###  FALSE = Data Quality Report nicht erstellen
+# DATA_QUALITY_REPORT = "TRUE"
