@@ -1,50 +1,52 @@
-# ![Status: Entwurf](https://img.shields.io/badge/Status-Entwurf-yellow.svg) SMITH VHF Vorhofflimmern
+# ![Status: Entwurf](https://img.shields.io/badge/Status-Entwurf-yellow.svg) VHF Vorhofflimmern
 
 ## Einführung
 
-Dieses Projekt führt das SMITH DUP Vorhofflimmern (VHF) aus. Dafür erzeugt dieses Skript zwei Tabellen mit den für die
-Analyse benötigten Inhalten. Diese Tabellen sollen entweder zentral erzeugt und an die datenauswertendende Stelle
-übergeben oder dezentral in den DIZen analysiert werden, das Analyseergebnis muss in diesem Fall manuell an die
-Biometrie übergeben werden.
-
-Das Readme beschreibt zunächst die technischen Details der Verwendung. Darunter sind die verwendeten
-CodeSysteme/Ressourcen/Profile und der konzeptionelle Ablauf der Abfrage beschrieben.
+Dieses Projekt führt das DUP Vorhofflimmern (VHF) aus. Es kann sowohl für die zentrale als auch für die dezentrale
+Analyse genutzt werden. Der Retrieval-Teil des DUP erzeugt zwei Tabellen mit den für die Analyse benötigten Inhalten.
+Diese Tabellen sollen entweder erzeugt und an die datenauswertendende Stelle übergeben werden (zentrale Analyse) oder
+in den DIZen analysiert werden (dezentrale Analyse). Bei der zentralen Analyse werden die o.g. Tabellen in das
+auszuleitende Verzeichnis 'outputGlobal' geschrieben, bei der dezentralen Analyse werden die Analyseergebnisse
+(Textdateien und ROC-Plots in PDF-Dateien) in dieses Verzeichnis geschrieben.
 
 ## Verwendung
 
 ### dupctl (Docker)
 
-Eine einfache und reproduzierbare Ausführung der SMITH PheP DUPs wird über das dupctl Command Line Interface (cli)
+Eine einfache und reproduzierbare Ausführung der DUPs wird über das dupctl Command Line Interface (cli)
 sichergestellt. Dafür sind folgende Schritte nötig:
 
-* Installation dupctl (siehe [DUP Control Readme][dupctl#install]
+* Installation dupctl (siehe [DUP Control Readme][dupctl#install])
+
+
 * Arbeitsverzeichnis wählen
+  *  Es muss ein Verzeichnis gewählt werden, in dem dupctl Kommandos ausgeführt werden sollen. Die Ergebnisse der DUPs
+  werden im gleichen Verzeichnis gespeichert! Siehe auch [DUP Control Readme][dupctl#workdir]
+ 
 
-Wählen Sie ein Verzeichnis, in dem dupctl Kommandos ausgeführt werden sollen. Die Ergebnisse der DUPs werden im
-gleichen Verzeichnis gespeichert! Siehe auch [DUP Control Readme][dupctl#workdir]
+* `config.toml` im Arbeitsverzeichnis erstellen
+  * Zum Ausführen des DUP muss eine DUP Control Konfigurationsdatei (`config.toml`) im Arbeitsverzeichnis liegen. 
+  *  Vorlage mit allen Parametern (sowohl für das Retrieval als auch für die Analyse): [config.toml](.\config.toml)
 
-* Anlegen einer DUP Control Konfigurationsdatei (`config.toml`)
-
-```toml
-project = "smith"
-registry = "registry.gitlab.com/smith-phep/dup"
-```
 
 * Ausführung des Retrievals
-
+  * Wenn alle Retrieval-Parameter in der `config.toml` angegeben wurden, kann das Retrieval im Arbeitsverzeichnis über
+  folgendes Kommando gestartet werden:
 ```bash
-dupctl retrieve --dup vhf [...]
+dupctl retrieve --dup vhf
 ```
-Für weitere Informationen bzgl. Retrieval: [VHF Retrieval README](retrieval/README.md)
+
 
 * Ausführung der Analyse
-
+  * Die Analyse kann beliebig oft auf denselben Daten des Retrievals gestartet werden.
+  * Alle Optionen der Analyse werden ebenfalls in der `config.toml` festgelegt.
 ```bash
-dupctl analyze --dup vhf [...]
+dupctl analyze --dup vhf
 ```
-Für weitere Informationen bzgl. Analysis: [VHF Analysis README](analysis/README.md)
-
-**Hinweis: Weitere Einstellungsmöglichkeiten von DUP Control sind in der [DUP Control README][dupctl#settings] zu finden.**
+Weitere Informationen
+* dupctl: [DUP Control README][dupctl#settings]
+* Analysis: [VHF Analysis README](analysis/README.md)
+* Retrieval: [VHF Retrieval README](retrieval/README.md)
 
 ### Manuelle Ausführung
 
