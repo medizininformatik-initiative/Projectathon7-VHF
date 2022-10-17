@@ -331,11 +331,11 @@ cohortAnalysis <- function(result, cohortDescription, comparatorOptionDisplay, c
   result <- removeStroke(result)
   
   analysisOption <- "AtrialFibrillation"
-  analysisOptionDisplay <- "Atrial Fibrillation incl.Heart Failure, excl. Myocardial Infarction and Stroke"
+  analysisOptionDisplay <- "Atrial Fibrillation incl. Heart Failure, excl. Myocardial Infarction and Stroke"
   analyze(result, cohortDescription, analysisOption, analysisOptionDisplay, comparatorOptionDisplay, comparatorFrequenciesText, removedObservationsCount)
 
   analysisOption <- "HeartFailure"
-  analysisOptionDisplay <- "Heart Failure incl.Heart Failure, excl. Myocardial Infarction and Stroke"
+  analysisOptionDisplay <- "Heart Failure incl. Atrial Fibrillation, excl. Myocardial Infarction and Stroke"
   analyze(result, cohortDescription, analysisOption, analysisOptionDisplay, comparatorOptionDisplay, comparatorFrequenciesText, removedObservationsCount)
 
   result <- removeHeartFailure(result)
@@ -448,10 +448,10 @@ fullCohort <- fullCohort[
 
 # Replace all values by value + 1 if the comparator
 # is ">" or with value - 1 if the comparator is "<".
-# You must check N.A. seperately in R!? It is not 
-# covered by the very last else case :(
 value <- fullCohort$NTproBNP.valueQuantity.value
 comparator <- fullCohort$NTproBNP.valueQuantity.comparator
+# You must check N.A. seperately in R!? It is not covered by the very 
+# last else case :(
 fullCohort$NTproBNP.valueQuantity.value <-
   ifelse(is.na(comparator), value, ifelse(comparator == ">", value + 1, ifelse(comparator == "<", value - 1, value)))
 
@@ -479,11 +479,11 @@ writeCohortAnalysisFiles(removeMales(fullCohort), conditions, "Females", "_03_Fe
 writeCohortAnalysisFiles(removeAgeOver50(fullCohort), conditions, "Age <= 50", "_04_AgeUnder50")
 # 5 cohort = age > 50
 writeCohortAnalysisFiles(removeAgeUnder50(fullCohort), conditions, "Age > 50", "_05_AgeOver50")
-# # 6 cohort = male age <= 50
+# 6 cohort = male age <= 50
 writeCohortAnalysisFiles(removeFemales(removeAgeOver50(fullCohort)), conditions, "Males, Age <= 50", "_06_Males_AgeUnder50")
-# # 7 cohort = male age > 50
+# 7 cohort = male age > 50
 writeCohortAnalysisFiles(removeFemales(removeAgeUnder50(fullCohort)), conditions, "Males, Age > 50", "_07_Males_AgeOver50")
-# # 8 cohort = female age <= 50
+# 8 cohort = female age <= 50
 writeCohortAnalysisFiles(removeMales(removeAgeOver50(fullCohort)), conditions, "Females, Age <= 50", "_08_Females_AgeUnder50")
-# # 9 cohort = female age > 50
+# 9 cohort = female age > 50
 writeCohortAnalysisFiles(removeMales(removeAgeUnder50(fullCohort)), conditions, "Females, Age > 50", "_09_Females_AgeOver50")
