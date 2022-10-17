@@ -36,8 +36,6 @@ metadata_report <- read.csv("metadata.csv")
 checks_report <- read.csv("contradictions.csv")
 missings_report <- read.csv("missing-codes.csv")
 
-metadata_report$VAR_NAMES
-
 # select columns supported with metadata from cohort
 if(!all( metadata_report$VAR_NAMES %in% colnames(cohort_report) )){
   write("Metadaten passen nicht zur Kohorte.", file = error_file)
@@ -50,8 +48,8 @@ datatyp_report <- as.data.table(t(metadata_report$DATA_TYPE))
 colnames(datatyp_report) <- metadata_report$VAR_NAMES
 
 #extract known value labels
-value_labels <- as.data.table(t(metadata_report$VALUE_LABELS[3:7]))
-colnames(value_labels) <- metadata_report$VAR_NAMES[3:7]
+value_labels <- as.data.table(t(metadata_report$VALUE_LABELS[3:8]))
+colnames(value_labels) <- metadata_report$VAR_NAMES[3:8]
 # function that returns only labels in string as list
 get_labels <- function(string) {
   # regex to split at | num = : \s?\|?\s?\d\s\=\s
@@ -120,9 +118,10 @@ calculate_age <- function(vector) {
   return(r)
 }
 
+table(cohort_report$NTproBNP.unit)
 
 #apply labels and fix typing per column - missmatched typing is returned as NA (NOT as missing code)
-cohort_report$NTproBNP.date <- parse_date_time(cohort_report$NTproBNP.date, "ymd", truncated = 2)
+cohort_report$NTproBNP.date <- parse_date_time(cohort_report$NTproBNP.date, "ymd HMS", truncated = 5)
 cohort_report$NTproBNP.valueQuantity.value <- as.double(cohort_report$NTproBNP.valueQuantity.value)
 cohort_report$NTproBNP.code <- as.integer( apply_labels(cohort_report$NTproBNP.code, value_labels$NTproBNP.code) )
 cohort_report$NTproBNP.codeSystem <- as.integer(  apply_labels(cohort_report$NTproBNP.codeSystem, value_labels$NTproBNP.codeSystem) )
@@ -130,8 +129,9 @@ cohort_report$NTproBNP.unit <- as.integer( apply_labels(cohort_report$NTproBNP.u
 cohort_report$NTproBNP.unitSystem <- as.integer( apply_labels(cohort_report$NTproBNP.unitSystem, value_labels$NTproBNP.unitSystem) )
 cohort_report$gender <- as.integer( apply_labels(cohort_report$gender, value_labels$gender) )
 cohort_report$birthdate <- as.integer(calculate_age(cohort_report$birthdate))
-cohort_report$encounter.start <- parse_date_time(cohort_report$encounter.start, "ymd", truncated = 2)
-cohort_report$encounter.end <- parse_date_time(cohort_report$encounter.end, "ymd", truncated = 2)
+cohort_report$encounter.start <- parse_date_time(cohort_report$encounter.start, "ymd HMS", truncated = 5)
+cohort_report$encounter.end <- parse_date_time(cohort_report$encounter.end, "ymd HMS", truncated = 5)
+cohort_report$NTproBNP.valueQuantity.comparator <- as.integer( apply_labels(cohort_report$NTproBNP.valueQuantity.comparator, value_labels$NTproBNP.valueQuantity.comparator) )
 
 # verify correct typing
 #sapply(cohort_report, class)
@@ -140,13 +140,26 @@ cohort_report$encounter.end <- parse_date_time(cohort_report$encounter.end, "ymd
 
 ```{r include=FALSE}
 ### GENERATE REPORTS ----------------------
-#import missing list
 
-smith_dq_report <- dq_report(study_data = cohort_report,
+#function for logging errors inside knit output
+knit_error <- function(f ,er_message) {
+   tryCatch(
+      { f },
+        error = function(e){
+            print(er_message)
+            print(e)
+        }
+    )
+}
+
+knit_error( smith_dq_report <- dq_report(study_data = cohort_report,
                           meta_data  = metadata_report,
                           check_table = checks_report,
                           MISSING_LIST = missings_report,
-                          label_col  = LABEL)
+                          label_col  = LABEL) ,
+'Could not generate DQ report for Cohort. Error: ')
+
+
 
 ```
 
@@ -157,7 +170,7 @@ smith_dq_report <- dq_report(study_data = cohort_report,
 ## Result of contradiction checks:
 ```{r message=FALSE, warning=FALSE,echo=FALSE}
 
-smith_dq_report$long_format$con_contradictions$results[[1]]$SummaryPlot
+knit_error( smith_dq_report$long_format$con_contradictions$results[[1]]$SummaryPlot, 'Could not print Contradictions SummaryPlot for Cohort. Error: ')
 
 
 ```
@@ -166,14 +179,14 @@ smith_dq_report$long_format$con_contradictions$results[[1]]$SummaryPlot
 
 ```{r message=FALSE, warning=FALSE,echo=FALSE}
 
-smith_dq_report$long_format$con_contradictions$results[[1]]$SummaryTable
+knit_error( smith_dq_report$long_format$con_contradictions$results[[1]]$SummaryTable, 'Could not print Contradictions SummaryTable for Cohort. Error: ')
 
 ```
 
 ## Results of limit checks:
 ```{r message=FALSE, warning=FALSE,echo=FALSE}
 
-smith_dq_report$long_format$con_limit_deviations$results[[1]]$SummaryPlotList$ntprobnp
+knit_error(smith_dq_report$long_format$con_limit_deviations$results[[1]]$SummaryPlotList$ntprobnp, 'Could not print Limit SummaryPlot for Cohort. Error: ')
 
 ```
 
@@ -181,23 +194,17 @@ smith_dq_report$long_format$con_limit_deviations$results[[1]]$SummaryPlotList$nt
 
 ```{r message=FALSE, warning=FALSE,echo=FALSE,out.width="100%"}
 
-smith_dq_report$long_format$con_limit_deviations$results[[1]]$SummaryTable
+knit_error(smith_dq_report$long_format$con_limit_deviations$results[[1]]$SummaryTable, 'Could not print Limit SummaryTable for Cohort. Error: ')
 
 ```
 
 # Information about distribution:
 
-```{r message=FALSE, warning=FALSE,echo=FALSE}
-## Age:
-#smith_dq_report$long_format$con_limit_deviations$results[[1]]$SummaryPlotList$birthdate
-
-```
-
 ## Gender:
 #### 1 = male | 2 = female | 3 = other | 4 = unknown
 ```{r message=FALSE, warning=FALSE,echo=FALSE}
 
-smith_dq_report$long_format$con_limit_deviations$results[[1]]$SummaryPlotList$gender
+knit_error(smith_dq_report$long_format$con_limit_deviations$results[[1]]$SummaryPlotList$gender, 'Could not print SummaryPlotList$gender for Cohort. Error: ')
 
 ```
 
@@ -205,7 +212,7 @@ smith_dq_report$long_format$con_limit_deviations$results[[1]]$SummaryPlotList$ge
 #### Age was calculated from birthdates in YYYY... format.
 ```{r message=FALSE, warning=FALSE,echo=FALSE}
 
-smith_dq_report$long_format$con_limit_deviations$results[[1]]$SummaryPlotList$age
+knit_error(smith_dq_report$long_format$con_limit_deviations$results[[1]]$SummaryPlotList$age, 'Could not print SummaryPlotList$age for Cohort. Eorror: ')
 
 ```
 
@@ -213,18 +220,32 @@ smith_dq_report$long_format$con_limit_deviations$results[[1]]$SummaryPlotList$ag
 #### 1 = other | 2 = 33763-4 | 3 = 71425-3 | 4 = 33762-6 | 5 = 83107-3 | 6 =  83108-1 | 7 = 77622-9 | 8 = 77621-1
 ```{r message=FALSE, warning=FALSE,echo=FALSE}
 
-smith_dq_report$long_format$con_limit_deviations$results[[1]]$SummaryPlotList$NTproBNP.code
+knit_error(smith_dq_report$long_format$con_limit_deviations$results[[1]]$SummaryPlotList$NTproBNP.code, 'Could not print SummaryPlotList$NTproBNP.code for Cohrot. Error: ')
 
 ```
 
+## Comperators:
+#### 1 = other | 2 = < | 3 = <= | 4 = > | 5 = >=
+```{r message=FALSE, warning=FALSE,echo=FALSE}
+
+knit_error(smith_dq_report$long_format$con_limit_deviations$results[[1]]$SummaryPlotList$comparator, 'Could not print SummaryPlotList$comparator for Cohort. Error: ')
+
+```
+
+## Units:
+#### 1 = other | 2 = pg/mL | 3 = pg/dL | 4 = pg/100mL | 5 = pg/L | 6 = pg% | 7 = pmol/L | 8 = ng/L | 9 = Mt/m3
+```{r message=FALSE, warning=FALSE,echo=FALSE}
+
+knit_error(smith_dq_report$long_format$con_limit_deviations$results[[1]]$SummaryPlotList$NTproBNP.unit, 'Could not print SummaryPlotList$NTproBNP.unit for Cohort. Error: ')
+
+```
 
 # Information about completness:
 
 ```{r message=FALSE, warning=FALSE,echo=FALSE,out.width="100%"}
 
-#Plot
-#smith_dq_report$long_format$com_item_missingness$results[[1]]$SummaryPlot
-smith_dq_report$long_format$com_item_missingness$results[[1]]$SummaryTable
+#Table
+knit_error(smith_dq_report$long_format$com_item_missingness$results[[1]]$SummaryTable, 'Could not print Missingness Table for Cohort. Error: ')
 
 
 ```
@@ -238,7 +259,7 @@ If a field has the wrong datatype it is evaluated to NA and tracked under Sysmis
 ```{r message=FALSE, warning=FALSE,echo=FALSE,out.width="100%"}
 
 #Plot
-smith_dq_report$long_format$com_item_missingness$results[[1]]$SummaryPlot
+knit_error(smith_dq_report$long_format$com_item_missingness$results[[1]]$SummaryPlot, 'Could not print Missingness SummaryPlot for Cohort. Error: ')
 
 
 ```
@@ -246,6 +267,6 @@ smith_dq_report$long_format$com_item_missingness$results[[1]]$SummaryPlot
 # Further possible analysis with dataquieR:
 ```{r message=FALSE, warning=FALSE,echo=FALSE,out.width="100%"}
 
-smith_dq_report$app_mat$ApplicabilityPlot
+knit_error(smith_dq_report$app_mat$ApplicabilityPlot, 'Could not print ApplicabilityPlot for Cohort. Error: ')
 
 ```
