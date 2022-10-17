@@ -1,0 +1,104 @@
+
+### This file is only needed when DUP is operated manually, without using docker
+
+
+#################################################
+### SHARED OPTIONS FOR RETRIEVAL AND ANALYSIS ###
+#################################################
+
+### DECENTRAL_ANALYIS
+### Default: FALSE
+###   TRUE = Die Ergebnisse des Retrieval werden in das Verzeichnis
+###          outputLocal geschrieben (das nicht ausgeleitet werden
+###          soll). Die Analyse liest dann die Ergebnisse des
+###          Retrieval aus dem outputLocal und schreibt ihre
+###          Ergebnisse ins Verzeichnis outputGlobal (was dann
+###          ausgeleitet wird).
+###  FALSE = Die Ergebnisse des Retrieval werden in das Verzeichnis
+###          outputGlobal geschrieben (das ausgeleitet wird). Auch
+###          wenn bei dieser Option die Analyse eigentlich nicht im
+###          DIZ ausgeführt werden sollte, kann man sie dennoch
+###          ausführen und auch sie schreibt ihre Ergebnisse in
+###          outputGlobal.
+# Sys.setenv(DECENTRAL_ANALYIS = "FALSE")
+
+### DEBUG
+### Default: "FALSE"
+###   TRUE = Zwischenergebnisse werden ins Verzeichnis outputLocal
+###           geschrieben
+###  FALSE = es werden keine Zwischenergebnisse rausgeschrieben
+# Sys.setenv(DEBUG = "FALSE")
+
+
+#################
+### RETRIEVAL ###
+#################
+
+### FHIR Endpoint (muss gesetzt werden)
+### Default: -
+### Hier ist als Beispiel ein Testserver ohne Authentifizierung angegeben:
+Sys.setenv(FHIR_SERVER_ENDPOINT = "https://mii-agiop-3p.life.uni-leipzig.de/blaze")
+
+### Falls Authentifizierung, bitte entsprechend anpassen (sonst ignorieren):
+### Username und Passwort für Basic Auth
+### Default: -
+# Sys.setenv(FHIR_SERVER_USER = "myusername")
+# Sys.setenv(FHIR_SERVER_PASS = "mypassword")
+
+### Alternativ: Token für Bearer Token Auth
+### Default: -
+# Sys.setenv(FHIR_SERVER_TOKEN = "mytoken")
+
+### SSL peer verification angeschaltet lassen?
+### Default: TRUE
+### TRUE = peer verification anschalten
+### FALSE = peer verification ausschalten
+# Sys.setenv(SSL_VERIFY = "TRUE")
+
+### MAX_BUNDLES
+### Das Script lädt zuerst alle passenden Observations,
+### davon ausgehend zugehörige Patienten und Conditions.
+###    Default: "Inf"
+###       Inf = Alle Observaton Bundles werden herunter geladen.
+### 1, 2, ... = Maximal wird diese Anzahl Observaton Bundles herunter
+###             geladen.
+# Sys.setenv(MAX_BUNDLES = "Inf")
+
+### VERBOSE
+### Default: 0 (= keine Ausgabe)
+### 0 .. 4 = Verbose-Level des fhircrackr
+# Sys.setenv(VERBOSE = "0")
+
+### PROFILE_ENC
+### FHIR Profile der zu ladenden Encounter. Es werden nur
+### Encounter mit dem angegebenen Profil gefunden.
+### Default: "https://www.medizininformatik-initiative.de/fhir/core/modul-fall/StructureDefinition/KontaktGesundheitseinrichtung"
+# Sys.setenv(PROFILE_ENC = "https://www.medizininformatik-initiative.de/fhir/core/modul-fall/StructureDefinition/KontaktGesundheitseinrichtung")
+
+### PROFILE_OBS
+### FHIR Profile der zu ladenden Observations. Es werden nur
+### Observations mit dem angegebenen Profil gefunden.
+### Default: https://www.medizininformatik-initiative.de/fhir/core/modul-labor/StructureDefinition/ObservationLab
+# Sys.setenv(PROFILE_OBS = "https://www.medizininformatik-initiative.de/fhir/core/modul-labor/StructureDefinition/ObservationLab")
+
+#PROFILE_CON
+### FHIR Profile der zu ladenden Conditions. Es werden nur
+### Conditions mit dem angegebenen Profil gefunden.
+### Default: https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Diagnose
+# Sys.setenv(PROFILE_CON = "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Diagnose")
+
+
+################
+### ANALYSIS ###
+################
+
+### DATA_QUALITY_REPORT
+### Default: "TRUE"
+###   TRUE = Data Quality Report im outputGlobal erstellen (Default)
+###  FALSE = Data Quality Report nicht erstellen
+# Sys.setenv(DATA_QUALITY_REPORT = "TRUE")
+
+
+### Repository to download R-Packages from
+### Has to be adjusted, see README
+options(repos = c(RSPM = "https://packagemanager.rstudio.com/cran/2022-06-22"))
