@@ -240,12 +240,12 @@ unifyUnits <- function(cohort) {
   for (i in 2 : length(unitNames)) {
     # Convert value
     cohort[
-      NTproBNP.unit == unitNames[i],
+      tolower(NTproBNP.unit) == tolower(unitNames[i]),
       NTproBNP.valueQuantity.value := NTproBNP.valueQuantity.value * unitFactors[i]
     ]
     # Convert unit
     cohort[
-      NTproBNP.unit == unitNames[i],
+      tolower(NTproBNP.unit) == tolower(unitNames[i]),
       NTproBNP.unit := unitNames[1]
     ]
   }
