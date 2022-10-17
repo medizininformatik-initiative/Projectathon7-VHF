@@ -52,3 +52,18 @@ PROFILE_OBS <- Sys.getenv("PROFILE_OBS",
 #Condition
 PROFILE_CON <- Sys.getenv("PROFILE_CON",
                           "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Diagnose")
+
+message("Run Retrieval with Parameters:")
+message("------------------------------")
+message(paste0("FHIR_SERVER_ENDPOINT = ", FHIR_SERVER_ENDPOINT))
+message(paste0("    FHIR_SERVER_USER = ", FHIR_SERVER_USER))
+message(paste0("    FHIR_SERVER_PASS = ", FHIR_SERVER_PASS))
+message(paste0("   FHIR_SERVER_TOKEN = ", FHIR_SERVER_TOKEN))
+message(paste0("          SSL_VERIFY = ", SSL_VERIFY))
+message(paste0("   DECENTRAL_ANALYIS = ", DECENTRAL_ANALYIS))
+message(paste0("         MAX_BUNDLES = ", MAX_BUNDLES))
+message(paste0("             VERBOSE = ", VERBOSE))
+message(paste0("     OUTPUT_DIR_BASE = ", OUTPUT_DIR_BASE))
+message(paste0("         PROFILE_ENC = ", PROFILE_ENC))
+message(paste0("         PROFILE_OBS = ", PROFILE_OBS))
+message(paste0("         PROFILE_CON = ", PROFILE_CON))

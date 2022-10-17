@@ -9,7 +9,7 @@ DEBUG <- as.logical(Sys.getenv('DEBUG', "FALSE"))
 # Verbose-Level des fhircrackr
 VERBOSE <- as.integer(Sys.getenv('VERBOSE', "0"))
 # Run the Data Quality Check
-DATA_QUALITY_REPORT <- as.logical(Sys.getenv('DATA_QUALITY_REPORT', "TRUE"))
+DATA_QUALITY_REPORT <- as.logical(Sys.getenv('DATA_QUALITY_REPORT', "FALSE"))
 
 # Wenn true (= dezentrale Analyse im DIZ), dann wird die Analyse nach dem
 # Retrieval ausgeführt und nur die Ergebnisse der Analyse ins
@@ -21,3 +21,11 @@ DECENTRAL_ANALYIS <- as.logical(Sys.getenv('DECENTRAL_ANALYIS', "TRUE"))
 
 # Directory where 'outputLocal' and 'outputGlobal' directories are located 
 OUTPUT_DIR_BASE <- Sys.getenv('OUTPUT_DIR_BASE', '.')
+
+message("Run Analysis with Parameters:")
+message("-----------------------------")
+message(paste0("              DEBUG = ", DEBUG))
+message(paste0("            VERBOSE = ", VERBOSE))
+message(paste0("DATA_QUALITY_REPORT = ", DATA_QUALITY_REPORT))
+message(paste0("  DECENTRAL_ANALYIS = ", DECENTRAL_ANALYIS))
+message(paste0("    OUTPUT_DIR_BASE = ", OUTPUT_DIR_BASE))
