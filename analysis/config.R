@@ -6,8 +6,6 @@ emptyToNull <- function(v) {
 }
 
 DEBUG <- as.logical(Sys.getenv('DEBUG', "FALSE"))
-# Verbose-Level des fhircrackr
-VERBOSE <- as.integer(Sys.getenv('VERBOSE', "0"))
 # Run the Data Quality Check
 DATA_QUALITY_REPORT <- as.logical(Sys.getenv('DATA_QUALITY_REPORT', "FALSE"))
 
@@ -25,7 +23,7 @@ OUTPUT_DIR_BASE <- Sys.getenv('OUTPUT_DIR_BASE', '.')
 message("Run Analysis with Parameters:")
 message("-----------------------------")
 message(paste0("              DEBUG = ", DEBUG))
-message(paste0("            VERBOSE = ", VERBOSE))
 message(paste0("DATA_QUALITY_REPORT = ", DATA_QUALITY_REPORT))
 message(paste0("  DECENTRAL_ANALYIS = ", DECENTRAL_ANALYIS))
 message(paste0("    OUTPUT_DIR_BASE = ", OUTPUT_DIR_BASE))
+
