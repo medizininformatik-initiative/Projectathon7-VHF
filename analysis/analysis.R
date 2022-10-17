@@ -17,8 +17,9 @@
 #' comparator
 #' 
 analyze <- function(result, cohortDescription, analysisOption, analysisOptionDisplay, comparatorOptionDisplay, comparatorFrequenciesText, removedObservationsCount) {
-  
-  message(cohortDescription, ", ", analysisOptionDisplay, " (", comparatorOptionDisplay, "):")
+
+  # function from main (global Env)
+  logGlobal(analysisOptionDisplay, " (", comparatorOptionDisplay, "):")
   
   resultRows <- nrow(result)
   
@@ -29,7 +30,7 @@ analyze <- function(result, cohortDescription, analysisOption, analysisOptionDis
     errorMessage <- paste0("Result table has ", resultRows, " rows -> abort analysis\n")
   }
   if (all(result[[analysisOption]] == result[[analysisOption]][1])) { # only 0 or only 1 in this diagnosis column
-    errorMessage <- paste0("All ", analysisOption, " diagnoses have the same value ", result[[analysisOption]][1], " -> abort analysis\n")
+    errorMessage <- paste0("All ", analysisOption, " diagnoses have the same value ", result[[analysisOption]][1], " -> abort analysis")
   }
   hasError <- !is.na(errorMessage)
   
@@ -164,9 +165,10 @@ analyze <- function(result, cohortDescription, analysisOption, analysisOptionDis
     logit <- glm(logit_formula, family = binomial, data = result)
     summaryText <- capture.output(summary(logit)) # https://www.r-bloggers.com/2015/02/export-r-output-to-a-file/
     cat(summaryText, sep = "\n") # summaryText is a list -> print list with line breaks
-    message("done\n")
+    logGlobal("   done")
   } else {
-    log(errorMessage)
+    cat(errorMessage, "\n")
+    logGlobal("   ", errorMessage)
   }
   cat("\n")
 }
