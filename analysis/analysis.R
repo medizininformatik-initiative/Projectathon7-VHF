@@ -54,7 +54,9 @@ analyze <- function(result, cohortDescription, analysisOption, analysisOptionDis
   cat(paste0("  Analysis: ", analysisOptionDisplay, "\n"))
   cat(paste0("Run Option: ", comparatorOptionDisplay, ifelse(removedObservationsCount > 0 , paste0(" (", removedObservationsCount, " Observations with comparator removed)"), "")), "\n\n")
   
-  cat(comparatorFrequenciesText, "\n\n")
+  if (nchar(comparatorFrequenciesText) > 0) {
+    cat(comparatorFrequenciesText, "\n\n")
+  }
   
   # run analysis if the result table has not only 0 or 1 row and not all diagnoses values are the same
   if (!hasError) {
