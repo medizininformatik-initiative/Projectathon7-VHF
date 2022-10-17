@@ -18,7 +18,7 @@
 #' 
 analyze <- function(result, cohortDescription, analysisOption, analysisOptionDisplay, comparatorOptionDisplay, comparatorFrequenciesText, removedObservationsCount) {
   
-  message(analysisOptionDisplay, " (", comparatorOptionDisplay, "):")
+  message(cohortDescription, ", ", analysisOptionDisplay, " (", comparatorOptionDisplay, "):")
   
   resultRows <- nrow(result)
   
