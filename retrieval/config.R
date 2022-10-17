@@ -53,17 +53,21 @@ PROFILE_OBS <- Sys.getenv("PROFILE_OBS",
 PROFILE_CON <- Sys.getenv("PROFILE_CON",
                           "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Diagnose")
 
+
+### Log Parameters to Console
 message("Run Retrieval with Parameters:")
 message("------------------------------")
 message(paste0("FHIR_SERVER_ENDPOINT = ", FHIR_SERVER_ENDPOINT))
-message(paste0("    FHIR_SERVER_USER = ", FHIR_SERVER_USER))
-message(paste0("    FHIR_SERVER_PASS = ", FHIR_SERVER_PASS))
-message(paste0("   FHIR_SERVER_TOKEN = ", FHIR_SERVER_TOKEN))
+message(paste0("    FHIR_SERVER_USER = ", ifelse(nchar(FHIR_SERVER_USER) > 0, "not empty username", "empty username")))
+message(paste0("    FHIR_SERVER_PASS = ", ifelse(nchar(FHIR_SERVER_PASS) > 0, "not empty password", "empty password")))
+message(paste0("   FHIR_SERVER_TOKEN = ", ifelse(nchar(FHIR_SERVER_TOKEN) > 0, "not empty token", "empty token")))
 message(paste0("          SSL_VERIFY = ", SSL_VERIFY))
 message(paste0("   DECENTRAL_ANALYIS = ", DECENTRAL_ANALYIS))
 message(paste0("         MAX_BUNDLES = ", MAX_BUNDLES))
+message(paste0("               DEBUG = ", DEBUG))
 message(paste0("             VERBOSE = ", VERBOSE))
 message(paste0("     OUTPUT_DIR_BASE = ", OUTPUT_DIR_BASE))
 message(paste0("         PROFILE_ENC = ", PROFILE_ENC))
 message(paste0("         PROFILE_OBS = ", PROFILE_OBS))
 message(paste0("         PROFILE_CON = ", PROFILE_CON))
+
