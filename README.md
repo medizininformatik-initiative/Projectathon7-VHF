@@ -1,4 +1,4 @@
-# ![Status: Entwurf](https://img.shields.io/badge/Status-Entwurf-yellow.svg) VHF Vorhofflimmern
+# VHF Vorhofflimmern
 
 ## Einführung
 
