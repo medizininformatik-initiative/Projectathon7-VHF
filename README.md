@@ -22,31 +22,31 @@ sichergestellt. Dafür sind folgende Schritte nötig:
 
 * Installation dupctl (siehe [DUP Control Readme][dupctl#install])
 
-
 * Arbeitsverzeichnis wählen
-  *  Es muss ein Verzeichnis gewählt werden, in dem dupctl Kommandos ausgeführt werden sollen. Die Ergebnisse der DUPs
+  * Es muss ein Verzeichnis gewählt werden, in dem dupctl Kommandos ausgeführt werden sollen. Die Ergebnisse der DUPs
   werden im gleichen Verzeichnis gespeichert! Siehe auch [DUP Control Readme][dupctl#workdir]
- 
 
 * `config.toml` im Arbeitsverzeichnis erstellen
-  * Zum Ausführen des DUP muss eine DUP Control Konfigurationsdatei (`config.toml`) im Arbeitsverzeichnis liegen. 
-  *  Vorlage mit allen Parametern (sowohl für das Retrieval als auch für die Analyse): [config.toml](./config.toml)
+  * Zum Ausführen des DUP muss eine DUP Control Konfigurationsdatei (`config.toml`) im Arbeitsverzeichnis liegen.
+  * Vorlage mit allen Parametern (sowohl für das Retrieval als auch für die Analyse): [config.toml](./config.toml)
 
-
-* Ausführung des Retrievals
+* **Ausführung des Retrievals**
   * Wenn alle Retrieval-Parameter in der `config.toml` angegeben wurden, kann das Retrieval im Arbeitsverzeichnis über
   folgendes Kommando gestartet werden:
+
 ```bash
 dupctl retrieve --dup vhf
 ```
 
+* **Ausführung der Analyse**
 
-* Ausführung der Analyse
   * Die Analyse kann beliebig oft auf denselben Daten des Retrievals gestartet werden.
   * Alle Optionen der Analyse werden ebenfalls in der `config.toml` festgelegt.
+
 ```bash
 dupctl analyze --dup vhf
 ```
+
 Weitere Informationen
 * dupctl: [DUP Control README][dupctl#settings]
 * Analysis: [VHF Analysis README](analysis/README.md)
@@ -60,14 +60,12 @@ Bei Bedarf können DUPs auch ohne den Einsatz von Docker ausgeführt werden.
 * Dem Projekt liegt eine ausführlich dokumentierte [.RProfile](./.RProfile) Datei bei. Dieses Profil muss angepasst und
   im R geladen werden.
 
-
 * **Ausführung des Retrievals und der Analyse direkt nacheinander**
   * vollständiges Ausführen der Datei [manual.R](./manual.R)
   * Voraussetzungen: 
     1. Die Datei `.RProfile` wurde korrekt initialisiert (insbesondere mit den Zugangsdaten des FHIR-Servers und der
        Option `DECENTRAL_ANALYSIS`).
     2. Das R-Arbeitsverzeichnis vor dem Start ist das Verzeichnis, in dem auch die `manual.R` liegt.
-
 
 * **Ausführung des Retrievals einzeln**
   * Das Retrieval kann einzeln durch Ausführen der Datei [retrieval/main.R](./retrieval/main.R) gestartet wird.
@@ -80,7 +78,6 @@ Bei Bedarf können DUPs auch ohne den Einsatz von Docker ausgeführt werden.
   * Das Setzen von `OUTPUT_DIR_BASE` und das Starten des Retrieval kann durch teilweises Ausführen der Datei `manual.R`
     erfolgen (siehe oben).
 
-
 * **Ausführung der Analyse einzeln**
   * Die Analyse kann beliebig oft auf denselben Daten des Retrievals durch Ausführen der Datei
     [analysis/main.R](./analysis/main.R) gestartet werden.
@@ -90,11 +87,9 @@ Bei Bedarf können DUPs auch ohne den Einsatz von Docker ausgeführt werden.
        das aktelle R-Arbeitsverzeichnis ist über die ersten beiden Anweisungen in der `manual.R` möglich -> siehe
        *Ausführung des Retrievals einzeln*).
     2. Das R-Arbeitsverzeichnis ist das Verzeichnis des Scripts `analysis/main.R`.
-
   * Das Setzen von `OUTPUT_DIR_BASE` und das Starten der Analyse kann durch teilweises Ausführen der Datei `manual.R`
     erfolgen (siehe oben).
 
-    
 * **R Version: 4.2.0**
 
 * **CRAN Snaphot Datum: 2022-06-22**
