@@ -7,7 +7,7 @@
 #################################################
 
 ### DECENTRAL_ANALYIS
-### Default: FALSE
+### Default: TRUE
 ###   TRUE = Die Ergebnisse des Retrieval werden in das Verzeichnis
 ###          outputLocal geschrieben (das nicht ausgeleitet werden
 ###          soll). Die Analyse liest dann die Ergebnisse des
@@ -20,7 +20,7 @@
 ###          DIZ ausgeführt werden sollte, kann man sie dennoch
 ###          ausführen und auch sie schreibt ihre Ergebnisse in
 ###          outputGlobal.
-# Sys.setenv(DECENTRAL_ANALYIS = "FALSE")
+# Sys.setenv(DECENTRAL_ANALYIS = "TRUE")
 
 ### DEBUG
 ### Default: "FALSE"
