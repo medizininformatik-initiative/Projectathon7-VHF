@@ -73,8 +73,8 @@ fhirServerEndpoint = "https://mii-agiop-3p.life.uni-leipzig.de/blaze"
 
 ### SSL_VERIFY
 ### Default: "TRUE"
-###   TRUE = peer verification anschalten
-###  FALSE = peer verification ausschalten
+###   TRUE = FHIR Server Zertifikat verifizieren
+###  FALSE = FHIR Server Zertifikat nicht verifizieren (potentiell unsicher, siehe https://de.wikipedia.org/wiki/Man-in-the-Middle-Angriff)
 # SSL_VERIFY = "TRUE"
 
 ### PROFILE_ENC
