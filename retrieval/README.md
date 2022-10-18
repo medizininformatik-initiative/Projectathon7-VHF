@@ -2,27 +2,19 @@
 
 ## Verwendung
 
-### dupctl
-
-```bash
-dupctl retrieve --dup vhf [...]
-```
-
-### Manuell
-
-siehe [VHF Readme](../README.md#manuelle-ausführung)
+siehe [VHF Readme](../README.md#Verwendung)
 
 ## Output
 
 Das Skript erzeugt mehrere Ordner im Projekt-Directory. Um für den Projectathon eine möglichst einfache übersichtliche
-Lösung zu bekommen, werden alle files, die darin erzeugt werden bei mehrmaligem Ausführen ggf. einfach überschrieben.
+Lösung zu bekommen, werden alle Files, die darin erzeugt werden bei mehrmaligem Ausführen ggf. einfach überschrieben.
 
 ### Ergebnisse
 
 Wenn die Abfrage erfolgreich durchgeführt wurde, sind hier zwei semikolongetrennte csv-Dateien (= lässt sich durch
 Doppelklick in Excel öffnen) zu finden. Die enthaltenen Variablen sind hier kurz erklärt:
 
-**Kohorte.csv**
+**Cohort.csv**
 
 Diese Tabelle enthält eine Kombination von Informationen aus der Patient Ressource, der Encounter Ressource und der
 Observation Ressource. Sie enthält alle Fälle, für die es eine Observation mit einer NTproBNP Messung im geforderten
@@ -30,10 +22,7 @@ Zeitraum gibt.
 
 | Variable                             | Bedeutung                                                                                                                                           |
 |--------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|
-| subject                              | Logical id der Patient Ressource                                                                                                                    |
-| encounter.start                      | Startzeitpunkt des Einrichtungskontakt-Encounters, der zeitlich zur NTproBNP-Messung gehört.                                                        |
-| encounter.end                        | Stoppzeitpunkt des Einrichtungskontakt-Encounters, der zeitlich zur NTproBNP-Messung gehört.                                                        |
-| serviceType                          | ServiceType (Stationsschlüssel) des Einrichtungskontakt-Encounters, der zeitlich zur NTproBNP-Messung gehört.                                       |
+| subject                              | Logical ID der Patient Ressource                                                                                                                    |
 | NTproBNP.date                        | Datum (effectiveDateTime) der Observation mit der NTproBNP-Messung.                                                                                 |
 | NTproBNP.valueQuantity.value         | Numerischer Wert (valueQuantity.value) der Observation mit der NTproBNP-Messung.                                                                    |
 | NTproBNP.valueQuantity.comparator    | Komparator (valueQuantity.comparator, falls vorhanden) der Observation mit der NTproBNP-Messung, welcher den numerischen Wert qualifiziert.         |
@@ -42,11 +31,15 @@ Zeitraum gibt.
 | NTproBNP.code                        | Loinc-Code (code.coding.code) der Observation mit der NTproBNP-Messung.                                                                             |
 | NTproBNP.codeSystem                  | CodeSystem (code.coding.system) der Observation mit der NTproBNP-Messung.                                                                           |
 | NTproBNP.unit                        | Code der Einheit (valueQuantity.code) der NTproBNP-Messung.                                                                                         |
+| NTproBNP.unitLabel                   | Anzeigetext der Einheit (valueQuantity.code) der NTproBNP-Messung.                                                                                  |
 | NTproBNP.unitSystem                  | Codesystem der Einheit (valueQuantity.code) der NTproBNP-Messung.                                                                                   |
 | gender                               | Geschlecht (gender) der Patient Ressource                                                                                                           |
 | birthdate                            | Geburtsdatum (birthDate) der Patient Ressource                                                                                                      |
+| encounter.id                         | ID des Einrichtungskontakt-Encounters, der zeitlich zur NTproBNP-Messung gehört.                                                                    |
+| encounter.start                      | Startzeitpunkt des Einrichtungskontakt-Encounters, der zeitlich zur NTproBNP-Messung gehört.                                                        |
+| encounter.end                        | Stoppzeitpunkt des Einrichtungskontakt-Encounters, der zeitlich zur NTproBNP-Messung gehört.                                                        |
 
-**Diagnosen.csv**
+**Diagnoses.csv**
 
 Diese Tabelle enthält alle Diagnosen der Patienten aus Kohorte.csv, die einen der im Antrag genannten ICD-Kodes
 enthalten.
@@ -65,9 +58,9 @@ enthalten.
 | diagnosis.use.code        | Encounter.diagnosis.use.coding.code mit dem die Condition im zugehörigen Encounter beschrieben ist   |
 | diagnosis.use.system      | Encounter.diagnosis.use.coding.system mit dem die Condition im zugehörigen Encounter beschrieben ist |
 
-**smith_select.log**
+**Retrieval.log**
 
-Neben den Ergebnistabellen wird außerdem eine "smith_select.log"-Datei erzeugt, welche die Anzahl der extrahierten
+Neben den Ergebnistabellen wird außerdem eine "Retrieval.log"-Datei erzeugt, welche die Anzahl der extrahierten
 Fälle, Patienten und die Laufzeit des R-Skriptes dokumentiert. Das log-file muss nicht geteilt werden, es dient den
 DIZen nur als Hilfestellung für die Einschätzung von Laufzeiten und Ergebnismengen.
 
@@ -181,25 +174,6 @@ Extrahierte Elemente:
 - `Condition.code.coding.system`
 - `Condition.subject.reference`
 - `Conditions.encounter.reference`
-
-### Modul Consent: Consent
-
-Wird nur verwendet, wenn `filterConsent <- TRUE` in `config.R`, d.h. wenn konsentierte und nicht konsentierte Daten
-durch das R-Skript gefiltert werden müssen und die Trennung nicht durch unterschiedliche FHIR-Repositories erfolgt.
-
-Profil: `http://fhir.de/ConsentManagement/StructureDefinition/Consent`
-Version: [1.0.0](https://simplifier.net/packages/de.einwilligungsmanagement/1.0.0)
-Beispiel: https://simplifier.net/packages/de.einwilligungsmanagement/1.0.0/files/405292
-
-Für Serverabfrage verwendete Elemente:
-
-- `Consent.patient.reference`
-
-Extrahierte Elemente:
-
-- `Consent.patient.reference`
-- `Consent.provision.provision.code.coding.code`
-- `Consent.provision.provision.code.coding.system`
 
 ## Konzeptioneller Ablauf der Abfrage
 

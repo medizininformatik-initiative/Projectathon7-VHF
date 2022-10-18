@@ -17,21 +17,22 @@
 #' comparator
 #' 
 analyze <- function(result, cohortDescription, analysisOption, analysisOptionDisplay, comparatorOptionDisplay, comparatorFrequenciesText, removedObservationsCount) {
-  
-  message(analysisOptionDisplay, " (", comparatorOptionDisplay, "):")
+
+  # function from main (global Env)
+  logGlobal(analysisOptionDisplay, " (", comparatorOptionDisplay, "):")
   
   resultRows <- nrow(result)
   
   # check possible data problems
-  errorMessage <- ""
+  errorMessage <- NA
   # not enough data rows
   if (resultRows < 2) {
     errorMessage <- paste0("Result table has ", resultRows, " rows -> abort analysis\n")
   }
   if (all(result[[analysisOption]] == result[[analysisOption]][1])) { # only 0 or only 1 in this diagnosis column
-    errorMessage <- paste0("All ", analysisOption, " diagnoses have the same value ", result[[analysisOption]][1], " -> abort analysis\n")
+    errorMessage <- paste0("All ", analysisOption, " diagnoses have the same value ", result[[analysisOption]][1], " -> abort analysis")
   }
-  hasError <- nchar(errorMessage) > 0
+  hasError <- !is.na(errorMessage)
   
   # plot roc curve to pdf
   # Explanation of the graph:
@@ -54,7 +55,9 @@ analyze <- function(result, cohortDescription, analysisOption, analysisOptionDis
   cat(paste0("  Analysis: ", analysisOptionDisplay, "\n"))
   cat(paste0("Run Option: ", comparatorOptionDisplay, ifelse(removedObservationsCount > 0 , paste0(" (", removedObservationsCount, " Observations with comparator removed)"), "")), "\n\n")
   
-  cat(comparatorFrequenciesText, "\n\n")
+  if (nchar(comparatorFrequenciesText) > 0) {
+    cat(comparatorFrequenciesText, "\n\n")
+  }
   
   # run analysis if the result table has not only 0 or 1 row and not all diagnoses values are the same
   if (!hasError) {
@@ -162,9 +165,10 @@ analyze <- function(result, cohortDescription, analysisOption, analysisOptionDis
     logit <- glm(logit_formula, family = binomial, data = result)
     summaryText <- capture.output(summary(logit)) # https://www.r-bloggers.com/2015/02/export-r-output-to-a-file/
     cat(summaryText, sep = "\n") # summaryText is a list -> print list with line breaks
-    message("done\n")
+    logGlobal("   done")
   } else {
-    log(errorMessage)
+    cat(errorMessage, "\n")
+    logGlobal("   ", errorMessage)
   }
   cat("\n")
 }

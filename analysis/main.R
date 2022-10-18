@@ -58,6 +58,15 @@ log <- function(...) {
   message(logText)
 }
 
+#'
+#' Logs the given arguments to the global log file and via message()
+#'
+logGlobal <- function(..., append = TRUE) {
+  logText <- paste0(...)
+  write(logText, file = analysis_file_log, append = append)
+  message(logText)
+}
+
 #######################
 # File Name Functions #
 #######################
@@ -231,12 +240,12 @@ unifyUnits <- function(cohort) {
   for (i in 2 : length(unitNames)) {
     # Convert value
     cohort[
-      NTproBNP.unit == unitNames[i],
+      tolower(NTproBNP.unit) == tolower(unitNames[i]),
       NTproBNP.valueQuantity.value := NTproBNP.valueQuantity.value * unitFactors[i]
     ]
     # Convert unit
     cohort[
-      NTproBNP.unit == unitNames[i],
+      tolower(NTproBNP.unit) == tolower(unitNames[i]),
       NTproBNP.unit := unitNames[1]
     ]
   }
@@ -331,11 +340,11 @@ cohortAnalysis <- function(result, cohortDescription, comparatorOptionDisplay, c
   result <- removeStroke(result)
   
   analysisOption <- "AtrialFibrillation"
-  analysisOptionDisplay <- "Atrial Fibrillation incl.Heart Failure, excl. Myocardial Infarction and Stroke"
+  analysisOptionDisplay <- "Atrial Fibrillation incl. Heart Failure, excl. Myocardial Infarction and Stroke"
   analyze(result, cohortDescription, analysisOption, analysisOptionDisplay, comparatorOptionDisplay, comparatorFrequenciesText, removedObservationsCount)
 
   analysisOption <- "HeartFailure"
-  analysisOptionDisplay <- "Heart Failure incl.Heart Failure, excl. Myocardial Infarction and Stroke"
+  analysisOptionDisplay <- "Heart Failure incl. Atrial Fibrillation, excl. Myocardial Infarction and Stroke"
   analyze(result, cohortDescription, analysisOption, analysisOptionDisplay, comparatorOptionDisplay, comparatorFrequenciesText, removedObservationsCount)
 
   result <- removeHeartFailure(result)
@@ -405,11 +414,13 @@ writeCohortAnalysisFiles <- function(cohort, conditions, cohortDescription, coho
   pdf(analysisPlotFileName)
   sink(analysisTextFileName)
   
-  log("Start Analysis: ", start, "\n")
-  
+  start <- Sys.time()
+  logGlobal("Start Cohort Analysis: ", start)
+  logGlobal("Cohort: ", cohortDescription)
   analyzeCohort(cohort, conditions, cohortDescription, cohortFileNameSuffix)
-  
-  log("Finished Analysis: ", Sys.time(), "\n")
+  end <- Sys.time()
+  runtime <- end - start
+  logGlobal("Finished Analysis: ", end, " -> Duration: ", round(runtime, 2), " ", attr(runtime, "units"),  "\n")
   
   sink()
   dev.off()
@@ -419,44 +430,70 @@ writeCohortAnalysisFiles <- function(cohort, conditions, cohortDescription, coho
 ########
 # MAIN #
 ########
+# first log -> delete old log content with append = FALSE
+logGlobal("Start Analysis at ", start, "\n", append = FALSE)
 
 #################################
 # Start the Data Quality Report #
 #################################
-tryCatch(                       # Applying tryCatch
-  if (DATA_QUALITY_REPORT) {
+if (DATA_QUALITY_REPORT) {
+  startDQ <- Sys.time()
+  tryCatch(                       # Applying tryCatch
     rmarkdown::render("data-quality/report.Rmd", output_format = "html_document", output_file = data_quality_report_file)
-  },
-  error = function(e){          # Specifying error message
-    message("An error occurs in Data Quality Report:")
-    message(e)
-  }
-)
+    ,
+    error = function(e){          # Specifying error message
+      logGlobal("An error occurs in Data Quality Report:")
+      logGlobal(e)
+    }
+  )
+  runtimeDQ <- Sys.time() - startDQ
+  logGlobal("data-quality/report.Rmd finished at ", Sys.time(), ".")
+  logGlobal("Rmd script execution took ", round(runtimeDQ, 2), " ", attr(runtimeDQ, "units"), ".\n")
+}
 
 ####################################
 # Load and Clean Retrieval Results #
 ####################################
 
+################
+# Cohort Table #
+################
 fullCohort <- fread(retrieve_file_cohort)
-conditions <- fread(retrieve_file_diagnoses)
 
-# remove invalid data rows
-fullCohort <- fullCohort[
-  !is.na(NTproBNP.valueQuantity.value) & # missing value -> invalid
-    NTproBNP.valueQuantity.value >= 0    # NTproBNP value < 0 -> invalid
-]
+# remove NA values
+removedNACount <- nrow(fullCohort)
+fullCohort <- fullCohort[!is.na(NTproBNP.valueQuantity.value)]
+removedNACount <- removedNACount - nrow(fullCohort)
 
 # Replace all values by value + 1 if the comparator
 # is ">" or with value - 1 if the comparator is "<".
-# You must check N.A. seperately in R!? It is not 
-# covered by the very last else case :(
 value <- fullCohort$NTproBNP.valueQuantity.value
 comparator <- fullCohort$NTproBNP.valueQuantity.comparator
+# You must check N.A. seperately in R!? It is not covered by the very 
+# last else case :(
 fullCohort$NTproBNP.valueQuantity.value <-
   ifelse(is.na(comparator), value, ifelse(comparator == ">", value + 1, ifelse(comparator == "<", value - 1, value)))
 
+# remove values < 0
+removedLowerZeroCount <- nrow(fullCohort)
+fullCohort <- fullCohort[NTproBNP.valueQuantity.value >= 0]
+removedLowerZeroCount <- removedLowerZeroCount <- nrow(fullCohort)
+
 # unify the NTproBNP value units
 fullCohort <- unifyUnits(fullCohort)
+
+# check NTproBNP value is in valid range (but count and log only)
+# values > 0 and < 1
+lowerOneCount <- length(which(fullCohort$NTproBNP.valueQuantity.value < 1))
+# values > 20000
+greaterMaxCount <- length(which(fullCohort$NTproBNP.valueQuantity.value > 20000))
+
+logGlobal("Full Cohort invalid NTProBNP values:")
+logGlobal("         NA: ", removedNACount, " (removed)")
+logGlobal("        < 0: ", removedLowerZeroCount, " (removed)")
+logGlobal("        < 1: ", lowerOneCount, " (ignored)")
+logGlobal("    > 20000: ", greaterMaxCount, " (ignored)")
+logGlobal("")
 
 # calculate age by birthdate and NTproBNP date 
 date <- as.POSIXct(fullCohort$NTproBNP.date, format = "%Y")
@@ -464,6 +501,18 @@ birthdate <- as.POSIXct(fullCohort$birthdate, format = "%Y")
 fullCohort$age <- year(date) - year(birthdate)
 rm(date)
 rm(birthdate)
+
+
+###################
+# Diagnoses Table #
+###################
+conditions <- fread(retrieve_file_diagnoses)
+
+# remove invalid(ated) diagnoses
+# https://www.hl7.org/fhir/codesystem-condition-clinical.html#condition-clinical-inactive
+conditions <- conditions[!(clinicalStatus.code  %in%  c("inactive", "remission", "resolved"))]
+# https://www.hl7.org/fhir/valueset-condition-ver-status.html
+conditions <- conditions[!(verificationStatus.code  %in%  c("refuted", "entered-in-error"))]
 
 #############################################
 # Create subcohorts from cohort and analyze #
@@ -479,11 +528,15 @@ writeCohortAnalysisFiles(removeMales(fullCohort), conditions, "Females", "_03_Fe
 writeCohortAnalysisFiles(removeAgeOver50(fullCohort), conditions, "Age <= 50", "_04_AgeUnder50")
 # 5 cohort = age > 50
 writeCohortAnalysisFiles(removeAgeUnder50(fullCohort), conditions, "Age > 50", "_05_AgeOver50")
-# # 6 cohort = male age <= 50
+# 6 cohort = male age <= 50
 writeCohortAnalysisFiles(removeFemales(removeAgeOver50(fullCohort)), conditions, "Males, Age <= 50", "_06_Males_AgeUnder50")
-# # 7 cohort = male age > 50
+# 7 cohort = male age > 50
 writeCohortAnalysisFiles(removeFemales(removeAgeUnder50(fullCohort)), conditions, "Males, Age > 50", "_07_Males_AgeOver50")
-# # 8 cohort = female age <= 50
+# 8 cohort = female age <= 50
 writeCohortAnalysisFiles(removeMales(removeAgeOver50(fullCohort)), conditions, "Females, Age <= 50", "_08_Females_AgeUnder50")
-# # 9 cohort = female age > 50
+# 9 cohort = female age > 50
 writeCohortAnalysisFiles(removeMales(removeAgeUnder50(fullCohort)), conditions, "Females, Age > 50", "_09_Females_AgeOver50")
+
+runtime <- Sys.time() - start
+logGlobal("main.R finished at ", Sys.time(), ".")
+logGlobal("R script execution took ", round(runtime, 2), " ", attr(runtime, "units"), ".")
