@@ -6,8 +6,12 @@ Dieses Projekt führt das DUP Vorhofflimmern (VHF) aus. Es kann sowohl für die 
 Analyse genutzt werden. Der Retrieval-Teil des DUP erzeugt zwei Tabellen mit den für die Analyse benötigten Inhalten.
 Diese Tabellen sollen entweder erzeugt und an die datenauswertendende Stelle übergeben werden (zentrale Analyse) oder
 in den DIZen analysiert werden (dezentrale Analyse). Bei der zentralen Analyse werden die o.g. Tabellen in das
-auszuleitende Verzeichnis 'outputGlobal' geschrieben, bei der dezentralen Analyse werden die Analyseergebnisse
+auszuleitende Verzeichnis `outputGlobal` geschrieben, bei der dezentralen Analyse werden die Analyseergebnisse
 (Textdateien und ROC-Plots in PDF-Dateien) in dieses Verzeichnis geschrieben.
+
+Die **Datenqualitätsanalyse** braucht **nur einmal auf denselben Retrieval**-Daten gemacht zu werden. Wird eine Analyse
+wiederholt, kann man über die Umgebungsvariable bzw. Option `DATA_QUALITY_REPORT` die Datenqualitätsanalyse
+ausschalten und damit die **Laufzeit erheblich verkürzen**.
 
 ## Verwendung
 
@@ -26,7 +30,7 @@ sichergestellt. Dafür sind folgende Schritte nötig:
 
 * `config.toml` im Arbeitsverzeichnis erstellen
   * Zum Ausführen des DUP muss eine DUP Control Konfigurationsdatei (`config.toml`) im Arbeitsverzeichnis liegen. 
-  *  Vorlage mit allen Parametern (sowohl für das Retrieval als auch für die Analyse): [config.toml](.\config.toml)
+  *  Vorlage mit allen Parametern (sowohl für das Retrieval als auch für die Analyse): [config.toml](./config.toml)
 
 
 * Ausführung des Retrievals
@@ -50,27 +54,52 @@ Weitere Informationen
 
 ### Manuelle Ausführung
 
-Bei Bedarf können DUPs auch ohne den Einsatz von Docker durchgeführt werden.
+Bei Bedarf können DUPs auch ohne den Einsatz von Docker ausgeführt werden.
 
-*Die manuelle Ausführung ist **nicht** durch das downloaden/klonen dieses Repositories möglich!*
-Stattdessen muss das Workpackage in Form von Archiven mittels folgender Links heruntergeladen werden. Die Archive
-enthalten alle nötigen Skripte für eine manuelle Ausführung mittels R.
+* Die manuelle Ausführung ist durch das downloaden/klonen dieses Repositories möglich.
+* Dem Projekt liegt eine ausführlich dokumentierte [.RProfile](./.RProfile) Datei bei. Dieses Profil muss angepasst und
+  im R geladen werden.
 
-<div align="center">
-    Download als ZIP Archiv:
-    <a href="https://git.smith.care/smith/uc-phep/dup/vhf/-/jobs/artifacts/master/download?job=retrieval::publish-archive">[Retrieval]</a>
-    <a href="https://git.smith.care/smith/uc-phep/dup/vhf/-/jobs/artifacts/master/download?job=analysis::publish-archive">[Analysis]</a>
-</div>
 
+* **Ausführung des Retrievals und der Analyse direkt nacheinander**
+  * vollständiges Ausführen der Datei [manual.R](./manual.R)
+  * Voraussetzungen: 
+    1. Die Datei `.RProfile` wurde korrekt initialisiert (insbesondere mit den Zugangsdaten des FHIR-Servers und der
+       Option `DECENTRAL_ANALYSIS`).
+    2. Das R-Arbeitsverzeichnis vor dem Start ist das Verzeichnis, in dem auch die `manual.R` liegt.
+
+
+* **Ausführung des Retrievals einzeln**
+  * Das Retrieval kann einzeln durch Ausführen der Datei [retrieval/main.R](./retrieval/main.R) gestartet wird.
+  * Voraussetzungen:
+    1. Die Datei `.RProfile` wurde korrekt initialisiert (insbesondere mit den Zugangsdaten des FHIR-Servers).
+    2. Die Umgebungsvariable `OUTPUT_DIR_BASE` ist gesetzt und zeigt auf ein beschreibbares Verzeichnis (darin werden
+      die Ergebnisordner `outputLocal` und `outputGlobal` geschrieben; ein einfaches Setzen auf das aktelle
+      R-Arbeitsverzeichnis ist über die ersten beiden Anweisungen in der `manual.R` möglich).
+    3. Das R-Arbeitsverzeichnis ist das Verzeichnis des Scripts `retrieval/main.R`.
+  * Das Setzen von `OUTPUT_DIR_BASE` und das Starten des Retrieval kann durch teilweises Ausführen der Datei `manual.R`
+    erfolgen (siehe oben).
+
+
+* **Ausführung der Analyse einzeln**
+  * Die Analyse kann beliebig oft auf denselben Daten des Retrievals durch Ausführen der Datei
+    [analysis/main.R](./analysis/main.R) gestartet werden.
+  * Voraussetzungen:
+    1. Die Umgebungsvariable `OUTPUT_DIR_BASE` ist gesetzt und zeigt auf das Verzeichnis mit den Ergebnissen des
+       Retrievals (darin werden die Ergebnisordner `outputLocal` und `outputGlobal` erwartet; ein einfaches Setzen auf
+       das aktelle R-Arbeitsverzeichnis ist über die ersten beiden Anweisungen in der `manual.R` möglich -> siehe
+       *Ausführung des Retrievals einzeln*).
+    2. Das R-Arbeitsverzeichnis ist das Verzeichnis des Scripts `analysis/main.R`.
+
+  * Das Setzen von `OUTPUT_DIR_BASE` und das Starten der Analyse kann durch teilweises Ausführen der Datei `manual.R`
+    erfolgen (siehe oben).
+
+    
 * **R Version: 4.2.0**
 
 * **CRAN Snaphot Datum: 2022-06-22**
-
-Die weiteren Schritte der manuellen Ausführung sind in der [DUP README][readme] erläutert.
-
 
 [dupctl]: https://git.smith.care/smith/uc-phep/dup-control
 [dupctl#install]: https://git.smith.care/smith/uc-phep/dup-control#installation
 [dupctl#workdir]: https://git.smith.care/smith/uc-phep/dup-control#working-directory
 [dupctl#settings]: https://git.smith.care/smith/uc-phep/dup-control#global-settings
-[readme]: https://git.smith.care/smith/uc-phep/dup/readme
