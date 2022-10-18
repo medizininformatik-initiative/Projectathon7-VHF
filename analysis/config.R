@@ -19,3 +19,10 @@ DECENTRAL_ANALYIS <- as.logical(Sys.getenv('DECENTRAL_ANALYIS', "TRUE"))
 
 # Directory where 'outputLocal' and 'outputGlobal' directories are located 
 OUTPUT_DIR_BASE <- Sys.getenv('OUTPUT_DIR_BASE', '.')
+
+message("Run Analysis with Parameters:")
+message("-----------------------------")
+message("              DEBUG = ", DEBUG)
+message("DATA_QUALITY_REPORT = ", DATA_QUALITY_REPORT)
+message("  DECENTRAL_ANALYIS = ", DECENTRAL_ANALYIS)
+message("    OUTPUT_DIR_BASE = ", OUTPUT_DIR_BASE)

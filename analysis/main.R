@@ -59,7 +59,7 @@ log <- function(...) {
 }
 
 #'
-#' Logs the given arguments to the global log file
+#' Logs the given arguments to the global log file and via message()
 #'
 logGlobal <- function(..., append = TRUE) {
   logText <- paste0(...)
@@ -431,14 +431,7 @@ writeCohortAnalysisFiles <- function(cohort, conditions, cohortDescription, coho
 # MAIN #
 ########
 # first log -> delete old log content with append = FALSE
-logGlobal("Start Analysis at ", start, append = FALSE)
-logGlobal("Run Analysis with Parameters:")
-logGlobal("-----------------------------")
-logGlobal("              DEBUG = ", DEBUG)
-logGlobal("DATA_QUALITY_REPORT = ", DATA_QUALITY_REPORT)
-logGlobal("  DECENTRAL_ANALYIS = ", DECENTRAL_ANALYIS)
-logGlobal("    OUTPUT_DIR_BASE = ", OUTPUT_DIR_BASE)
-logGlobal("")
+logGlobal("Start Analysis at ", start, "\n", append = FALSE)
 
 #################################
 # Start the Data Quality Report #
