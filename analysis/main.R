@@ -455,8 +455,10 @@ if (DATA_QUALITY_REPORT) {
 # Load and Clean Retrieval Results #
 ####################################
 
+################
+# Cohort Table #
+################
 fullCohort <- fread(retrieve_file_cohort)
-conditions <- fread(retrieve_file_diagnoses)
 
 # remove NA values
 removedNACount <- nrow(fullCohort)
@@ -499,6 +501,18 @@ birthdate <- as.POSIXct(fullCohort$birthdate, format = "%Y")
 fullCohort$age <- year(date) - year(birthdate)
 rm(date)
 rm(birthdate)
+
+
+###################
+# Diagnoses Table #
+###################
+conditions <- fread(retrieve_file_diagnoses)
+
+# remove invalid(ated) diagnoses
+# https://www.hl7.org/fhir/codesystem-condition-clinical.html#condition-clinical-inactive
+conditions <- conditions[!(clinicalStatus.code  %in%  c("inactive", "remission", "resolved"))]
+# https://www.hl7.org/fhir/valueset-condition-ver-status.html
+conditions <- conditions[!(verificationStatus.code  %in%  c("refuted", "entered-in-error"))]
 
 #############################################
 # Create subcohorts from cohort and analyze #
