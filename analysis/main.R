@@ -465,11 +465,10 @@ if (DATA_QUALITY_REPORT) {
 fullCohort <- fread(retrieve_file_cohort)
 conditions <- fread(retrieve_file_diagnoses)
 
-# remove invalid data rows
-fullCohort <- fullCohort[
-  !is.na(NTproBNP.valueQuantity.value) & # missing value -> invalid
-    NTproBNP.valueQuantity.value >= 0    # NTproBNP value < 0 -> invalid
-]
+# remove NA values
+removedNACount <- nrow(fullCohort)
+fullCohort <- fullCohort[!is.na(NTproBNP.valueQuantity.value)]
+removedNACount <- removedNACount - nrow(fullCohort)
 
 # Replace all values by value + 1 if the comparator
 # is ">" or with value - 1 if the comparator is "<".
@@ -480,8 +479,26 @@ comparator <- fullCohort$NTproBNP.valueQuantity.comparator
 fullCohort$NTproBNP.valueQuantity.value <-
   ifelse(is.na(comparator), value, ifelse(comparator == ">", value + 1, ifelse(comparator == "<", value - 1, value)))
 
+# remove values < 0
+removedLowerZeroCount <- nrow(fullCohort)
+fullCohort <- fullCohort[NTproBNP.valueQuantity.value >= 0]
+removedLowerZeroCount <- removedLowerZeroCount <- nrow(fullCohort)
+
 # unify the NTproBNP value units
 fullCohort <- unifyUnits(fullCohort)
+
+# check NTproBNP value is in valid range (but count and log only)
+# values > 0 and < 1
+lowerOneCount <- length(which(fullCohort$NTproBNP.valueQuantity.value < 1))
+# values > 20000
+greaterMaxCount <- length(which(fullCohort$NTproBNP.valueQuantity.value > 20000))
+
+logGlobal("Full Cohort invalid NTProBNP values:")
+logGlobal("         NA: ", removedNACount, " (removed)")
+logGlobal("        < 0: ", removedLowerZeroCount, " (removed)")
+logGlobal("        < 1: ", lowerOneCount, " (ignored)")
+logGlobal("    > 20000: ", greaterMaxCount, " (ignored)")
+logGlobal("")
 
 # calculate age by birthdate and NTproBNP date 
 date <- as.POSIXct(fullCohort$NTproBNP.date, format = "%Y")
