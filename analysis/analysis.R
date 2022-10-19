@@ -86,7 +86,8 @@ analyze <- function(result, cohortDescription, analysisOption, analysisOptionDis
       
       if (all(cuts == cuts[1])) { # all cuts have the same value (all 0 or all 1) -> no further calculations
         # log information in the output file
-        cat(paste0("All NTproBNP values are greater than ", thresholds[i], " -> sensitivity, specifity, PV+ and PV- not available.\n\n\n"))
+        comparatorText <- ifelse(cuts[1] == 0, "lower than ", "greater than or equal to ")
+        cat(paste0("All NTproBNP values are ", comparatorText, thresholds[i], " -> sensitivity, specifity, PV+ and PV- not available.\n\n\n"))
       } else {
         table <- xtabs(~cuts + result[[analysisOption]])
         test <- rowSums(table)
