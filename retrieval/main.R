@@ -140,12 +140,13 @@ obs_description <- fhir_table_description(
   )
 )
 
-pat_description <- fhir_table_description("Patient",
-                                          cols = c(
-                                            id = "id",
-                                            gender = "gender",
-                                            birthdate = "birthDate"
-                                          ))
+pat_description <- fhir_table_description(
+  "Patient",
+  cols = c(
+    id = "id",
+    gender = "gender",
+    birthdate = "birthDate"
+  ))
 
 message("Cracking ", length(obs_bundles), " Observation Bundles.\n")
 obs_tables <- fhir_crack(
@@ -176,11 +177,10 @@ if (nrow(obs_tables$pat) == 0) {
 }
 
 # remove indices in sub table pat in obs_tables
-obs_tables$pat <-
-  fhir_rm_indices(obs_tables$pat, brackets = brackets)
+obs_tables$pat <- fhir_rm_indices(obs_tables$pat, brackets = brackets)
 
 # expand multiple cell values to multiple lines
-for (i in 1:2) {
+for (i in 1 : 2) {
   obs_tables$obs <- fhir_melt(
     obs_tables$obs,
     columns = c("NTproBNP.code", "NTproBNP.codeSystem"),
@@ -190,15 +190,13 @@ for (i in 1:2) {
   )
 }
 # remove remaining indices
-obs_tables$obs <-
-  fhir_rm_indices(obs_tables$obs, brackets = brackets)
+obs_tables$obs <- fhir_rm_indices(obs_tables$obs, brackets = brackets)
 
 # remove the resource_identifier inserted by fhir_melt
 obs_tables$obs[, resource_identifier := NULL]
 
 # remove all not loinc lines
-obs_tables$obs <-
-  obs_tables$obs[NTproBNP.codeSystem == "http://loinc.org"]
+obs_tables$obs <- obs_tables$obs[NTproBNP.codeSystem == "http://loinc.org"]
 
 # get rid of resources that have been downloaded multiple times via _include
 obs_tables$pat <- unique(obs_tables$pat)
@@ -218,18 +216,8 @@ obs_tables$obs[, NTproBNP.date := as.Date(NTproBNP.date)]
 # merge
 message(
   "Merging Observation and Patient data based on Patient id.\n",
-  "Number of unique Patient ids in Patient data: ",
-  length(unique(obs_tables$pat$id)),
-  " in ",
-  nrow(obs_tables$pat),
-  " rows",
-  "\n",
-  "Number of unique Patient ids in Observation data: ",
-  length(unique(obs_tables$obs$subject)),
-  " in ",
-  nrow(obs_tables$obs),
-  " rows",
-  "\n"
+  "Number of unique Patient ids in Patient data: ", length(unique(obs_tables$pat$id)), " in ", nrow(obs_tables$pat), " rows", "\n",
+  "Number of unique Patient ids in Observation data: ", length(unique(obs_tables$obs$subject)), " in ", nrow(obs_tables$obs), " rows", "\n"
 )
 
 observations <- merge.data.table(
@@ -330,11 +318,9 @@ invisible({
 })
 
 # bring encounter results together, save and flatten
-encounter_bundles <-
-  fhircrackr:::fhir_bundle_list(encounter_bundles)
+encounter_bundles <- fhircrackr:::fhir_bundle_list(encounter_bundles)
 
-condition_bundles <-
-  fhircrackr:::fhir_bundle_list(condition_bundles)
+condition_bundles <- fhircrackr:::fhir_bundle_list(condition_bundles)
 
 if (DEBUG) {
   fhir_save(bundles = encounter_bundles, directory = debug_dir_enc_bundles)
@@ -399,45 +385,36 @@ rm(condition_bundles)
 
 
 if (nrow(encounters) == 0) {
-  write(
-    "Konnte keine Encounter-Ressourcen zu den gefundenen Patients finden. Abfrage abgebrochen.",
-    file = error_file
-  )
+  write( "Konnte keine Encounter-Ressourcen zu den gefundenen Patients finden. Abfrage abgebrochen.", file = error_file)
   stop("No Encounters for Patients found - aborting.")
 }
 
 ### generate conditions table --> has all conditions of all Patients in the initial population
 if (nrow(conditions) > 0) {
   #extract diagnosis use info from encounter table
-  useInfo <-
-    fhir_melt(
-      encounters,
-      columns = c("diagnosis", "diagnosis.use.code", "diagnosis.use.system"),
-      brackets = brackets,
-      sep = sep,
-      all_columns = TRUE
-    )
-
+  useInfo <- fhir_melt(
+    encounters,
+    columns = c("diagnosis", "diagnosis.use.code", "diagnosis.use.system"),
+    brackets = brackets,
+    sep = sep,
+    all_columns = TRUE
+  )
+  
   useInfo <- fhir_rm_indices(useInfo, brackets = brackets)
 
-  useInfo <-
-    useInfo[, c("encounter.id",
-                "diagnosis",
-                "diagnosis.use.code",
-                "diagnosis.use.system")]
+  useInfo <- useInfo[, c("encounter.id", "diagnosis", "diagnosis.use.code","diagnosis.use.system")]
 
   useInfo[, diagnosis := sub("Condition/", "", diagnosis)]
 
   # expand condition codes + remove indices
-  for (i in 1:2) {
-    conditions <-
-      fhir_melt(
-        conditions,
-        columns = c("code", "code.system"),
-        brackets = brackets,
-        sep = sep,
-        all_columns = TRUE
-      )
+  for (i in 1 : 2) {
+    conditions <- fhir_melt(
+      conditions,
+      columns = c("code", "code.system"),
+      brackets = brackets,
+      sep = sep,
+      all_columns = TRUE
+    )
   }
   # remove remaining indices and remove resource_identifier column
   conditions <- fhir_rm_indices(conditions, brackets = brackets)
