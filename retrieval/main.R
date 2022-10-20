@@ -195,6 +195,7 @@ obs_description <- fhir_table_description(
   cols = c(
     NTproBNP.date = "effectiveDateTime",
     subject = "subject/reference",
+    encounter.id = "encounter/reference",
     NTproBNP.valueQuantity.value = "valueQuantity/value",
     NTproBNP.valueQuantity.comparator = "valueQuantity/comparator",
     NTproBNP.valueCodeableConcept.code = "valueCodeableConcept/coding/code",
@@ -278,6 +279,7 @@ obs_tables$pat <- unique(obs_tables$pat)
 ### merge observation and patient data
 # prepare key variables for merge
 obs_tables$obs[, subject := makeRelative(subject)]
+obs_tables$obs[, encounter.id := makeRelative(encounter.id)]
 
 # backup the NTproBNP.date as date string with day and time
 # after conversion as.Date(...) the day remains but the time is lost
@@ -542,32 +544,77 @@ message(
 # of the patient with the current observation and tries to find
 # the closest start date of all encounters in the past. 
 for(i in 1 : nrow(observations)) {
-  # get the observation date of the current observation i
-  obs_date <- observations[i, NTproBNP.date]
-  # get all encounters for the patient with the current observation
-  obs_subject_encounters <- encounters[subject == observations[i, subject]]
-  # get a list of all differences between the observation date and
-  # the encounter start date
-  obs_enc_date_diffs <- obs_date - obs_subject_encounters$encounter.start
-  # if there were encounter start dates after the observation date
-  # then set them to the maximum distance to the observation date
-  obs_enc_date_diffs[obs_enc_date_diffs < 0] <- Inf
-  # find the index of the encounter date with the minimum distance
-  # to the observation date
-  closest_date_diff_index <- which.min(obs_enc_date_diffs)
-  # get this nearest encounter date
-  closest_date_diff <- obs_enc_date_diffs[closest_date_diff_index]
-  # if the result date was not in the future (could be if all encounter
-  # dates are invalid in relation to the observation date)
-  if (closest_date_diff != Inf) {
-    # find the corresponding encounter and merge its properties
-    # to new columns in the observation table
-    closest_encounter <- obs_subject_encounters[closest_date_diff_index, ]
-    observations[i, encounter.id := closest_encounter$encounter.id]
-    observations[i, encounter.start := closest_encounter$encounter.start]
-    observations[i, encounter.end := closest_encounter$encounter.end]
+ 
+  observationEncounter <- data.table()
+
+  encounterID <- observations[i, encounter.id]
+  if (!is.na(encounterID)) {
+    observationEncounter <- encounters[encounter.id == encounterID]
+    if (nrow(observationEncounter) > 0) {
+      observationEncounter <- observationEncounter[1]
+    }
   }
+
+  # found no encounter by its ID?
+  if (nrow(observationEncounter) == 0) {
+    # get the observation date of the current observation i
+    obs_date <- observations[i, NTproBNP.date]
+    # get all encounters for the patient with the current observation
+    obs_subject_encounters <- encounters[subject == observations[i, subject]]
+
+    # there are two possible errors at this point
+    # 1. No encounter found for the given patient ID (this is a real error that should never happen).
+    #    In this case nrow(obs_subject_encounters) == 0
+    #    -> Log an Error
+    # 2. The encounter has no start date -> the script will crash at 'if (closest_date_diff != Inf) {'
+    #    -> We try to find the encounter via the 'encounter' column (= Encounter ID) in the observation table 
+    #    -> If there is no Counter ID or no Encounter for this ID
+    #    -> Log an Error
+    
+    if (nrow(obs_subject_encounters) == 0) {
+      logErrorMax100("There is no Encounter for Observation:", observations)
+      next
+    }
+
+    # get a list of all differences between the observation date and
+    # the encounter start date
+    obs_enc_date_diffs <- obs_date - obs_subject_encounters$encounter.start
+    
+    obs_enc_date_diffs <- obs_enc_date_diffs[!is.na(obs_enc_date_diffs)]
+    
+    if (length(obs_enc_date_diffs) == 0) {
+      logErrorMax100(
+        "Observation has no Encounter Reference and all Encounters of the Patient of the Observation have no start date -> can not find Encounter for Observation:",
+        observations
+      )
+      next
+    }
+    
+    # if there were encounter start dates after the observation date
+    # then set them to the maximum distance to the observation date
+    obs_enc_date_diffs[obs_enc_date_diffs < 0] <- Inf
+    # find the index of the encounter date with the minimum distance
+    # to the observation date
+    closest_date_diff_index <- which.min(obs_enc_date_diffs)
+    # get this nearest encounter date
+    closest_date_diff <- obs_enc_date_diffs[closest_date_diff_index]
+    # if the result date was not in the future (could be if all encounter
+    # dates are invalid in relation to the observation date)
+    if (closest_date_diff != Inf) {
+      # find the corresponding encounter and merge its properties
+      # to new columns in the observation table
+      observationEncounter <- obs_subject_encounters[closest_date_diff_index, ]
+    }
+  }
+  
+  if (nrow(observationEncounter) > 0) { # should alway be 1 row here, but sure is...
+    observations[i, encounter.id := observationEncounter$encounter.id[1]]
+    observations[i, encounter.start := observationEncounter$encounter.start[1]]
+    observations[i, encounter.end := observationEncounter$encounter.end[1]]
+  }  
+
 }
+
 
 # the observation table with encounters is now our cohort table
 cohort <- observations # it's a copy by reference (type is data.table)
