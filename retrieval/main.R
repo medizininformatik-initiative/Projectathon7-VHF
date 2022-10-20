@@ -59,10 +59,81 @@ if (DEBUG) {
   dir.create(debug_dir_con_bundles, recursive = TRUE, showWarnings = FALSE)
 }
 
+#################
+# Log Functions #
+#################
+
+#'
+#' Logs the given arguments to the global log file and via message()
+#'
+logGlobal <- function(..., append = TRUE) {
+  logText <- paste0(...)
+  write(logText, file = retrieve_file_log, append = append)
+  message(logText)
+}
+
+#'
+#' Logs the given arguments to the global log file and via message()
+#'
+logError <- function(..., append = TRUE, message = TRUE) {
+  logText <- paste0(...)
+  write(logText, file = error_file, append = append)
+  if (message) {
+    message(logText)
+  }
+}
+
+# counts how many error logs are written to the error file
+errorLogCount <- 0
+# log only the first 100 observation errors
+maxErrorLogCount <- 100
+
+#'
+#' Logs the message and the dataTable. If this function is called more than 100 times
+#' then nothing will be logged anymore.
+#' 
+#' @param message
+#' @param dataTable
+#'
+logErrorMax100 <- function(message, dataTable) {
+  if (errorLogCount < maxErrorLogCount) {
+    logError(message)
+    logError(paste(names(dataTable[i]), dataTable[i]), sep = " ")
+  } else if (errorLogCount == maxErrorLogCount) {
+    logError("More errors of the same type have occurred -> stop logging these errors...")
+  }
+  errorLogCount <<- errorLogCount + 1
+}
+
+
+####################################
+# Absolute to Relative ID Function #
+####################################
+
+#'
+#' @param references single string or list of strings
+#' @return single string or list of strings where only the last part of each string
+#' remains after a slash '/'. Strings without slashes are returned unchanged.
+#'
+makeRelative <- function(references) {
+  return(sub(".*/", "", references))
+}
+
+##############
+# SSL Veryfy #
+##############
+
 # If needed disable peer verification
 if (!SSL_VERIFY) {
   httr::set_config(httr::config(ssl_verifypeer = 0L))
 }
+
+##################
+# Start Download #
+##################
+
+# reset Error file
+logError("Errors in Retrieval from ", Sys.time(), ":", append = FALSE, message = FALSE)
 
 # remove trailing slashes from endpoint
 fhir_server_url <-
@@ -124,6 +195,7 @@ obs_description <- fhir_table_description(
   cols = c(
     NTproBNP.date = "effectiveDateTime",
     subject = "subject/reference",
+    encounter.id = "encounter/reference",
     NTproBNP.valueQuantity.value = "valueQuantity/value",
     NTproBNP.valueQuantity.comparator = "valueQuantity/comparator",
     NTproBNP.valueCodeableConcept.code = "valueCodeableConcept/coding/code",
@@ -140,12 +212,13 @@ obs_description <- fhir_table_description(
   )
 )
 
-pat_description <- fhir_table_description("Patient",
-                                          cols = c(
-                                            id = "id",
-                                            gender = "gender",
-                                            birthdate = "birthDate"
-                                          ))
+pat_description <- fhir_table_description(
+  "Patient",
+  cols = c(
+    id = "id",
+    gender = "gender",
+    birthdate = "birthDate"
+  ))
 
 message("Cracking ", length(obs_bundles), " Observation Bundles.\n")
 obs_tables <- fhir_crack(
@@ -176,11 +249,10 @@ if (nrow(obs_tables$pat) == 0) {
 }
 
 # remove indices in sub table pat in obs_tables
-obs_tables$pat <-
-  fhir_rm_indices(obs_tables$pat, brackets = brackets)
+obs_tables$pat <- fhir_rm_indices(obs_tables$pat, brackets = brackets)
 
 # expand multiple cell values to multiple lines
-for (i in 1:2) {
+for (i in 1 : 2) {
   obs_tables$obs <- fhir_melt(
     obs_tables$obs,
     columns = c("NTproBNP.code", "NTproBNP.codeSystem"),
@@ -190,15 +262,13 @@ for (i in 1:2) {
   )
 }
 # remove remaining indices
-obs_tables$obs <-
-  fhir_rm_indices(obs_tables$obs, brackets = brackets)
+obs_tables$obs <- fhir_rm_indices(obs_tables$obs, brackets = brackets)
 
 # remove the resource_identifier inserted by fhir_melt
 obs_tables$obs[, resource_identifier := NULL]
 
 # remove all not loinc lines
-obs_tables$obs <-
-  obs_tables$obs[NTproBNP.codeSystem == "http://loinc.org"]
+obs_tables$obs <- obs_tables$obs[NTproBNP.codeSystem == "http://loinc.org"]
 
 # get rid of resources that have been downloaded multiple times via _include
 obs_tables$pat <- unique(obs_tables$pat)
@@ -208,7 +278,8 @@ obs_tables$pat <- unique(obs_tables$pat)
 
 ### merge observation and patient data
 # prepare key variables for merge
-obs_tables$obs[, subject := sub("Patient/", "", subject)]
+obs_tables$obs[, subject := makeRelative(subject)]
+obs_tables$obs[, encounter.id := makeRelative(encounter.id)]
 
 # backup the NTproBNP.date as date string with day and time
 # after conversion as.Date(...) the day remains but the time is lost
@@ -218,18 +289,8 @@ obs_tables$obs[, NTproBNP.date := as.Date(NTproBNP.date)]
 # merge
 message(
   "Merging Observation and Patient data based on Patient id.\n",
-  "Number of unique Patient ids in Patient data: ",
-  length(unique(obs_tables$pat$id)),
-  " in ",
-  nrow(obs_tables$pat),
-  " rows",
-  "\n",
-  "Number of unique Patient ids in Observation data: ",
-  length(unique(obs_tables$obs$subject)),
-  " in ",
-  nrow(obs_tables$obs),
-  " rows",
-  "\n"
+  "Number of unique Patient ids in Patient data: ", length(unique(obs_tables$pat$id)), " in ", nrow(obs_tables$pat), " rows", "\n",
+  "Number of unique Patient ids in Observation data: ", length(unique(obs_tables$obs$subject)), " in ", nrow(obs_tables$obs), " rows", "\n"
 )
 
 observations <- merge.data.table(
@@ -242,8 +303,8 @@ observations <- merge.data.table(
 
 rm(obs_tables)
 
-# get all patient IDs (if they are absolute, we need to change them to relative)
-patient_ids <- sapply(strsplit(observations$subject, split = '/', fixed = TRUE), tail, 1)
+# get all patient IDs
+patient_ids <- observations$subject
 
 # split patient id list into smaller chunks that can be used in a GET url
 # (split because we don't want to exceed allowed URL length)
@@ -330,11 +391,9 @@ invisible({
 })
 
 # bring encounter results together, save and flatten
-encounter_bundles <-
-  fhircrackr:::fhir_bundle_list(encounter_bundles)
+encounter_bundles <- fhircrackr:::fhir_bundle_list(encounter_bundles)
 
-condition_bundles <-
-  fhircrackr:::fhir_bundle_list(condition_bundles)
+condition_bundles <- fhircrackr:::fhir_bundle_list(condition_bundles)
 
 if (DEBUG) {
   fhir_save(bundles = encounter_bundles, directory = debug_dir_enc_bundles)
@@ -399,45 +458,36 @@ rm(condition_bundles)
 
 
 if (nrow(encounters) == 0) {
-  write(
-    "Konnte keine Encounter-Ressourcen zu den gefundenen Patients finden. Abfrage abgebrochen.",
-    file = error_file
-  )
+  write( "Konnte keine Encounter-Ressourcen zu den gefundenen Patients finden. Abfrage abgebrochen.", file = error_file)
   stop("No Encounters for Patients found - aborting.")
 }
 
 ### generate conditions table --> has all conditions of all Patients in the initial population
 if (nrow(conditions) > 0) {
   #extract diagnosis use info from encounter table
-  useInfo <-
-    fhir_melt(
-      encounters,
-      columns = c("diagnosis", "diagnosis.use.code", "diagnosis.use.system"),
+  useInfo <- fhir_melt(
+    encounters,
+    columns = c("diagnosis", "diagnosis.use.code", "diagnosis.use.system"),
+    brackets = brackets,
+    sep = sep,
+    all_columns = TRUE
+  )
+  
+  useInfo <- fhir_rm_indices(useInfo, brackets = brackets)
+
+  useInfo <- useInfo[, c("encounter.id", "diagnosis", "diagnosis.use.code","diagnosis.use.system")]
+
+  useInfo[, diagnosis := makeRelative(diagnosis)]
+
+  # expand condition codes + remove indices
+  for (i in 1 : 2) {
+    conditions <- fhir_melt(
+      conditions,
+      columns = c("code", "code.system"),
       brackets = brackets,
       sep = sep,
       all_columns = TRUE
     )
-
-  useInfo <- fhir_rm_indices(useInfo, brackets = brackets)
-
-  useInfo <-
-    useInfo[, c("encounter.id",
-                "diagnosis",
-                "diagnosis.use.code",
-                "diagnosis.use.system")]
-
-  useInfo[, diagnosis := sub("Condition/", "", diagnosis)]
-
-  # expand condition codes + remove indices
-  for (i in 1:2) {
-    conditions <-
-      fhir_melt(
-        conditions,
-        columns = c("code", "code.system"),
-        brackets = brackets,
-        sep = sep,
-        all_columns = TRUE
-      )
   }
   # remove remaining indices and remove resource_identifier column
   conditions <- fhir_rm_indices(conditions, brackets = brackets)
@@ -462,8 +512,8 @@ if (nrow(conditions) > 0) {
   )
 
   # prepare key variables for merge (removing ID prefixes caused by join)
-  conditions[, subject := sub("Patient/", "", subject)]
-  conditions[, encounter := sub("Encounter/", "", encounter)]
+  conditions[, subject := makeRelative(subject)]
+  conditions[, encounter := makeRelative(encounter)]
 
   # fill empty values in column encounter.id with the value of column encounter
   # (which are the encounter IDs from the condition.encounter)
@@ -479,7 +529,7 @@ encounters[, c("diagnosis", "diagnosis.use.code", "diagnosis.use.system") :=
 encounters <- fhir_rm_indices(encounters, brackets = brackets)
 
 # prepare key variable for merge (removing ID prefixes caused by join)
-encounters[, subject := sub("Patient/", "", subject)]
+encounters[, subject := makeRelative(subject)]
 
 # sort out col types
 encounters[, encounter.start := as.Date(encounter.start)]
@@ -497,32 +547,77 @@ message(
 # of the patient with the current observation and tries to find
 # the closest start date of all encounters in the past. 
 for(i in 1 : nrow(observations)) {
-  # get the observation date of the current observation i
-  obs_date <- observations[i, NTproBNP.date]
-  # get all encounters for the patient with the current observation
-  obs_subject_encounters <- encounters[subject == observations[i, subject]]
-  # get a list of all differences between the observation date and
-  # the encounter start date
-  obs_enc_date_diffs <- obs_date - obs_subject_encounters$encounter.start
-  # if there were encounter start dates after the observation date
-  # then set them to the maximum distance to the observation date
-  obs_enc_date_diffs[obs_enc_date_diffs < 0] <- Inf
-  # find the index of the encounter date with the minimum distance
-  # to the observation date
-  closest_date_diff_index <- which.min(obs_enc_date_diffs)
-  # get this nearest encounter date
-  closest_date_diff <- obs_enc_date_diffs[closest_date_diff_index]
-  # if the result date was not in the future (could be if all encounter
-  # dates are invalid in relation to the observation date)
-  if (closest_date_diff != Inf) {
-    # find the corresponding encounter and merge its properties
-    # to new columns in the observation table
-    closest_encounter <- obs_subject_encounters[closest_date_diff_index, ]
-    observations[i, encounter.id := closest_encounter$encounter.id]
-    observations[i, encounter.start := closest_encounter$encounter.start]
-    observations[i, encounter.end := closest_encounter$encounter.end]
+ 
+  observationEncounter <- data.table()
+
+  encounterID <- observations[i, encounter.id]
+  if (!is.na(encounterID)) {
+    observationEncounter <- encounters[encounter.id == encounterID]
+    if (nrow(observationEncounter) > 0) {
+      observationEncounter <- observationEncounter[1]
+    }
   }
+
+  # found no encounter by its ID?
+  if (nrow(observationEncounter) == 0) {
+    # get the observation date of the current observation i
+    obs_date <- observations[i, NTproBNP.date]
+    # get all encounters for the patient with the current observation
+    obs_subject_encounters <- encounters[subject == observations[i, subject]]
+
+    # there are two possible errors at this point
+    # 1. No encounter found for the given patient ID (this is a real error that should never happen).
+    #    In this case nrow(obs_subject_encounters) == 0
+    #    -> Log an Error
+    # 2. The encounter has no start date -> the script will crash at 'if (closest_date_diff != Inf) {'
+    #    -> We try to find the encounter via the 'encounter' column (= Encounter ID) in the observation table 
+    #    -> If there is no Counter ID or no Encounter for this ID
+    #    -> Log an Error
+    
+    if (nrow(obs_subject_encounters) == 0) {
+      logErrorMax100("There is no Encounter for Observation:", observations)
+      next
+    }
+
+    # get a list of all differences between the observation date and
+    # the encounter start date
+    obs_enc_date_diffs <- obs_date - obs_subject_encounters$encounter.start
+    
+    obs_enc_date_diffs <- obs_enc_date_diffs[!is.na(obs_enc_date_diffs)]
+    
+    if (length(obs_enc_date_diffs) == 0) {
+      logErrorMax100(
+        "Observation has no Encounter Reference and all Encounters of the Patient of the Observation have no start date -> can not find Encounter for Observation:",
+        observations
+      )
+      next
+    }
+    
+    # if there were encounter start dates after the observation date
+    # then set them to the maximum distance to the observation date
+    obs_enc_date_diffs[obs_enc_date_diffs < 0] <- Inf
+    # find the index of the encounter date with the minimum distance
+    # to the observation date
+    closest_date_diff_index <- which.min(obs_enc_date_diffs)
+    # get this nearest encounter date
+    closest_date_diff <- obs_enc_date_diffs[closest_date_diff_index]
+    # if the result date was not in the future (could be if all encounter
+    # dates are invalid in relation to the observation date)
+    if (closest_date_diff != Inf) {
+      # find the corresponding encounter and merge its properties
+      # to new columns in the observation table
+      observationEncounter <- obs_subject_encounters[closest_date_diff_index, ]
+    }
+  }
+  
+  if (nrow(observationEncounter) > 0) { # should alway be 1 row here, but sure is...
+    observations[i, encounter.id := observationEncounter$encounter.id[1]]
+    observations[i, encounter.start := observationEncounter$encounter.start[1]]
+    observations[i, encounter.end := observationEncounter$encounter.end[1]]
+  }  
+
 }
+
 
 # the observation table with encounters is now our cohort table
 cohort <- observations # it's a copy by reference (type is data.table)
