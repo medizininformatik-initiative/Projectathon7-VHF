@@ -59,10 +59,68 @@ if (DEBUG) {
   dir.create(debug_dir_con_bundles, recursive = TRUE, showWarnings = FALSE)
 }
 
+#################
+# Log Functions #
+#################
+
+#'
+#' Logs the given arguments to the global log file and via message()
+#'
+logGlobal <- function(..., append = TRUE) {
+  logText <- paste0(...)
+  write(logText, file = retrieve_file_log, append = append)
+  message(logText)
+}
+
+#'
+#' Logs the given arguments to the global log file and via message()
+#'
+logError <- function(..., append = TRUE, message = TRUE) {
+  logText <- paste0(...)
+  write(logText, file = error_file, append = append)
+  if (message) {
+    message(logText)
+  }
+}
+
+# counts how many error logs are written to the error file
+errorLogCount <- 0
+# log only the first 100 observation errors
+maxErrorLogCount <- 100
+
+#'
+#' Logs the message and the dataTable. If this function is called more than 100 times
+#' then nothing will be logged anymore.
+#' 
+#' @param message
+#' @param dataTable
+#'
+logErrorMax100 <- function(message, dataTable) {
+  if (errorLogCount < maxErrorLogCount) {
+    logError(message)
+    logError(paste(names(dataTable[i]), dataTable[i]), sep = " ")
+  } else if (errorLogCount == maxErrorLogCount) {
+    logError("More errors of the same type have occurred -> stop logging these errors...")
+  }
+  errorLogCount <<- errorLogCount + 1
+}
+
+
+##############
+# SSL Veryfy #
+##############
+
 # If needed disable peer verification
 if (!SSL_VERIFY) {
   httr::set_config(httr::config(ssl_verifypeer = 0L))
 }
+
+##################
+# Start Download #
+##################
+
+# reset Error file
+logError("Errors in Retrieval from ", Sys.time(), ":", append = FALSE, message = FALSE)
 
 # remove trailing slashes from endpoint
 fhir_server_url <-
