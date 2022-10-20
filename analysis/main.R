@@ -477,7 +477,7 @@ fullCohort$NTproBNP.valueQuantity.value <-
 # remove values < 0
 removedLowerZeroCount <- nrow(fullCohort)
 fullCohort <- fullCohort[NTproBNP.valueQuantity.value >= 0]
-removedLowerZeroCount <- removedLowerZeroCount <- nrow(fullCohort)
+removedLowerZeroCount <- removedLowerZeroCount - nrow(fullCohort)
 
 # unify the NTproBNP value units
 fullCohort <- unifyUnits(fullCohort)
