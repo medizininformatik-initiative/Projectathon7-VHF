@@ -106,6 +106,19 @@ logErrorMax100 <- function(message, dataTable) {
 }
 
 
+####################################
+# Absolute to Relative ID Function #
+####################################
+
+#'
+#' @param references single string or list of strings
+#' @return single string or list of strings where only the last part of each string
+#' remains after a slash '/'. Strings without slashes are returned unchanged.
+#'
+makeRelative <- function(references) {
+  return(sub(".*/", "", references))
+}
+
 ##############
 # SSL Veryfy #
 ##############
@@ -264,7 +277,7 @@ obs_tables$pat <- unique(obs_tables$pat)
 
 ### merge observation and patient data
 # prepare key variables for merge
-obs_tables$obs[, subject := sub("Patient/", "", subject)]
+obs_tables$obs[, subject := makeRelative(subject)]
 
 # backup the NTproBNP.date as date string with day and time
 # after conversion as.Date(...) the day remains but the time is lost
@@ -287,9 +300,6 @@ observations <- merge.data.table(
 )
 
 rm(obs_tables)
-
-# get all patient IDs (if they are absolute, we need to change them to relative)
-patient_ids <- sapply(strsplit(observations$subject, split = '/', fixed = TRUE), tail, 1)
 
 # split patient id list into smaller chunks that can be used in a GET url
 # (split because we don't want to exceed allowed URL length)
@@ -462,7 +472,7 @@ if (nrow(conditions) > 0) {
 
   useInfo <- useInfo[, c("encounter.id", "diagnosis", "diagnosis.use.code","diagnosis.use.system")]
 
-  useInfo[, diagnosis := sub("Condition/", "", diagnosis)]
+  useInfo[, diagnosis := makeRelative(diagnosis)]
 
   # expand condition codes + remove indices
   for (i in 1 : 2) {
@@ -497,8 +507,8 @@ if (nrow(conditions) > 0) {
   )
 
   # prepare key variables for merge (removing ID prefixes caused by join)
-  conditions[, subject := sub("Patient/", "", subject)]
-  conditions[, encounter := sub("Encounter/", "", encounter)]
+  conditions[, subject := makeRelative(subject)]
+  conditions[, encounter := makeRelative(encounter)]
 
   # fill empty values in column encounter.id with the value of column encounter
   # (which are the encounter IDs from the condition.encounter)
@@ -514,7 +524,7 @@ encounters[, c("diagnosis", "diagnosis.use.code", "diagnosis.use.system") :=
 encounters <- fhir_rm_indices(encounters, brackets = brackets)
 
 # prepare key variable for merge (removing ID prefixes caused by join)
-encounters[, subject := sub("Patient/", "", subject)]
+encounters[, subject := makeRelative(subject)]
 
 # sort out col types
 encounters[, encounter.start := as.Date(encounter.start)]
