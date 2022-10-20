@@ -86,7 +86,7 @@ analyze <- function(result, cohortDescription, analysisOption, analysisOptionDis
       
       if (all(cuts == cuts[1])) { # all cuts have the same value (all 0 or all 1) -> no further calculations
         # log information in the output file
-        comparatorText <- ifelse(cuts[1] == 0, "lower than ", "greater than or equal to ")
+        comparatorText <- ifelse(cuts[1] == 0, "lower than or equal to ", "greater than ")
         cat(paste0("All NTproBNP values are ", comparatorText, thresholds[i], " -> sensitivity, specifity, PV+ and PV- not available.\n\n\n"))
       } else {
         table <- xtabs(~cuts + result[[analysisOption]])
@@ -122,7 +122,7 @@ analyze <- function(result, cohortDescription, analysisOption, analysisOptionDis
     #Multivarite Analyse, VHF in Abhängigkeit von NTproBNP, adjustiert mit Alter und Geschlecht
     
     cat("GLM Analysis\n")
-    cat("------------")
+    cat("------------\n")
     
     # glm(...) throws an error if one of the so called contrast values (vector)
     # has always the same value -> we must identify these contrast values and
