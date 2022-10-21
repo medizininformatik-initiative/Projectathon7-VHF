@@ -16,8 +16,8 @@ ausschalten und damit die **Laufzeit erheblich verkürzen**.
 Hier wird die Verwendung des DUP beschrieben. Die inhaltliche Beschreibung des Retrieval und der Analyse steht in der
 Readme des jeweiligen Unterordners:
 
-* [Retrieval Readme](./retrieval/README.md)
-* [Analysis Readme](./analysis/README.md)
+* [Retrieval Readme](./retrieval#vhf-vorhofflimmern-retrieval)
+* [Analysis Readme](./analysis#vhf-vorhofflimmern-analysis)
 
 ## Verwendung
 
