@@ -12,6 +12,18 @@ registry = "registry.gitlab.com/smith-phep/dup"
 #######################################
 ### Einstellungen für das Retrieval ###
 #######################################
+### Die folgenden 4 Einstellungen können dem Kommando dupctl
+### in folgender Form auch als Parameter mitgegeben werden:
+### dupctl retrieve --dup vhf --fhir-server-endpoint "https://some-fhir-server" ...
+### Siehe Anleitung zu dupctl:
+### https://git.smith.care/smith/uc-phep/dup-control#dup-control)
+### Sie sind als einzige klein geschrieben.
+### Die Kommandozeilenparameter haben Vorrang vor den hier in
+### der Datei angegebenen Werten.
+### Man kann sie aber auch ganz einfach hier in der Datei
+### angeben und das Kommando ohne weitere Parameter aufrufen:
+### dupctl retrieve --dup vhf
+
 [retrieve]
 
 ### FHIR Endpoint (muss gesetzt werden)
