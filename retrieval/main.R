@@ -73,7 +73,7 @@ logGlobal <- function(..., append = TRUE) {
 }
 
 #'
-#' Logs the given arguments to the global log file and via message()
+#' Logs the given arguments to the error file and optionally via message()
 #'
 logError <- function(..., append = TRUE, message = TRUE) {
   logText <- paste0(...)
@@ -81,6 +81,15 @@ logError <- function(..., append = TRUE, message = TRUE) {
   if (message) {
     message(logText)
   }
+}
+
+#'
+#' Logs the given arguments to the global log file and via message()
+#' and in the error file.
+#'
+logGlobalAndError <- function(...) {
+  logGlobal(...)
+  logError(..., message = FALSE)
 }
 
 # counts how many error logs are written to the error file
@@ -131,6 +140,8 @@ if (!SSL_VERIFY) {
 ##################
 # Start Download #
 ##################
+
+logGlobal("main.R startet at ", start, ".\n")
 
 # reset Error file
 logError("Errors in Retrieval from ", Sys.time(), ":", append = FALSE, message = FALSE)
@@ -233,18 +244,12 @@ obs_tables <- fhir_crack(
 rm(obs_bundles)
 
 if (nrow(obs_tables$obs) == 0) {
-  write(
-    "Konnte keine Observations für NTproBNP auf dem Server finden. Abfrage abgebrochen.",
-    file = error_file
-  )
+  logGlobalAndError("Konnte keine Observations für NTproBNP auf dem Server finden. Abfrage abgebrochen.")
   stop("No NTproBNP Observations found - aborting.")
 }
 
 if (nrow(obs_tables$pat) == 0) {
-  write(
-    "Konnte keine Patientenressourcen für NTproBNP-Observations auf dem Server finden. Abfrage abgebrochen.",
-    file = error_file
-  )
+  logGlobalAndError("Konnte keine Patientenressourcen für NTproBNP-Observations auf dem Server finden. Abfrage abgebrochen.")
   stop("No Patients for NTproBNP Observations found - aborting.")
 }
 
@@ -287,11 +292,9 @@ obs_tables$obs$NTproBNP.date.bak <- as.POSIXct(obs_tables$obs$NTproBNP.date, for
 obs_tables$obs[, NTproBNP.date := as.Date(NTproBNP.date)]
 
 # merge
-message(
-  "Merging Observation and Patient data based on Patient id.\n",
-  "Number of unique Patient ids in Patient data: ", length(unique(obs_tables$pat$id)), " in ", nrow(obs_tables$pat), " rows", "\n",
-  "Number of unique Patient ids in Observation data: ", length(unique(obs_tables$obs$subject)), " in ", nrow(obs_tables$obs), " rows", "\n"
-)
+logGlobal("Merging Observation and Patient data based on Patient id:")
+logGlobal("Number of unique Patient ids in Patient data: ", length(unique(obs_tables$pat$id)), " in ", nrow(obs_tables$pat), " rows")
+logGlobal("Number of unique Patient ids in Observation data: ", length(unique(obs_tables$obs$subject)), " in ", nrow(obs_tables$obs), " rows\n")
 
 observations <- merge.data.table(
   x = obs_tables$obs,
@@ -458,7 +461,7 @@ rm(condition_bundles)
 
 
 if (nrow(encounters) == 0) {
-  write( "Konnte keine Encounter-Ressourcen zu den gefundenen Patients finden. Abfrage abgebrochen.", file = error_file)
+  logGlobalAndError( "Konnte keine Encounter-Ressourcen zu den gefundenen Patients finden. Abfrage abgebrochen.")
   stop("No Encounters for Patients found - aborting.")
 }
 
@@ -497,11 +500,9 @@ if (nrow(conditions) > 0) {
   conditions <- conditions[grepl("icd-10", code.system)]
 
   # add diagnosis use info to condition table
-  message(
-    "Merging Condition and Encounter data based on Condition id.\n",
-    "Number of unique Condition ids in Condition data: ", length(unique(conditions$condition.id)), " in ", nrow(conditions), " rows", "\n",
-    "Number of unique Condition ids in Encounter data: ", length(unique(useInfo$diagnosis)), " in ", nrow(useInfo), " rows", "\n"
-  )
+  logGlobal("Merging Condition and Encounter data based on Condition id:")
+  logGlobal("Number of unique Condition ids in Condition data: ", length(unique(conditions$condition.id)), " in ", nrow(conditions), " rows")
+  logGlobal("Number of unique Condition ids in Encounter data: ", length(unique(useInfo$diagnosis)), " in ", nrow(useInfo), " rows\n")
 
   conditions <- merge.data.table(
     x = conditions,
@@ -524,8 +525,7 @@ if (nrow(conditions) > 0) {
 ### prepare encounter table ###
 
 # remove diagnosis info clumns and indices
-encounters[, c("diagnosis", "diagnosis.use.code", "diagnosis.use.system") :=
-               NULL]
+encounters[, c("diagnosis", "diagnosis.use.code", "diagnosis.use.system") := NULL]
 encounters <- fhir_rm_indices(encounters, brackets = brackets)
 
 # prepare key variable for merge (removing ID prefixes caused by join)
@@ -536,11 +536,9 @@ encounters[, encounter.start := as.Date(encounter.start)]
 encounters[, encounter.end := as.Date(encounter.end)]
 
 # merge based on subject id and temporal relation of observation date and encounter times
-message(
-  "Merging Observation and Encounter data based on Subject id and time.\n",
-  "Number of unique Subject ids in Observation data: ", length(unique(observations$subject)), " in ", nrow(observations), " rows", "\n",
-  "Number of unique Subject ids in Encounter data: ", length(unique(encounters$subject)), " in ", nrow(encounters), " rows", "\n"
-)
+logGlobal("Merging Observation and Encounter data based on Subject id and tim:")
+logGlobal("Number of unique Subject ids in Observation data: ", length(unique(observations$subject)), " in ", nrow(observations), " rows")
+logGlobal("Number of unique Subject ids in Encounter data: ", length(unique(encounters$subject)), " in ", nrow(encounters), " rows\n")
 
 # Try to find the encounter to the observations via date check.
 # This check only considers the start date of all encounters
@@ -640,13 +638,7 @@ write.csv2(conditions, retrieve_file_diagnoses, row.names = FALSE)
 # logging
 runtime <- Sys.time() - start
 
-con <- file(retrieve_file_log)
-write(
-  paste0(
-    "main.R finished at ", Sys.time(), ".\n",
-    "Extracted ", length(cohort$encounter.id), " Encounters based on ", length(unique(cohort$subject)), " Patients.\n",
-    "R script execution took ", round(runtime, 2), " ", attr(runtime, "units"), ".\n"
-  ),
-  file = con
-)
-close(con)
+logGlobal("main.R finished at ", Sys.time(), ".")
+logGlobal("Extracted ", length(cohort$encounter.id), " Encounters based on ", length(unique(cohort$subject)), " Patients.")
+logGlobal("R script execution took ", round(runtime, 2), " ", attr(runtime, "units"), ".")
+
