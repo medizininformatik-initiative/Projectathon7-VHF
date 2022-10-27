@@ -460,6 +460,8 @@ if (DATA_QUALITY_REPORT) {
 ################
 fullCohort <- fread(retrieve_file_cohort)
 
+fullCohortCountUncleaned <- nrow(fullCohort)
+
 # remove NA values
 removedNACount <- nrow(fullCohort)
 fullCohort <- fullCohort[!is.na(NTproBNP.valueQuantity.value)]
@@ -485,15 +487,25 @@ fullCohort <- unifyUnits(fullCohort)
 # check NTproBNP value is in valid range (but count and log only)
 # values > 0 and < 1
 lowerOneCount <- length(which(fullCohort$NTproBNP.valueQuantity.value < 1))
-# values > 20000
-greaterMaxCount <- length(which(fullCohort$NTproBNP.valueQuantity.value > 20000))
 
-logGlobal("Full Cohort invalid NTProBNP values:")
-logGlobal("         NA: ", removedNACount, " (removed)")
-logGlobal("        < 0: ", removedLowerZeroCount, " (removed)")
-logGlobal("        < 1: ", lowerOneCount, " (ignored)")
-logGlobal("    > 20000: ", greaterMaxCount, " (ignored)")
-logGlobal("")
+fullCohortCountCleaned <- nrow(fullCohort)
+
+# cuts to log how many value are above a cut value
+valueCuts <- c(1 : 10) * 10000
+
+logGlobal("Full Cohort NTProBNP values:")
+logGlobal("    total before cleanup: ", fullCohortCountUncleaned)
+logGlobal("                      NA: ", removedNACount, " (removed)")
+logGlobal("                     < 0: ", removedLowerZeroCount, " (removed)")
+logGlobal("                     < 1: ", lowerOneCount)
+for (cut in valueCuts) {
+  greaterCutCount <- length(which(fullCohort$NTproBNP.valueQuantity.value > cut))
+  cut <- paste0("> ", cut, ": ")
+  whitespaces <- "                          "
+  whitespaces <- substring(whitespaces, 1, nchar(whitespaces) - nchar(cut))
+  logGlobal(whitespaces, cut, greaterCutCount)  
+}
+logGlobal("     total after cleanup: ", fullCohortCountCleaned, "\n")
 
 # calculate age by birthdate and NTproBNP date 
 date <- as.POSIXct(fullCohort$NTproBNP.date, format = "%Y")
