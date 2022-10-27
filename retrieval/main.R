@@ -306,8 +306,8 @@ observations <- merge.data.table(
 
 rm(obs_tables)
 
-# get all patient IDs
-patient_ids <- observations$subject
+# get all unique patient IDs
+patient_ids <- unique(observations$subject)
 
 # split patient id list into smaller chunks that can be used in a GET url
 # (split because we don't want to exceed allowed URL length)
