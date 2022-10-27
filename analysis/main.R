@@ -439,9 +439,14 @@ logGlobal("Start Analysis at ", start, "\n", append = FALSE)
 if (DATA_QUALITY_REPORT) {
   startDQ <- Sys.time()
   tryCatch(                       # Applying tryCatch
-    rmarkdown::render("data-quality/report.Rmd", output_format = "html_document", output_file = data_quality_report_file)
-    ,
-    error = function(e){          # Specifying error message
+    rmarkdown::render(
+      "data-quality/report.Rmd", 
+      output_format = "html_document", 
+      output_file = data_quality_report_file,
+      output_dir = OUTPUT_DIR_GLOBAL,
+      intermediates_dir = OUTPUT_DIR_LOCAL
+    ),
+    error = function(e) {         # Specifying error message
       logGlobal("An error occurs in Data Quality Report:")
       logGlobal(e)
     }
