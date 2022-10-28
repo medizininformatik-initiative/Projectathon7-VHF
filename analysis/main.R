@@ -101,6 +101,20 @@ getResultsFileName <- function(baseNameSuffix, hasComparator) {
   paste0(results_file_baseName, baseNameSuffix, ".csv")
 }
 
+#########
+# Utils #
+#########
+
+#'
+#' @param dateStringWithLeadingYear a string representing a date or only a year. The year must be the
+#' first 4 characters of the string.
+#' @return the extracted year from the given date string
+#'
+getYear <- function(dateStringWithLeadingYear) {
+  date <- as.POSIXct(as.character(dateStringWithLeadingYear), format = "%Y")
+  return (year(date))
+}
+
 ###########################
 # Simple Filter Functions #
 ###########################
@@ -513,12 +527,7 @@ for (cut in valueCuts) {
 logGlobal("     total after cleanup: ", fullCohortCountCleaned, "\n")
 
 # calculate age by birthdate and NTproBNP date 
-date <- as.POSIXct(fullCohort$NTproBNP.date, format = "%Y")
-birthdate <- as.POSIXct(fullCohort$birthdate, format = "%Y")
-fullCohort$age <- year(date) - year(birthdate)
-rm(date)
-rm(birthdate)
-
+fullCohort$age <- getYear(fullCohort$NTproBNP.date) - getYear(fullCohort$birthdate)
 
 ###################
 # Diagnoses Table #
