@@ -28,7 +28,7 @@ result_dir <- ifelse(DECENTRAL_ANALYIS, OUTPUT_DIR_LOCAL, OUTPUT_DIR_GLOBAL)
 # Maximum character length of GET requests to the FHIR server.
 # This value was created by testing.
 # Request to load patients are divided under this maximum length.
-MAX_REQUEST_STRING_LENGTH <- 1800
+MAX_REQUEST_STRING_LENGTH <- 2000
 
 # Output directories
 output_local_errors <- paste0(OUTPUT_DIR_LOCAL, "/Errors")
@@ -127,6 +127,53 @@ logErrorMax100 <- function(message, dataTable) {
 makeRelative <- function(references) {
   return(sub(".*/", "", references))
 }
+
+#########
+# Utils #
+#########
+
+#'
+#' @return the occurences of char c in string s
+#'
+countCharInString <- function(s, c) {
+  return (lengths(regmatches(s, gregexpr(c, s))))
+}
+
+#####################
+# Create PID Chunks #
+#####################
+
+#'
+#' Splits the patient id list into smaller chunks that can be used in a GET url
+#' (split because we don't want to exceed allowed URL length)
+#' remaining number of characters in the url that can be used for patient IDs
+#' (assume maximal length of MAX_REQUEST_STRING_LENGTH)
+#' @return a list of lists of patient IDs so that the request fits the maximum length of MAX_REQUEST_STRING_LENGTH
+#'
+#'
+getPatientIDChunks <- function(allPatientIDs) {
+
+  profile <- ifelse(nchar(PROFILE_ENC) > nchar(PROFILE_CON), PROFILE_ENC, PROFILE_CON)
+  
+  # maximum lenght of all parts of a paged query
+  fixLength <- nchar(fhir_server_url) + 1 + # the url with a slash
+    nchar("/Encounter/__page?subject=") +   # fix part after url ("Condition" has the same lenght like "Encounter")
+    nchar("&type=einrichtungskontakt") +    # parameter for encounters
+    nchar(profile) + 2 +                    # before the profile an "&_" is added
+    countCharInString(profile, "/") * 2 +   # "/" will be replaced by "%2F" -> count * 2
+    countCharInString(profile, ":") * 2 +   # ":" will be replaced by "%3A" -> count * 2
+    nchar("&_count=1000&__t=1000000&__page-id=EncounterID_ABCDEFGHIJKLMNOPQRSTUVWXYZ") # Something like this will be
+                                                                                       # added to every paging query.
+                                                                                       # The values here are super large.
+                                                                                       # Realistic values should be 
+                                                                                       # shorter.
+  ncharForAllIDs <- MAX_REQUEST_STRING_LENGTH - fixLength
+  maxSingleIDLength <- max(nchar(allPatientIDs)) + 3 # + 3 because the commas between the IDs will be changed to "%2C"
+  patientIDsChunkSize <- ncharForAllIDs / maxSingleIDLength
+  patientIDsChunks <-  split(allPatientIDs, ceiling(seq_along(allPatientIDs) / patientIDsChunkSize))
+  return(patientIDsChunks)  
+}
+
 
 ##############
 # SSL Veryfy #
@@ -306,29 +353,8 @@ observations <- merge.data.table(
 
 rm(obs_tables)
 
-# get all unique patient IDs
-patient_ids <- unique(observations$subject)
-
-# split patient id list into smaller chunks that can be used in a GET url
-# (split because we don't want to exceed allowed URL length)
-# remaining number of characters in the url that can be used for patient IDs
-# (assume maximal length of 1800)
-nchar_for_ids <- MAX_REQUEST_STRING_LENGTH - nchar(paste0(fhir_server_url, "Encounter", "&_profile=", PROFILE_ENC))
-
-# reduce the chunk size until number of characters is small enough
-patient_ids_chunk_size <- length(patient_ids)
-repeat {
-  patient_ids_chunks <- # split patients ids in chunks of size n
-    split(patient_ids, ceiling(seq_along(patient_ids) / patient_ids_chunk_size))
-  nchar <- sapply(patient_ids_chunks, function(x) {
-    sum(nchar(x)) + (length(x) - 1)
-  }) # compute number of characters for each chunk, including commas for seperation
-  if (any(nchar <= nchar_for_ids)) {
-    break
-  }
-  patient_ids_chunk_size <- patient_ids_chunk_size / 2
-}
-
+# get patient IDs in chunks of the maximum list length for page queries
+patient_ids_chunks <- getPatientIDChunks(unique(observations$subject))
 
 # get encounters and diagnoses
 # --> all encounters and diagnoses of initial patient population,
