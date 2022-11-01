@@ -14,6 +14,13 @@ source("install-dependencies.R")
 
 # source config
 source("config.R")
+# Source some simple utils shared with retrieval.
+# For manual execution this file is located in the
+# parent directory. For Docker this file is located
+# in the same dirextory like this script.
+utilsFile <- "./utils.R"
+if (!file.exists(utilsFile)) utilsFile <- paste0(".", utilsFile)
+source(utilsFile)
 # the file with the extracted 'real' analysis function
 source("analysis.R")
 
@@ -44,6 +51,15 @@ results_file_baseName <- paste0(retrieve_dir, "/Retrieve")
 output_local_errors <- paste0(OUTPUT_DIR_LOCAL, "/Errors")
 error_file <- paste0(output_local_errors, "/ErrorMessage.txt")
 data_quality_report_file <- paste0(OUTPUT_DIR_GLOBAL, "/DQ-Report.html")
+
+# Backs up the OUTPUT_DIR_GLOBAL. On Central Analysis we must copy the
+# old content to preserve the Retrieval results in this directory
+if (file.exists(analysis_file_log)) {
+  createDirWithBackup(OUTPUT_DIR_GLOBAL, copy = TRUE)  
+} else {
+  createDirsRecursive(OUTPUT_DIR_GLOBAL)
+}
+
 
 ################
 # Log Function #

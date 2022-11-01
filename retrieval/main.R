@@ -16,6 +16,14 @@ source("install-dependencies.R")
 # source config
 source("config.R")
 
+# Source some simple utils shared with analysis.
+# For manual execution this file is located in the
+# parent directory. For Docker this file is located
+# in the same dirextory like this script.
+utilsFile <- "./utils.R"
+if (!file.exists(utilsFile)) utilsFile <- paste0(".", utilsFile)
+source(utilsFile)
+
 PROJECT_NAME <- "VHF"
 
 ### Verzeichnisse
@@ -48,16 +56,11 @@ retrieve_file_cohort <- paste0(result_dir, "/Cohort.csv")
 retrieve_file_diagnoses <- paste0(result_dir, "/Diagnoses.csv")
 retrieve_file_log <- paste0(OUTPUT_DIR_GLOBAL, "/Retrieval.log")
 
-# remove old files and dirs and create new dirs  (surpress warning if dir exists)
-unlink(OUTPUT_DIR_GLOBAL, recursive = TRUE)
-unlink(OUTPUT_DIR_LOCAL, recursive = TRUE)
-dir.create(OUTPUT_DIR_GLOBAL, recursive = TRUE, showWarnings = FALSE)
-dir.create(output_local_errors, recursive = TRUE, showWarnings = FALSE)
-if (DEBUG) {
-  dir.create(debug_dir_obs_bundles, recursive = TRUE, showWarnings = FALSE)
-  dir.create(debug_dir_enc_bundles, recursive = TRUE, showWarnings = FALSE)
-  dir.create(debug_dir_con_bundles, recursive = TRUE, showWarnings = FALSE)
-}
+# rename old dirs and create new ones  (surpress warning if dir exists)
+createDirWithBackup(OUTPUT_DIR_LOCAL)
+createDirWithBackup(OUTPUT_DIR_GLOBAL)
+createDirsRecursive(output_local_errors)
+createDirsRecursive(debug_dir_obs_bundles, debug_dir_enc_bundles, debug_dir_con_bundles, condition = DEBUG)
 
 #################
 # Log Functions #
@@ -126,17 +129,6 @@ logErrorMax100 <- function(message, dataTable) {
 #'
 makeRelative <- function(references) {
   return(sub(".*/", "", references))
-}
-
-#########
-# Utils #
-#########
-
-#'
-#' @return the occurences of char c in string s
-#'
-countCharInString <- function(s, c) {
-  return (lengths(regmatches(s, gregexpr(c, s))))
 }
 
 #####################
