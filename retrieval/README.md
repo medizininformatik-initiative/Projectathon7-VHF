@@ -6,8 +6,10 @@ siehe [VHF Readme](../README.md#Verwendung)
 
 ## Output
 
-Das Skript erzeugt mehrere Ordner im Projekt-Directory. Um für den Projectathon eine möglichst einfache übersichtliche
-Lösung zu bekommen, werden alle Files, die darin erzeugt werden bei mehrmaligem Ausführen ggf. einfach überschrieben.
+Das Skript erzeugt die Ordner `outputLocal`und `outputGlobal` im Projekt-Directory. In diesen Ordnern wiederum wird
+jeweils ein Ordner mit dem Projektnamen `VHF`angelegt, in denen die aktuellen Ergebnisse landen. Falls diese Ordner
+bereits existieren, werden die bestehenden Ordner vor einer erneuten Ausführung mit dem Zeitstempel des Zeitpunktes
+ihres Anlegens umbenannt und bleiben somit erhalten.
 
 ### Ergebnisse
 
