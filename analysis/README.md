@@ -6,17 +6,18 @@ siehe [VHF Readme](../README.md#Verwendung)
 
 ## Output
 
-Das Skript erzeugt mehrere Dateien im Ausgabeverzeichnis `outputGlobal`. Das Ausgabeverzeichnis wird im 
+Das Skript erzeugt mehrere Dateien im Ausgabeverzeichnis `outputGlobal/VHF`. Das Ausgabeverzeichnis wird im 
 Arbeitsverzeichnis angelegt und ist das Verzeichnis, dessen Inhalt an die datenauswertende Stelle ausgeleitet werden
 soll. 
 
 Das Script erwartet als Eingabedaten die beiden Tabellen aus dem [Retrieval](../retrieval/README.md). Diese
-müssen sich je nach Start-Parameter `DECENTRAL_ANALYSIS` entweder im Verzeichnis `outputLocal` (bei
-`DECENTRAL_ANALYSIS = TRUE`) oder im Verzeichnis ebenfalls im Verzeichnis `outputGlobal` (bei
+müssen sich je nach Start-Parameter `DECENTRAL_ANALYSIS` entweder im Verzeichnis `outputLocal/VHF` (bei
+`DECENTRAL_ANALYSIS = TRUE`) oder im Verzeichnis ebenfalls im Verzeichnis `outputGlobal/VHF` (bei
 `DECENTRAL_ANALYSIS = FALSE`) befinden.
 
-Genau wie beim Retrieval gilt: um für den Projectathon eine möglichst einfache übersichtliche
-Lösung zu bekommen, werden alle Files, die darin erzeugt werden bei mehrmaligem Ausführen ggf. einfach überschrieben.
+Genau wie beim Retrieval gilt: Fall im Ordner `outputGlobal/VHF` bereits ein Analyseergebnis existiert, wird der
+bestehende Ordner vor einer erneuten Ausführung mit dem Zeitstempel des Zeitpunktes seines Anlegens umbenannt und 
+bleibt somit erhalten.
 
 ### Ergebnisse
 
