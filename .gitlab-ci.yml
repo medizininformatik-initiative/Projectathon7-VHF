@@ -12,12 +12,12 @@ include:
 
 .retrieval:
   variables:
-    SUB_DIR: "retrieval"
+    DUP_STAGE: "retrieval"
     IMAGE_NAME: "${CI_REGISTRY}/${CI_PROJECT_NAME}"
 
 .analysis:
   variables:
-    SUB_DIR: "analysis"
+    DUP_STAGE: "analysis"
     IMAGE_NAME: "${CI_REGISTRY}/${CI_PROJECT_NAME}-analysis"
 
 ###

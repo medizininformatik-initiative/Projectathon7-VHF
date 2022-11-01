@@ -14,13 +14,7 @@ source("install-dependencies.R")
 
 # source config
 source("config.R")
-# Source some simple utils shared with retrieval.
-# For manual execution this file is located in the
-# parent directory. For Docker this file is located
-# in the same dirextory like this script.
-utilsFile <- "./utils.R"
-if (!file.exists(utilsFile)) utilsFile <- paste0(".", utilsFile)
-source(utilsFile)
+source("../utils/utils.R")
 # the file with the extracted 'real' analysis function
 source("analysis.R")
 

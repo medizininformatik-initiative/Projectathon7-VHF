@@ -2,6 +2,8 @@
 .Rhistory
 .RData
 .Renviron
+
 outputLocal/
 outputGlobal/
-utils/
+
+version.txt

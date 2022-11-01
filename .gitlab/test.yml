@@ -10,8 +10,8 @@
     TEST_DATA_BASE: https://github.com/medizininformatik-initiative/kerndatensatz-testdaten/raw/6be5073/Test_Data/Vorhofflimmern
   image: ghcr.io/knoppiks/blazectl:latest
   script:
-  - (cd ${SUB_DIR}/test && cat files.txt | xargs -i -n 1 wget -q ${TEST_DATA_BASE}/{})
-  - blazectl --no-progress upload --server http://blaze:8080/fhir/ ${SUB_DIR}/test -c 4
+  - (cd ${DUP_STAGE}/test && cat files.txt | xargs -i -n 1 wget -q ${TEST_DATA_BASE}/{})
+  - blazectl --no-progress upload --server http://blaze:8080/fhir/ ${DUP_STAGE}/test -c 4
   - blazectl count-resources --server http://blaze:8080/fhir/
   - >
     docker run --network "$HOSTNAME-job-$CI_JOB_ID-network" -e FHIR_SERVER_ENDPOINT="http://blaze:8080/fhir/"
