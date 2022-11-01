@@ -7,18 +7,17 @@ stages:
 include:
 - local: .gitlab/docker.yml
 - local: .gitlab/test.yml
-- local: .gitlab/archive.yml
 
 ###
 
 .retrieval:
   variables:
-    SUB_DIR: "retrieval"
+    DUP_STAGE: "retrieval"
     IMAGE_NAME: "${CI_REGISTRY}/${CI_PROJECT_NAME}"
 
 .analysis:
   variables:
-    SUB_DIR: "analysis"
+    DUP_STAGE: "analysis"
     IMAGE_NAME: "${CI_REGISTRY}/${CI_PROJECT_NAME}-analysis"
 
 ###
@@ -53,16 +52,6 @@ analysis::publish-image:
   needs: ["analysis::test"]
   stage: publish
   extends: [".analysis", ".push"]
-
-retrieval::publish-archive:
-  needs: ["retrieval::test"]
-  stage: publish
-  extends: [".retrieval", ".retrieval::publish"]
-
-analysis::publish-archive:
-  needs: ["analysis::test"]
-  stage: publish
-  extends: [".analysis", ".analysis::publish"]
 
 
 retrieval::cleanup:
