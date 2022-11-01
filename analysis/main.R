@@ -520,15 +520,18 @@ lowerOneCount <- length(which(fullCohort$NTproBNP.valueQuantity.value < 1))
 fullCohortCountCleaned <- nrow(fullCohort)
 
 # cuts to log how many value are above a cut value
-valueCuts <- c(1 : 10) * 10000
+valueCuts <- c(0 : 10) * 10000
 
 logGlobal("Full Cohort NTProBNP values:")
 logGlobal("    total before cleanup: ", fullCohortCountUncleaned)
 logGlobal("                      NA: ", removedNACount, " (removed)")
 logGlobal("                     < 0: ", removedLowerZeroCount, " (removed)")
 logGlobal("                     < 1: ", lowerOneCount)
-for (cut in valueCuts) {
-  greaterCutCount <- length(which(fullCohort$NTproBNP.valueQuantity.value > cut))
+for (i in 1 : length(valueCuts)) {
+  cut <- valueCuts[i]
+  nextCut <- ifelse(i < length(valueCuts), valueCuts[i + 1], Inf)
+  greaterCutCount <- 
+    length(which(fullCohort$NTproBNP.valueQuantity.value > cut & fullCohort$NTproBNP.valueQuantity.value <= nextCut))
   cut <- paste0("> ", cut, ": ")
   whitespaces <- "                          "
   whitespaces <- substring(whitespaces, 1, nchar(whitespaces) - nchar(cut))
