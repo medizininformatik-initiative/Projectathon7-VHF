@@ -7,6 +7,7 @@
 #################################################
 
 ### DECENTRAL_ANALYSIS
+### ------------------
 ### Default: TRUE
 ###   TRUE = Die Ergebnisse des Retrieval werden in das Verzeichnis
 ###          outputLocal geschrieben (das nicht ausgeleitet werden
@@ -23,6 +24,7 @@
 # Sys.setenv(DECENTRAL_ANALYSIS = "TRUE")
 
 ### DEBUG
+### -----
 ### Default: "FALSE"
 ###   TRUE = Zwischenergebnisse werden ins Verzeichnis outputLocal
 ###           geschrieben
@@ -34,21 +36,30 @@
 ### RETRIEVAL ###
 #################
 
+### FHIR_SERVER_ENDPOINT
+### --------------------
 ### FHIR Endpoint (muss gesetzt werden)
 ### Default: -
-### Hier ist als Beispiel ein Testserver ohne Authentifizierung angegeben:
+### Hier ist als Beispiel ein Hapi und ein Blaze Testserver ohne Authentifizierung angegeben:
+# Sys.setenv(FHIR_SERVER_ENDPOINT = "https://mii-agiop-3p.life.uni-leipzig.de/fhir")
 Sys.setenv(FHIR_SERVER_ENDPOINT = "https://mii-agiop-3p.life.uni-leipzig.de/blaze")
 
+### FHIR_SERVER_USER und FHIR_SERVER_PASS
+### -------------------------------------
 ### Falls Authentifizierung, bitte entsprechend anpassen (sonst ignorieren):
 ### Username und Passwort für Basic Auth
 ### Default: -
 # Sys.setenv(FHIR_SERVER_USER = "myusername")
 # Sys.setenv(FHIR_SERVER_PASS = "mypassword")
 
+### FHIR_SERVER_TOKEN
+### -----------------
 ### Alternativ: Token für Bearer Token Auth
 ### Default: -
 # Sys.setenv(FHIR_SERVER_TOKEN = "mytoken")
 
+### SSL_VERIFY
+### ----------
 ### SSL peer verification angeschaltet lassen?
 ### Default: TRUE
 ### TRUE = peer verification anschalten
@@ -56,6 +67,7 @@ Sys.setenv(FHIR_SERVER_ENDPOINT = "https://mii-agiop-3p.life.uni-leipzig.de/blaz
 # Sys.setenv(SSL_VERIFY = "TRUE")
 
 ### MAX_BUNDLES
+### -----------
 ### Das Script lädt zuerst alle passenden Observations,
 ### davon ausgehend zugehörige Patienten und Conditions.
 ###    Default: "Inf"
@@ -65,23 +77,27 @@ Sys.setenv(FHIR_SERVER_ENDPOINT = "https://mii-agiop-3p.life.uni-leipzig.de/blaz
 # Sys.setenv(MAX_BUNDLES = "Inf")
 
 ### VERBOSE
+### -------
 ### Default: 0 (= keine Ausgabe)
 ### 0 .. 4 = Verbose-Level des fhircrackr
 # Sys.setenv(VERBOSE = "0")
 
 ### PROFILE_ENC
+### -----------
 ### FHIR Profile der zu ladenden Encounter. Es werden nur
 ### Encounter mit dem angegebenen Profil gefunden.
 ### Default: "https://www.medizininformatik-initiative.de/fhir/core/modul-fall/StructureDefinition/KontaktGesundheitseinrichtung"
 # Sys.setenv(PROFILE_ENC = "https://www.medizininformatik-initiative.de/fhir/core/modul-fall/StructureDefinition/KontaktGesundheitseinrichtung")
 
 ### PROFILE_OBS
+### -----------
 ### FHIR Profile der zu ladenden Observations. Es werden nur
 ### Observations mit dem angegebenen Profil gefunden.
 ### Default: https://www.medizininformatik-initiative.de/fhir/core/modul-labor/StructureDefinition/ObservationLab
 # Sys.setenv(PROFILE_OBS = "https://www.medizininformatik-initiative.de/fhir/core/modul-labor/StructureDefinition/ObservationLab")
 
-#PROFILE_CON
+### PROFILE_CON
+### -----------
 ### FHIR Profile der zu ladenden Conditions. Es werden nur
 ### Conditions mit dem angegebenen Profil gefunden.
 ### Default: https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Diagnose
@@ -93,6 +109,7 @@ Sys.setenv(FHIR_SERVER_ENDPOINT = "https://mii-agiop-3p.life.uni-leipzig.de/blaz
 ################
 
 ### DATA_QUALITY_REPORT
+### -------------------
 ### Default: "TRUE"
 ###   TRUE = Data Quality Report im outputGlobal erstellen (Default)
 ###  FALSE = Data Quality Report nicht erstellen

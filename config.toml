@@ -12,6 +12,8 @@ registry = "registry.gitlab.com/smith-phep/dup"
 #######################################
 ### Einstellungen für das Retrieval ###
 #######################################
+[retrieve]
+
 ### Die folgenden 4 Einstellungen können dem Kommando dupctl
 ### in folgender Form auch als Parameter mitgegeben werden:
 ### dupctl retrieve --dup vhf --fhir-server-endpoint "https://some-fhir-server" ...
@@ -24,19 +26,23 @@ registry = "registry.gitlab.com/smith-phep/dup"
 ### angeben und das Kommando ohne weitere Parameter aufrufen:
 ### dupctl retrieve --dup vhf
 
-[retrieve]
-
-### FHIR Endpoint (muss gesetzt werden)
-### Default: -
-### Hier ist als Beispiel ein Testserver ohne Authentifizierung angegeben:
+### fhirServerEndpoint
+### ------------------
+### Default: - (muss immer explizit gesetzt werden)
+### Hier ist als Beispiel ein Hapi und ein Blaze Testserver ohne Authentifizierung angegeben:
+# fhirServerEndpoint = "https://mii-agiop-3p.life.uni-leipzig.de/fhir"
 fhirServerEndpoint = "https://mii-agiop-3p.life.uni-leipzig.de/blaze"
 
+### fhirServerUser and fhirServerPass
+### ---------------------------------
 ### Falls Authentifizierung, bitte entsprechend anpassen (sonst ignorieren):
 ### Username und Passwort für Basic Auth
 ### Default: -
 # fhirServerUser =
 # fhirServerPass =
 
+### fhirServerToken
+### ---------------
 ### Alternativ: Token für Bearer Token Auth
 ### Default: -
 # fhirServerToken =
@@ -47,6 +53,7 @@ fhirServerEndpoint = "https://mii-agiop-3p.life.uni-leipzig.de/blaze"
 [retrieve.env]
 
 ### DECENTRAL_ANALYSIS
+### ------------------
 ### Default: "TRUE"
 ###   TRUE = Die Ergebnisse des Retrieval werden in das Verzeichnis
 ###          outputLocal geschrieben (das nicht ausgeleitet werden
@@ -63,6 +70,7 @@ fhirServerEndpoint = "https://mii-agiop-3p.life.uni-leipzig.de/blaze"
 # DECENTRAL_ANALYSIS = "TRUE"
 
 ### MAX_BUNDLES
+### -----------
 ###    Default: "Inf"
 ###             Das Script lädt zuerst alle passenden Observations,
 ###             davon ausgehend zugehörige Patienten und Conditions.
@@ -72,6 +80,7 @@ fhirServerEndpoint = "https://mii-agiop-3p.life.uni-leipzig.de/blaze"
 # MAX_BUNDLES = "Inf"
 
 ### DEBUG
+### -----
 ### Default: "FALSE"
 ###   TRUE = Zwischenergebnisse werden ins Verzeichnis outputLocal
 ###          geschrieben
@@ -79,29 +88,34 @@ fhirServerEndpoint = "https://mii-agiop-3p.life.uni-leipzig.de/blaze"
 # DEBUG = "FALSE"
 
 ### VERBOSE
+### -------
 ### Default: 0 (= keine Ausgabe)
 ### 0 .. 4 = Verbose-Level des fhircrackr
 # VERBOSE = 0
 
 ### SSL_VERIFY
+### ----------
 ### Default: "TRUE"
 ###   TRUE = FHIR Server Zertifikat verifizieren
 ###  FALSE = FHIR Server Zertifikat nicht verifizieren (potentiell unsicher, siehe https://de.wikipedia.org/wiki/Man-in-the-Middle-Angriff)
 # SSL_VERIFY = "TRUE"
 
 ### PROFILE_ENC
+### -----------
 ### FHIR Profile der zu ladenden Encounter. Es werden nur Encounter
 ### mit dem angegebenen Profil gefunden.
 ### Default: https://www.medizininformatik-initiative.de/fhir/core/modul-fall/StructureDefinition/KontaktGesundheitseinrichtung
 # PROFILE_ENC = "https://www.medizininformatik-initiative.de/fhir/core/modul-fall/StructureDefinition/KontaktGesundheitseinrichtung"
 
 ### PROFILE_OBS
+### -----------
 ### FHIR Profile der zu ladenden Observations. Es werden nur Observations
 ### mit dem angegebenen Profil gefunden.
 ### Default: https://www.medizininformatik-initiative.de/fhir/core/modul-labor/StructureDefinition/ObservationLab
 # PROFILE_OBS = "https://www.medizininformatik-initiative.de/fhir/core/modul-labor/StructureDefinition/ObservationLab"
 
 ### PROFILE_CON
+### -----------
 ### FHIR Profile der zu ladenden Conditions. Es werden nur Conditions
 ### mit dem angegebenen Profil gefunden.
 ### Default: https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Diagnose
@@ -121,6 +135,7 @@ fhirServerEndpoint = "https://mii-agiop-3p.life.uni-leipzig.de/blaze"
 [analyze.env]
 
 ### DECENTRAL_ANALYSIS
+### ------------------
 ### Default: "TRUE"
 ###   TRUE = Die Ergebnisse des Retrieval werden in das Verzeichnis
 ###          outputLocal geschrieben (das nicht ausgeleitet werden
@@ -137,6 +152,7 @@ fhirServerEndpoint = "https://mii-agiop-3p.life.uni-leipzig.de/blaze"
 # DECENTRAL_ANALYSIS = "TRUE"
 
 ### DEBUG
+### -----
 ### Default: "FALSE"
 ###   TRUE = Zwischenergebnisse werden ins Verzeichnis outputLocal
 ###          geschrieben
@@ -144,6 +160,7 @@ fhirServerEndpoint = "https://mii-agiop-3p.life.uni-leipzig.de/blaze"
 # DEBUG = "FALSE"
 
 ### DATA_QUALITY_REPORT
+### -------------------
 ### Default: "TRUE"
 ###   TRUE = Data Quality Report im outputGlobal erstellen
 ###  FALSE = Data Quality Report nicht erstellen
