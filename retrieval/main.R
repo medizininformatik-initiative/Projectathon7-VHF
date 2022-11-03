@@ -24,7 +24,7 @@ PROJECT_NAME <- "VHF"
 OUTPUT_DIR_LOCAL <- paste0(OUTPUT_DIR_BASE, "/outputLocal/", PROJECT_NAME)
 # Verzeichnis für Endergebnisse
 OUTPUT_DIR_GLOBAL <- paste0(OUTPUT_DIR_BASE, "/outputGlobal/", PROJECT_NAME)
-result_dir <- ifelse(DECENTRAL_ANALYIS, OUTPUT_DIR_LOCAL, OUTPUT_DIR_GLOBAL)
+result_dir <- ifelse(DECENTRAL_ANALYSIS, OUTPUT_DIR_LOCAL, OUTPUT_DIR_GLOBAL)
 
 # Maximum character length of GET requests to the FHIR server.
 # This value was created by testing.

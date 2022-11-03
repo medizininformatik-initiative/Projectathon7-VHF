@@ -28,7 +28,7 @@ SSL_VERIFY <- as.logical(Sys.getenv('SSL_VERIFY', "TRUE"))
 # Wenn false (= zentrale Analyse), dann wird die Analyse nicht automatisch nach
 # dem Retrieval ausgefüht, sondern die Ergebnisse des Retrieval in das
 # auszuleitenden outputGlobal-Verzeichnis gelegt.
-DECENTRAL_ANALYIS <- as.logical(Sys.getenv('DECENTRAL_ANALYIS', "TRUE"))
+DECENTRAL_ANALYSIS <- as.logical(Sys.getenv('DECENTRAL_ANALYSIS', "TRUE"))
 
 # Das Script lädt zuerst alle passenden Observations, davon ausgehend
 # die zugehörigen Patienten und Conditions.
@@ -62,7 +62,7 @@ message(paste0("    FHIR_SERVER_USER = ", ifelse(nchar(FHIR_SERVER_USER) > 0, "n
 message(paste0("    FHIR_SERVER_PASS = ", ifelse(nchar(FHIR_SERVER_PASS) > 0, "not empty password", "empty password")))
 message(paste0("   FHIR_SERVER_TOKEN = ", ifelse(nchar(FHIR_SERVER_TOKEN) > 0, "not empty token", "empty token")))
 message(paste0("          SSL_VERIFY = ", SSL_VERIFY))
-message(paste0("   DECENTRAL_ANALYIS = ", DECENTRAL_ANALYIS))
+message(paste0("  DECENTRAL_ANALYSIS = ", DECENTRAL_ANALYSIS))
 message(paste0("         MAX_BUNDLES = ", MAX_BUNDLES))
 message(paste0("               DEBUG = ", DEBUG))
 message(paste0("             VERBOSE = ", VERBOSE))

@@ -46,7 +46,7 @@ fhirServerEndpoint = "https://mii-agiop-3p.life.uni-leipzig.de/blaze"
 ### ----------------------------------------###
 [retrieve.env]
 
-### DECENTRAL_ANALYIS
+### DECENTRAL_ANALYSIS
 ### Default: "TRUE"
 ###   TRUE = Die Ergebnisse des Retrieval werden in das Verzeichnis
 ###          outputLocal geschrieben (das nicht ausgeleitet werden
@@ -60,7 +60,7 @@ fhirServerEndpoint = "https://mii-agiop-3p.life.uni-leipzig.de/blaze"
 ###          DIZ ausgeführt werden sollte, kann man sie dennoch
 ###          ausführen und auch sie schreibt ihre Ergebnisse in
 ###          outputGlobal.
-# DECENTRAL_ANALYIS = "TRUE"
+# DECENTRAL_ANALYSIS = "TRUE"
 
 ### MAX_BUNDLES
 ###    Default: "Inf"
@@ -120,7 +120,7 @@ fhirServerEndpoint = "https://mii-agiop-3p.life.uni-leipzig.de/blaze"
 ### --------------------------------------###
 [analyze.env]
 
-### DECENTRAL_ANALYIS
+### DECENTRAL_ANALYSIS
 ### Default: "TRUE"
 ###   TRUE = Die Ergebnisse des Retrieval werden in das Verzeichnis
 ###          outputLocal geschrieben (das nicht ausgeleitet werden
@@ -134,7 +134,7 @@ fhirServerEndpoint = "https://mii-agiop-3p.life.uni-leipzig.de/blaze"
 ###          DIZ ausgeführt werden sollte, kann man sie dennoch
 ###          ausführen und auch sie schreibt ihre Ergebnisse in
 ###          outputGlobal.
-# DECENTRAL_ANALYIS = "TRUE"
+# DECENTRAL_ANALYSIS = "TRUE"
 
 ### DEBUG
 ### Default: "FALSE"

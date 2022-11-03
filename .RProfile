@@ -6,7 +6,7 @@
 ### SHARED OPTIONS FOR RETRIEVAL AND ANALYSIS ###
 #################################################
 
-### DECENTRAL_ANALYIS
+### DECENTRAL_ANALYSIS
 ### Default: TRUE
 ###   TRUE = Die Ergebnisse des Retrieval werden in das Verzeichnis
 ###          outputLocal geschrieben (das nicht ausgeleitet werden
@@ -20,7 +20,7 @@
 ###          DIZ ausgeführt werden sollte, kann man sie dennoch
 ###          ausführen und auch sie schreibt ihre Ergebnisse in
 ###          outputGlobal.
-# Sys.setenv(DECENTRAL_ANALYIS = "TRUE")
+# Sys.setenv(DECENTRAL_ANALYSIS = "TRUE")
 
 ### DEBUG
 ### Default: "FALSE"

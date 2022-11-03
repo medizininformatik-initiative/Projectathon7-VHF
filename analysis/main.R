@@ -28,7 +28,7 @@ PROJECT_NAME <- "VHF"
 OUTPUT_DIR_LOCAL <- paste0(OUTPUT_DIR_BASE, "/outputLocal/", PROJECT_NAME)
 # Directory for final results
 OUTPUT_DIR_GLOBAL <- paste0(OUTPUT_DIR_BASE, "/outputGlobal/", PROJECT_NAME)
-retrieve_dir = ifelse(DECENTRAL_ANALYIS, OUTPUT_DIR_LOCAL, OUTPUT_DIR_GLOBAL)
+retrieve_dir = ifelse(DECENTRAL_ANALYSIS, OUTPUT_DIR_LOCAL, OUTPUT_DIR_GLOBAL)
 
 # Result files from retrieve -> here the input files
 retrieve_file_cohort <- paste0(retrieve_dir, "/Cohort.csv")
