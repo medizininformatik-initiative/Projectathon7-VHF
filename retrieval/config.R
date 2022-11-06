@@ -43,13 +43,13 @@ VERBOSE <- as.integer(Sys.getenv('VERBOSE', "0"))
 OUTPUT_DIR_BASE <- Sys.getenv('OUTPUT_DIR_BASE', '.')
 
 ### Profile, der gesuchten Resourcen:
-#Encounter
+# Encounter
 PROFILE_ENC <- Sys.getenv("PROFILE_ENC",
                           "https://www.medizininformatik-initiative.de/fhir/core/modul-fall/StructureDefinition/KontaktGesundheitseinrichtung")
-#Observation
+# Observation
 PROFILE_OBS <- Sys.getenv("PROFILE_OBS",
                           "https://www.medizininformatik-initiative.de/fhir/core/modul-labor/StructureDefinition/ObservationLab")
-#Condition
+# Condition
 PROFILE_CON <- Sys.getenv("PROFILE_CON",
                           "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Diagnose")
 
