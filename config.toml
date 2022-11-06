@@ -121,6 +121,64 @@ fhirServerEndpoint = "https://mii-agiop-3p.life.uni-leipzig.de/blaze"
 ### Default: https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Diagnose
 # PROFILE_CON = "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Diagnose"
 
+### FHIR_SEARCH_SUBJECT_LIST_OPTION
+### -------------------------------
+### Dieser Parameter legt fest, wie die Encounter und Conditions per fhir_search(...)-Anfrage eingeschränkt auf die
+### subject-IDs der zuvor geladenen NTproBNP-Observationen heruntergeladen werden sollen. Der Default 
+### COMMA_SEPARATED_PURE_IDS sollte bei Hapi und Blaze Servern funktionieren, bei Firely-Servern kam es zu Problemen.
+### Auf allen Servern funktioniert die Option COMMA_SEPARATED_IDS_WITH_PATIENT_PREFIX. Allerdings passen dann weniger
+### IDs gleichzeitig in eine Anfrage, da von den maximal 2048 Zeichen der get-Anfrage pro subject-ID die Länge für
+### den Präfix "Patient/" verloren geht und dadurch mehr Anfragen generiert werden müssen, was die Downloadzeit je
+### nach Datenmenge verlängert.
+### 
+### Default: "COMMA_SEPARATED_PURE_IDS"
+###
+### List request options for request with multiple subject IDs:
+### ...........................................................
+### COMMA_SEPARATED_PURE_IDS
+###    $fhirServerEndpoint/Encounter?subject=PID01,PID02,PID...&type=einrichtungskontakt&_profile=$PROFILE_ENC
+###    $fhirServerEndpoint/Condition?subject=PID01,PID02,PID...&_profile=$PROFILE_CON
+###
+### COMMA_SEPARATED_PURE_IDS_WITH_SUBJECT_PATIENT
+###    $fhirServerEndpoint/Encounter?subject:Patient=PID01,PID02,PID...&type=einrichtungskontakt&_profile=$PROFILE_ENC
+###    $fhirServerEndpoint/Condition?subject:Patient=PID01,PID02,PID...&_profile=$PROFILE_CON
+###
+### COMMA_SEPARATED_IDS_WITH_PATIENT_PREFIX
+###    $fhirServerEndpoint/Encounter?subject=Patient/PID01,Patient/PID0,...&type=einrichtungskontakt&_profile=$PROFILE_ENC
+###    $fhirServerEndpoint/Condition?subject=Patient/PID01,Patient/PID02,...&_profile=$PROFILE_CON
+###
+### Request options for multiple requests with a single subject ID:
+### .............................................................. 
+### Diese Optionen sollten (wenn es kein Blaze ist) möglichst nur zum Testen genutzt werden oder als absoluter Fallback,
+### falls keine der obigen Optionen funktioniert. Diese Requests mit nur einer subject ID dauern sehr viel länger (Hapi
+### statt 55 sek -> 25 min = ca. Faktor 25 und Blaze statt 35 sek -> 1:40 min = ca. Faktor 3 jeweils auf demselben
+### Datensatz)
+###
+### SINGLE_REQUEST_PER_ID
+###    $fhirServerEndpoint/Encounter?subject=PID01&type=einrichtungskontakt&_profile=$PROFILE_ENC
+###    $fhirServerEndpoint/Condition?subject=PID01&_profile=$PROFILE_CON
+###
+### SINGLE_REQUEST_PER_ID_WITH_SUBJECT_PATIENT
+###    $fhirServerEndpoint/Encounter?subject:Patient=PID01&type=einrichtungskontakt&_profile=$PROFILE_ENC
+###    $fhirServerEndpoint/Condition?subject:Patient=PID01&_profile=$PROFILE_CON
+###
+### SINGLE_REQUEST_PER_ID_WITH_PATIENT_PREFIX
+###    $fhirServerEndpoint/Encounter?subject=Patient/PID01&type=einrichtungskontakt&_profile=$PROFILE_ENC
+###    $fhirServerEndpoint/Condition?subject=Patient/PID01&_profile=$PROFILE_CON
+###
+### Query option to get all Encounters and Conditions on the server (useful if resources on the server are already
+### filtered):
+### ..............................................................................................................
+### IGNORE_IDS
+###    $fhirServerEndpoint/Encounter?einrichtungskontakt&_profile=$PROFILE_ENC
+###    $fhirServerEndpoint/Condition?_profile=$PROFILE_CON
+###
+### optimal für Hapi und Blaze (ist auch der Default)
+# FHIR_SEARCH_SUBJECT_LIST_OPTION = "COMMA_SEPARATED_PURE_IDS"
+### für Firely, aber funktioniert auch für Hapi und Blaze
+# FHIR_SEARCH_SUBJECT_LIST_OPTION = "COMMA_SEPARATED_IDS_WITH_PATIENT_PREFIX"
+
+
 #####################################
 ### Einstellungen für die Analyse ###
 #####################################

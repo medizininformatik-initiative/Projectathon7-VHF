@@ -55,6 +55,54 @@ createDirWithBackup(OUTPUT_DIR_GLOBAL)
 createDirsRecursive(output_local_errors)
 createDirsRecursive(debug_dir_obs_bundles, debug_dir_enc_bundles, debug_dir_con_bundles, condition = DEBUG)
 
+# ensure profile Strings without leading or tailing whitespaces
+PROFILE_ENC <- trimws(PROFILE_ENC)
+PROFILE_OBS <- trimws(PROFILE_OBS)
+PROFILE_CON <- trimws(PROFILE_CON)
+
+#####################
+# Chunk List Option #
+#####################
+
+# The urls in get requests have a maximum length of approx. 2000 characters.
+# Depending on how the requests to the server are to be structured (option
+# FHIR_SEARCH_SUBJECT_LIST_OPTION), it is specified here how many subject
+# IDs are to come into a request at the same time and which strings are
+# (must be) inserted in the request before and after the ID.
+
+# option name | max IDs per chunk (if fits) | string after subject | string before every ID | string after every ID
+CHUNK_LIST_OPTION <- c(
+  "COMMA_SEPARATED_PURE_IDS",                      Inf,         "",         "", "%2C", # every comma after an ID will
+  "COMMA_SEPARATED_PURE_IDS_WITH_SUBJECT_PATIENT", Inf, ":Patient",         "", "%2C", # be replaced by "%2C"
+  "COMMA_SEPARATED_IDS_WITH_PATIENT_PREFIX",       Inf,         "", "Patient/", "%2C",
+  "SINGLE_REQUEST_PER_ID",                           1,         "",         "",    "",
+  "SINGLE_REQUEST_PER_ID_WITH_SUBJECT_PATIENT",      1, ":Patient",         "",    "",
+  "SINGLE_REQUEST_PER_ID_WITH_PATIENT_PREFIX",       1,         "", "Patient/",    "",
+  "IGNORE_IDS",                                      0,         "",         "",    ""
+)
+CHUNK_LIST_OPTION <- matrix(CHUNK_LIST_OPTION, length(CHUNK_LIST_OPTION) / 5, 5, byrow = TRUE)
+
+# Row index of the choosed option in the above matrix 
+chunkListOptionRowIndex <- match(FHIR_SEARCH_SUBJECT_LIST_OPTION, CHUNK_LIST_OPTION[, 1])
+
+# the option was not found (probably typo in config.toml or .RProfile)
+if (is.na(chunkListOptionRowIndex)) {
+  logGlobalAndError("Ungültiger Wert für Parameter FHIR_SEARCH_SUBJECT_LIST_OPTION gefunden: ", FHIR_SEARCH_SUBJECT_LIST_OPTION)
+  stop("No NTproBNP Observations found - aborting.")
+}
+# max number of IDs in one chunk (if it fits)
+chunkListOptionMaxIDsPerChunk <- as.numeric(CHUNK_LIST_OPTION[chunkListOptionRowIndex, 2])
+# string that will be added after "subject" and before "="
+chunkListOptionSubjectSuffix <- as.character(CHUNK_LIST_OPTION[chunkListOptionRowIndex, 3])
+# number of chars added to every ID in the request as prefix
+chunkListOptionIDPrefix <- as.character(CHUNK_LIST_OPTION[chunkListOptionRowIndex, 4])
+# number of chars added to every ID in the request as suffix
+chunkListOptionIDSuffix <- as.character(CHUNK_LIST_OPTION[chunkListOptionRowIndex, 5])
+
+# cleanup
+rm(CHUNK_LIST_OPTION)
+rm(chunkListOptionRowIndex)
+
 #################
 # Log Functions #
 #################
@@ -127,24 +175,52 @@ makeRelative <- function(references) {
 #####################
 # Create PID Chunks #
 #####################
+# FHIR_SEARCH_SUBJECT_LIST_OPTION
+# -------------------------------
+# COMMA_SEPARATED_PURE_IDS
+#    $fhirServerEndpoint/Encounter?subject=PID01,PID02,PID...&type=einrichtungskontakt&_profile=$PROFILE_ENC
+#    $fhirServerEndpoint/Condition?subject=PID01,PID02,PID...&_profile=$PROFILE_CON
+# COMMA_SEPARATED_PURE_IDS_WITH_SUBJECT_PATIENT
+#    $fhirServerEndpoint/Encounter?subject:Patient=PID01,PID02,PID...&type=einrichtungskontakt&_profile=$PROFILE_ENC
+#    $fhirServerEndpoint/Condition?subject:Patient=PID01,PID02,PID...&_profile=$PROFILE_CON
+# COMMA_SEPARATED_IDS_WITH_PATIENT_PREFIX
+#    $fhirServerEndpoint/Encounter?subject=Patient/PID01,Patient/PID02&...&type=einrichtungskontakt&_profile=$PROFILE_ENC
+#    $fhirServerEndpoint/Condition?subject=Patient/PID01,Patient/PID02&...&_profile=$PROFILE_CON
+# SINGLE_REQUEST_PER_ID:
+#    $fhirServerEndpoint/Encounter?subject=PID01&type=einrichtungskontakt&_profile=$PROFILE_ENC
+#    $fhirServerEndpoint/Condition?subject=PID01&_profile=$PROFILE_CON
+# SINGLE_REQUEST_PER_ID_WITH_SUBJECT_PATIENT:
+#    $fhirServerEndpoint/Encounter?subject:Patient=PID01&type=einrichtungskontakt&_profile=$PROFILE_ENC
+#    $fhirServerEndpoint/Condition?subject:Patient=PID01&_profile=$PROFILE_CON
+# SINGLE_REQUEST_PER_ID_WITH_PATIENT_PREFIX:
+#    $fhirServerEndpoint/Encounter?subject=Patient/PID01&type=einrichtungskontakt&_profile=$PROFILE_ENC
+#    $fhirServerEndpoint/Condition?subject=Patient/PID01&_profile=$PROFILE_CON
+# IGNORE_IDS:
+#    $fhirServerEndpoint/Encounter?einrichtungskontakt&_profile=$PROFILE_ENC
+#    $fhirServerEndpoint/Condition?_profile=$PROFILE_CON
 
 #'
 #' Splits the patient id list into smaller chunks that can be used in a GET url
 #' (split because we don't want to exceed allowed URL length)
 #' remaining number of characters in the url that can be used for patient IDs
 #' (assume maximal length of MAX_REQUEST_STRING_LENGTH)
-#' @return a list of lists of patient IDs so that the request fits the maximum length of MAX_REQUEST_STRING_LENGTH
+#' @return the number patient IDs so that the request fits the maximum length of MAX_REQUEST_STRING_LENGTH
 #'
 #'
-getPatientIDChunks <- function(allPatientIDs) {
-
+getPatientIDChunkSize <- function(allPatientIDs) {
+  # The magic number 10 means that we assume that at least
+  # 10 IDs can be contained in a chunk and that the search
+  # query will not exceed the length of about 2000.
+  patientIDsChunkSize <- chunkListOptionMaxIDsPerChunk
+  if (patientIDsChunkSize > 10) {
   profile <- ifelse(nchar(PROFILE_ENC) > nchar(PROFILE_CON), PROFILE_ENC, PROFILE_CON)
   
   # maximum lenght of all parts of a paged query
   fixLength <- nchar(fhir_server_url) + 1 + # the url with a slash
     nchar("/Encounter/__page?subject=") +   # fix part after url ("Condition" has the same lenght like "Encounter")
+      nchar(chunkListOptionSubjectSuffix) +        # ":Patient" after subject or empty string
     nchar("&type=einrichtungskontakt") +    # parameter for encounters
-    nchar(profile) + 2 +                    # before the profile an "&_" is added
+      nchar("&_profile") + nchar(profile) +   # the full profile length
     countCharInString(profile, "/") * 2 +   # "/" will be replaced by "%2F" -> count * 2
     countCharInString(profile, ":") * 2 +   # ":" will be replaced by "%3A" -> count * 2
     nchar("&_count=1000&__t=1000000&__page-id=EncounterID_ABCDEFGHIJKLMNOPQRSTUVWXYZ") # Something like this will be
@@ -153,10 +229,10 @@ getPatientIDChunks <- function(allPatientIDs) {
                                                                                        # Realistic values should be 
                                                                                        # shorter.
   ncharForAllIDs <- MAX_REQUEST_STRING_LENGTH - fixLength
-  maxSingleIDLength <- max(nchar(allPatientIDs)) + 3 # + 3 because the commas between the IDs will be changed to "%2C"
+    maxSingleIDLength <- nchar(chunkListOptionIDPrefix) + max(nchar(allPatientIDs)) + nchar(chunkListOptionIDSuffix)
   patientIDsChunkSize <- ncharForAllIDs / maxSingleIDLength
-  patientIDsChunks <-  split(allPatientIDs, ceiling(seq_along(allPatientIDs) / patientIDsChunkSize))
-  return(patientIDsChunks)  
+  }
+  return (patientIDsChunkSize)
 }
 
 
@@ -339,7 +415,8 @@ observations <- merge.data.table(
 rm(obs_tables)
 
 # get patient IDs in chunks of the maximum list length for page queries
-patient_ids_chunks <- getPatientIDChunks(unique(observations$subject))
+patientIDs <- unique(observations$subject)
+patientIDChunkSize <- as.integer(getPatientIDChunkSize(patientIDs))
 
 # get encounters and diagnoses
 # --> all encounters and diagnoses of initial patient population,
@@ -350,58 +427,94 @@ condition_bundles <- list()
 message("Downloading Encounters and Conditions.\n")
 
 invisible({
-  lapply(patient_ids_chunks, function(x) {
-    # x <- patient_ids_chunks[[1]]
-    ids <- paste(x, collapse = ",")
 
-    ### Encounters
-    enc_request <- fhir_url(
-      url = fhir_server_url,
-      resource = "Encounter",
-      parameters = c(subject = ids,
-                     type = "einrichtungskontakt")
-    )
+  # get the maximum number of subject IDs for a single request
+  patientIDCount <- length(patientIDs)
+  chunkCount <- ifelse(patientIDChunkSize > 0, as.integer(patientIDCount / patientIDChunkSize) + 1, NA) 
+  
+  ignoreIDs <- is.na(chunkCount)
+  if (ignoreIDs) chunkCount <- 1
+  
+  idStartIndex <- 1
+  idEndIndex <- patientIDChunkSize
 
-    # add profile from config
-    enc_request <- fhir_url(url = paste0(enc_request, "&_profile=", PROFILE_ENC))
+  subjectParamName <- paste0("subject", chunkListOptionSubjectSuffix)
+  
+  for (chunkIndex in 1 : chunkCount) {
 
-
-    encounter_bundles <<- append(
-      encounter_bundles,
-      fhir_search(
-        enc_request,
-        username = FHIR_SERVER_USER,
-        password = FHIR_SERVER_PASS,
-        token = FHIR_SERVER_TOKEN,
-        log_errors = error_file_enc,
-        verbose = VERBOSE
+    if (idStartIndex <= patientIDCount) {
+      if (idEndIndex > patientIDCount) {
+        idEndIndex <- patientIDCount
+      }
+  
+      parameters <- c()
+      # append subject IDs as parameter if they should not be ignored
+      if (!ignoreIDs) {
+        idChunk <- patientIDs[c(idStartIndex : idEndIndex)]
+        ids <- paste(paste0(chunkListOptionIDPrefix, idChunk), collapse = chunkListOptionIDSuffix)
+        parameters <- c(subject = ids)
+        # change the name of the list element if needed (from "subject" to "subject:Patient")
+        if (nchar(chunkListOptionSubjectSuffix) > 0) names(parameters)[1] <- paste0("subject", chunkListOptionSubjectSuffix)
+      }
+      # add type parameter for encounters
+      parameters <- c(
+        parameters, 
+        type = "einrichtungskontakt",
+        # add profile from config if not empty
+        "_profile" = PROFILE_ENC,
+        # add count parameter
+        "_count" = BUNDLE_RESOURCES_COUNT
       )
-    )
-
-    ### Conditions
-    con_request <- fhir_url(
-      url = fhir_server_url,
-      resource = "Condition",
-      parameters = c(subject = ids)
-    )
-
-    # add profile from config
-    con_request <- fhir_url(url = paste0(con_request, "&_profile=", PROFILE_CON))
-
-
-    condition_bundles <<- append(
-      condition_bundles,
-      fhir_search(
-        con_request,
-        username = FHIR_SERVER_USER,
-        password = FHIR_SERVER_PASS,
-        token = FHIR_SERVER_TOKEN,
-        log_errors = error_file_con,
-        verbose = VERBOSE
+      
+      ### Encounters
+      enc_request <- fhir_url(url = fhir_server_url, resource = "Encounter", parameters = parameters)
+      
+      encounter_bundles <<- append(
+        encounter_bundles,
+        fhir_search(
+          enc_request,
+          username = FHIR_SERVER_USER,
+          password = FHIR_SERVER_PASS,
+          token = FHIR_SERVER_TOKEN,
+          log_errors = error_file_enc,
+          verbose = VERBOSE
+        )
       )
-    )
 
-  })
+      ### Conditions
+      parameters <- c()
+      if (!ignoreIDs) {
+        parameters <- c(subject = ids)
+        # change the name of the list element if needed (from "subject" to "subject:Patient")
+        if (nchar(chunkListOptionSubjectSuffix) > 0) names(parameters)[1] <- paste0("subject", chunkListOptionSubjectSuffix)
+      }
+      # add profile from config if not empty
+      parameters <- c(
+        parameters, 
+        "_profile" = PROFILE_CON,
+        # add count parameter
+        "_count" = BUNDLE_RESOURCES_COUNT
+      )
+      
+      con_request <- fhir_url(url = fhir_server_url, resource = "Condition", parameters = parameters)
+      
+      condition_bundles <<- append(
+        condition_bundles,
+        fhir_search(
+          con_request,
+          username = FHIR_SERVER_USER,
+          password = FHIR_SERVER_PASS,
+          token = FHIR_SERVER_TOKEN,
+          log_errors = error_file_con,
+          verbose = VERBOSE
+        )
+      )
+
+      idStartIndex <- idEndIndex + 1
+      idEndIndex <- idStartIndex + patientIDChunkSize - 1
+    }
+  }
+
 })
 
 # bring encounter results together, save and flatten
