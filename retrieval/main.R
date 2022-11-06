@@ -25,12 +25,6 @@ OUTPUT_DIR_LOCAL <- paste0(OUTPUT_DIR_BASE, "/outputLocal/", PROJECT_NAME)
 # Verzeichnis für Endergebnisse
 OUTPUT_DIR_GLOBAL <- paste0(OUTPUT_DIR_BASE, "/outputGlobal/", PROJECT_NAME)
 result_dir <- ifelse(DECENTRAL_ANALYSIS, OUTPUT_DIR_LOCAL, OUTPUT_DIR_GLOBAL)
-
-# Maximum character length of GET requests to the FHIR server.
-# This value was created by testing.
-# Request to load patients are divided under this maximum length.
-MAX_REQUEST_STRING_LENGTH <- 2000
-
 # Output directories
 output_local_errors <- paste0(OUTPUT_DIR_LOCAL, "/Errors")
 output_local_bundles <- paste0(OUTPUT_DIR_LOCAL, "/Bundles")

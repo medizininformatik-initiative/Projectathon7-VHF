@@ -79,6 +79,28 @@ fhirServerEndpoint = "https://mii-agiop-3p.life.uni-leipzig.de/blaze"
 ###             geladen
 # MAX_BUNDLES = "Inf"
 
+### BUNDLE_RESOURCES_COUNT
+### ----------------------
+### Anzahl der Resources pro Bundle. Wird als "&_count="-Parameter an die 
+### fhir_search()-Requests gehängt. Dieser Parameter wird eventuell vom Server
+### ignoriert oder beschränkt. Hapi hat per Default 20, Blaze 50. Ein anderer
+### Wert hat beim Blaze aber keinerlei Vorteile oder Nachteile in der Laufzeit
+### ergeben. Nur beim Testen dauert es eben länger, wenn man 100 Resources
+### pro Bundle lädt oder nur 20.
+### Default: 50
+# BUNDLE_RESOURCES_COUNT = 50
+
+### MAX_REQUEST_STRING_LENGTH
+### -------------------------
+### Maximale Gesamtlänge eines get-Requests, der an den Server geschickt wird. Diese
+### Länge wird definitiv niemals erreicht/überschritten. Dieser Parameter entscheidet
+### darüber, wieviele subject-IDs tatsächlich gleichzeitig in einen Request gepackt
+### werden, wenn bei FHIR_SEARCH_SUBJECT_LIST_OPTION eine Option gewählt wurde, bei
+### der mehr als eine ID im Request steht. Der Wert hier ist durch Testen herausgefunden
+### worden und kann auf einem speziellen Server anders sein.
+### Default: 2048
+# MAX_REQUEST_STRING_LENGTH = 2048
+
 ### DEBUG
 ### -----
 ### Default: "FALSE"

@@ -34,6 +34,23 @@ DECENTRAL_ANALYSIS <- as.logical(Sys.getenv('DECENTRAL_ANALYSIS', "TRUE"))
 # die zugehörigen Patienten und Conditions.
 # Inf = alle Observation Bundles, ansonsten wird maximal die gegebene Anzahl geladen
 MAX_BUNDLES <- as.double(Sys.getenv('MAX_BUNDLES', "Inf"))
+
+# Anzahl der Resources pro Bundle. Wird als "&_count="-Parameter an die 
+# fhir_search()-Requests gehängt. Dieser Parameter wird eventuell vom Server
+# ignoriert oder beschränkt. Hapi hat per Default 20, Blaze 50. Ein anderer
+# Wert hat beim Blaze aber keinerlei Vorteile oder Nachteile in der Laufzeit
+# ergeben. Nur beim Testen dauert es eben länger, wenn man 100 Resources
+# pro Bundle lädt oder nur 20.
+BUNDLE_RESOURCES_COUNT <- as.numeric(Sys.getenv('BUNDLE_RESOURCES_COUNT', 50))
+
+# Maximale Gesamtlänge eines get-Requests, der an den Server geschickt wird. Diese
+# Länge wird definitiv niemals erreicht/überschritten. Dieser Parameter entscheidet
+# darüber, wieviele subject-IDs tatsächlich gleichzeitig in einen Request gepackt
+# werden, wenn bei FHIR_SEARCH_SUBJECT_LIST_OPTION eine Option gewählt wurde, bei
+# der mehr als eine ID im Request steht. Der Wert hier ist durch Testen herausgefunden
+# worden und kann auf einem speziellen Server anders sein.
+MAX_REQUEST_STRING_LENGTH <- as.numeric(Sys.getenv('MAX_REQUEST_STRING_LENGTH', 2048))
+
 # Debug = TRUE -> Bundles werden in outputLocal gespeichert
 DEBUG <- as.logical(Sys.getenv('DEBUG', "FALSE"))
 # Verbose-Level des fhircrackr
@@ -67,6 +84,8 @@ message(paste0("              FHIR_SERVER_TOKEN = ", ifelse(nchar(FHIR_SERVER_TO
 message(paste0("                     SSL_VERIFY = ", SSL_VERIFY))
 message(paste0("             DECENTRAL_ANALYSIS = ", DECENTRAL_ANALYSIS))
 message(paste0("                    MAX_BUNDLES = ", MAX_BUNDLES))
+message(paste0("         BUNDLE_RESOURCES_COUNT = ", BUNDLE_RESOURCES_COUNT))
+message(paste0("      MAX_REQUEST_STRING_LENGTH = ", MAX_REQUEST_STRING_LENGTH))
 message(paste0("                          DEBUG = ", DEBUG))
 message(paste0("                        VERBOSE = ", VERBOSE))
 message(paste0("                OUTPUT_DIR_BASE = ", OUTPUT_DIR_BASE))
