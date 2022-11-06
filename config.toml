@@ -105,6 +105,8 @@ fhirServerEndpoint = "https://mii-agiop-3p.life.uni-leipzig.de/blaze"
 ### FHIR Profile der zu ladenden Encounter. Es werden nur Encounter
 ### mit dem angegebenen Profil gefunden.
 ### Default: https://www.medizininformatik-initiative.de/fhir/core/modul-fall/StructureDefinition/KontaktGesundheitseinrichtung
+###  EMPTY = Wenn kein Profil in der Abfrage gesetzt werden soll, muss dieses Schlüsselwort angegeben werden. 
+# PROFILE_ENC = "EMPTY"
 # PROFILE_ENC = "https://www.medizininformatik-initiative.de/fhir/core/modul-fall/StructureDefinition/KontaktGesundheitseinrichtung"
 
 ### PROFILE_OBS
@@ -112,6 +114,8 @@ fhirServerEndpoint = "https://mii-agiop-3p.life.uni-leipzig.de/blaze"
 ### FHIR Profile der zu ladenden Observations. Es werden nur Observations
 ### mit dem angegebenen Profil gefunden.
 ### Default: https://www.medizininformatik-initiative.de/fhir/core/modul-labor/StructureDefinition/ObservationLab
+###  EMPTY = Wenn kein Profil in der Abfrage gesetzt werden soll, muss dieses Schlüsselwort angegeben werden. 
+# PROFILE_OBS = "EMPTY"
 # PROFILE_OBS = "https://www.medizininformatik-initiative.de/fhir/core/modul-labor/StructureDefinition/ObservationLab"
 
 ### PROFILE_CON
@@ -119,6 +123,8 @@ fhirServerEndpoint = "https://mii-agiop-3p.life.uni-leipzig.de/blaze"
 ### FHIR Profile der zu ladenden Conditions. Es werden nur Conditions
 ### mit dem angegebenen Profil gefunden.
 ### Default: https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Diagnose
+###  EMPTY = Wenn kein Profil in der Abfrage gesetzt werden soll, muss dieses Schlüsselwort angegeben werden. 
+# PROFILE_CON = "EMPTY"
 # PROFILE_CON = "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Diagnose"
 
 ### FHIR_SEARCH_SUBJECT_LIST_OPTION

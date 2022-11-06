@@ -213,24 +213,24 @@ getPatientIDChunkSize <- function(allPatientIDs) {
   # query will not exceed the length of about 2000.
   patientIDsChunkSize <- chunkListOptionMaxIDsPerChunk
   if (patientIDsChunkSize > 10) {
-  profile <- ifelse(nchar(PROFILE_ENC) > nchar(PROFILE_CON), PROFILE_ENC, PROFILE_CON)
-  
-  # maximum lenght of all parts of a paged query
-  fixLength <- nchar(fhir_server_url) + 1 + # the url with a slash
-    nchar("/Encounter/__page?subject=") +   # fix part after url ("Condition" has the same lenght like "Encounter")
+    profile <- ifelse(nchar(PROFILE_ENC) > nchar(PROFILE_CON), PROFILE_ENC, PROFILE_CON)
+    
+    # maximum lenght of all parts of a paged query
+    fixLength <- nchar(fhir_server_url) + 1 + # the url with a slash
+      nchar("/Encounter/__page?subject=") +   # fix part after url ("Condition" has the same lenght like "Encounter")
       nchar(chunkListOptionSubjectSuffix) +        # ":Patient" after subject or empty string
-    nchar("&type=einrichtungskontakt") +    # parameter for encounters
+      nchar("&type=einrichtungskontakt") +    # parameter for encounters
       nchar("&_profile") + nchar(profile) +   # the full profile length
-    countCharInString(profile, "/") * 2 +   # "/" will be replaced by "%2F" -> count * 2
-    countCharInString(profile, ":") * 2 +   # ":" will be replaced by "%3A" -> count * 2
-    nchar("&_count=1000&__t=1000000&__page-id=EncounterID_ABCDEFGHIJKLMNOPQRSTUVWXYZ") # Something like this will be
-                                                                                       # added to every paging query.
-                                                                                       # The values here are super large.
-                                                                                       # Realistic values should be 
-                                                                                       # shorter.
-  ncharForAllIDs <- MAX_REQUEST_STRING_LENGTH - fixLength
+      countCharInString(profile, "/") * 2 +   # "/" will be replaced by "%2F" -> count * 2
+      countCharInString(profile, ":") * 2 +   # ":" will be replaced by "%3A" -> count * 2
+      nchar("&_count=1000&__t=1000000&__page-id=EncounterID_ABCDEFGHIJKLMNOPQRSTUVWXYZ") # Something like this will be
+                                                                                         # added to every paging query.
+                                                                                         # The values here are super large.
+                                                                                         # Realistic values should be 
+                                                                                         # shorter.
+    ncharForAllIDs <- MAX_REQUEST_STRING_LENGTH - fixLength
     maxSingleIDLength <- nchar(chunkListOptionIDPrefix) + max(nchar(allPatientIDs)) + nchar(chunkListOptionIDSuffix)
-  patientIDsChunkSize <- ncharForAllIDs / maxSingleIDLength
+    patientIDsChunkSize <- ncharForAllIDs / maxSingleIDLength
   }
   return (patientIDsChunkSize)
 }
@@ -270,26 +270,28 @@ sep <- " || "
 # also get associated patient resources --> initial patient population
 # Observations have to implement MII profile
 # TODO: weitere LOINC Codes ergänzen zB für proBNP
-obs_request <- fhir_url(
-  url = fhir_server_url,
-  resource = "Observation",
-  parameters = c(
-    "code" = paste0(
-      "http://loinc.org|33763-4,",
-      "http://loinc.org|71425-3,",
-      "http://loinc.org|33762-6,",
-      "http://loinc.org|83107-3,",
-      "http://loinc.org|83108-1,",
-      "http://loinc.org|77622-9,",
-      "http://loinc.org|77621-1"),
-    "date" = "ge2019-01-01",
-    "date" = "le2022-12-31",
-    "_include" = "Observation:patient"
-  )
+parameters = c(
+  "code" = paste0(
+    "http://loinc.org|33763-4,",
+    "http://loinc.org|71425-3,",
+    "http://loinc.org|33762-6,",
+    "http://loinc.org|83107-3,",
+    "http://loinc.org|83108-1,",
+    "http://loinc.org|77622-9,",
+    "http://loinc.org|77621-1"),
+  "date" = "ge2019-01-01",
+  "date" = "le2022-12-31"
+)
+# add profile from config if not empty
+if (PROFILE_OBS != "EMPTY") parameters <- c(parameters, "_profile" = PROFILE_OBS)
+# include patients of observation
+parameters <- c(
+  parameters,
+  "_include" = "Observation:patient", 
+  "_count" = BUNDLE_RESOURCES_COUNT
 )
 
-# add profile from config
-obs_request <- fhir_url(paste0(obs_request, "&_profile=", PROFILE_OBS))
+obs_request <- fhir_url(url = fhir_server_url, resource = "Observation", parameters = parameters)
 
 # download bundles
 message("Downloading Observations: ", obs_request, "\n")
@@ -457,14 +459,11 @@ invisible({
         if (nchar(chunkListOptionSubjectSuffix) > 0) names(parameters)[1] <- paste0("subject", chunkListOptionSubjectSuffix)
       }
       # add type parameter for encounters
-      parameters <- c(
-        parameters, 
-        type = "einrichtungskontakt",
-        # add profile from config if not empty
-        "_profile" = PROFILE_ENC,
-        # add count parameter
-        "_count" = BUNDLE_RESOURCES_COUNT
-      )
+      parameters <- c(parameters, type = "einrichtungskontakt")
+      # add profile from config if not empty
+      if (PROFILE_ENC != "EMPTY") parameters <- c(parameters, "_profile" = PROFILE_ENC)
+      # add count parameter
+      parameters <- c(parameters, c("_count" = BUNDLE_RESOURCES_COUNT))                                                  
       
       ### Encounters
       enc_request <- fhir_url(url = fhir_server_url, resource = "Encounter", parameters = parameters)
@@ -489,12 +488,9 @@ invisible({
         if (nchar(chunkListOptionSubjectSuffix) > 0) names(parameters)[1] <- paste0("subject", chunkListOptionSubjectSuffix)
       }
       # add profile from config if not empty
-      parameters <- c(
-        parameters, 
-        "_profile" = PROFILE_CON,
-        # add count parameter
-        "_count" = BUNDLE_RESOURCES_COUNT
-      )
+      if (PROFILE_CON != "EMPTY") parameters <- c(parameters, "_profile" = PROFILE_CON)
+      # add count parameter
+      parameters <- c(parameters, c("_count" = BUNDLE_RESOURCES_COUNT))                                                  
       
       con_request <- fhir_url(url = fhir_server_url, resource = "Condition", parameters = parameters)
       
