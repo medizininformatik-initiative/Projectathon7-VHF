@@ -552,6 +552,11 @@ encounters <- fhir_crack(
   verbose = VERBOSE
 )
 
+if (nrow(encounters) == 0) {
+  logGlobalAndError( "Konnte keine Encounter-Ressourcen zu den gefundenen Patients finden. Abfrage abgebrochen.")
+  stop("No Encounters for Patients found - aborting.")
+}
+
 rm(encounter_bundles)
 
 
@@ -583,11 +588,6 @@ conditions <- fhir_crack(
 
 rm(condition_bundles)
 
-
-if (nrow(encounters) == 0) {
-  logGlobalAndError( "Konnte keine Encounter-Ressourcen zu den gefundenen Patients finden. Abfrage abgebrochen.")
-  stop("No Encounters for Patients found - aborting.")
-}
 
 ### generate conditions table --> has all conditions of all Patients in the initial population
 if (nrow(conditions) > 0) {
