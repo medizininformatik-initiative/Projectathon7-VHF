@@ -12,6 +12,8 @@ registry = "registry.gitlab.com/smith-phep/dup"
 #######################################
 ### Einstellungen für das Retrieval ###
 #######################################
+[retrieve]
+
 ### Die folgenden 4 Einstellungen können dem Kommando dupctl
 ### in folgender Form auch als Parameter mitgegeben werden:
 ### dupctl retrieve --dup vhf --fhir-server-endpoint "https://some-fhir-server" ...
@@ -24,19 +26,23 @@ registry = "registry.gitlab.com/smith-phep/dup"
 ### angeben und das Kommando ohne weitere Parameter aufrufen:
 ### dupctl retrieve --dup vhf
 
-[retrieve]
-
-### FHIR Endpoint (muss gesetzt werden)
-### Default: -
-### Hier ist als Beispiel ein Testserver ohne Authentifizierung angegeben:
+### fhirServerEndpoint
+### ------------------
+### Default: - (muss immer explizit gesetzt werden)
+### Hier ist als Beispiel ein Hapi und ein Blaze Testserver ohne Authentifizierung angegeben:
+# fhirServerEndpoint = "https://mii-agiop-3p.life.uni-leipzig.de/fhir"
 fhirServerEndpoint = "https://mii-agiop-3p.life.uni-leipzig.de/blaze"
 
+### fhirServerUser and fhirServerPass
+### ---------------------------------
 ### Falls Authentifizierung, bitte entsprechend anpassen (sonst ignorieren):
 ### Username und Passwort für Basic Auth
 ### Default: -
 # fhirServerUser =
 # fhirServerPass =
 
+### fhirServerToken
+### ---------------
 ### Alternativ: Token für Bearer Token Auth
 ### Default: -
 # fhirServerToken =
@@ -46,7 +52,8 @@ fhirServerEndpoint = "https://mii-agiop-3p.life.uni-leipzig.de/blaze"
 ### ----------------------------------------###
 [retrieve.env]
 
-### DECENTRAL_ANALYIS
+### DECENTRAL_ANALYSIS
+### ------------------
 ### Default: "TRUE"
 ###   TRUE = Die Ergebnisse des Retrieval werden in das Verzeichnis
 ###          outputLocal geschrieben (das nicht ausgeleitet werden
@@ -60,9 +67,10 @@ fhirServerEndpoint = "https://mii-agiop-3p.life.uni-leipzig.de/blaze"
 ###          DIZ ausgeführt werden sollte, kann man sie dennoch
 ###          ausführen und auch sie schreibt ihre Ergebnisse in
 ###          outputGlobal.
-# DECENTRAL_ANALYIS = "TRUE"
+# DECENTRAL_ANALYSIS = "TRUE"
 
 ### MAX_BUNDLES
+### -----------
 ###    Default: "Inf"
 ###             Das Script lädt zuerst alle passenden Observations,
 ###             davon ausgehend zugehörige Patienten und Conditions.
@@ -71,7 +79,30 @@ fhirServerEndpoint = "https://mii-agiop-3p.life.uni-leipzig.de/blaze"
 ###             geladen
 # MAX_BUNDLES = "Inf"
 
+### BUNDLE_RESOURCES_COUNT
+### ----------------------
+### Anzahl der Resources pro Bundle. Wird als "&_count="-Parameter an die 
+### fhir_search()-Requests gehängt. Dieser Parameter wird eventuell vom Server
+### ignoriert oder beschränkt. Hapi hat per Default 20, Blaze 50. Ein anderer
+### Wert hat beim Blaze aber keinerlei Vorteile oder Nachteile in der Laufzeit
+### ergeben. Nur beim Testen dauert es eben länger, wenn man 100 Resources
+### pro Bundle lädt oder nur 20.
+### Default: 50
+# BUNDLE_RESOURCES_COUNT = 50
+
+### MAX_REQUEST_STRING_LENGTH
+### -------------------------
+### Maximale Gesamtlänge eines get-Requests, der an den Server geschickt wird. Diese
+### Länge wird definitiv niemals erreicht/überschritten. Dieser Parameter entscheidet
+### darüber, wieviele subject-IDs tatsächlich gleichzeitig in einen Request gepackt
+### werden, wenn bei FHIR_SEARCH_SUBJECT_LIST_OPTION eine Option gewählt wurde, bei
+### der mehr als eine ID im Request steht. Der Wert hier ist durch Testen herausgefunden
+### worden und kann auf einem speziellen Server anders sein.
+### Default: 2048
+# MAX_REQUEST_STRING_LENGTH = 2048
+
 ### DEBUG
+### -----
 ### Default: "FALSE"
 ###   TRUE = Zwischenergebnisse werden ins Verzeichnis outputLocal
 ###          geschrieben
@@ -79,33 +110,102 @@ fhirServerEndpoint = "https://mii-agiop-3p.life.uni-leipzig.de/blaze"
 # DEBUG = "FALSE"
 
 ### VERBOSE
+### -------
 ### Default: 0 (= keine Ausgabe)
 ### 0 .. 4 = Verbose-Level des fhircrackr
 # VERBOSE = 0
 
 ### SSL_VERIFY
+### ----------
 ### Default: "TRUE"
 ###   TRUE = FHIR Server Zertifikat verifizieren
 ###  FALSE = FHIR Server Zertifikat nicht verifizieren (potentiell unsicher, siehe https://de.wikipedia.org/wiki/Man-in-the-Middle-Angriff)
 # SSL_VERIFY = "TRUE"
 
 ### PROFILE_ENC
+### -----------
 ### FHIR Profile der zu ladenden Encounter. Es werden nur Encounter
 ### mit dem angegebenen Profil gefunden.
 ### Default: https://www.medizininformatik-initiative.de/fhir/core/modul-fall/StructureDefinition/KontaktGesundheitseinrichtung
+###  EMPTY = Wenn kein Profil in der Abfrage gesetzt werden soll, muss dieses Schlüsselwort angegeben werden. 
+# PROFILE_ENC = "EMPTY"
 # PROFILE_ENC = "https://www.medizininformatik-initiative.de/fhir/core/modul-fall/StructureDefinition/KontaktGesundheitseinrichtung"
 
 ### PROFILE_OBS
+### -----------
 ### FHIR Profile der zu ladenden Observations. Es werden nur Observations
 ### mit dem angegebenen Profil gefunden.
 ### Default: https://www.medizininformatik-initiative.de/fhir/core/modul-labor/StructureDefinition/ObservationLab
+###  EMPTY = Wenn kein Profil in der Abfrage gesetzt werden soll, muss dieses Schlüsselwort angegeben werden. 
+# PROFILE_OBS = "EMPTY"
 # PROFILE_OBS = "https://www.medizininformatik-initiative.de/fhir/core/modul-labor/StructureDefinition/ObservationLab"
 
 ### PROFILE_CON
+### -----------
 ### FHIR Profile der zu ladenden Conditions. Es werden nur Conditions
 ### mit dem angegebenen Profil gefunden.
 ### Default: https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Diagnose
+###  EMPTY = Wenn kein Profil in der Abfrage gesetzt werden soll, muss dieses Schlüsselwort angegeben werden. 
+# PROFILE_CON = "EMPTY"
 # PROFILE_CON = "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Diagnose"
+
+### FHIR_SEARCH_SUBJECT_LIST_OPTION
+### -------------------------------
+### Dieser Parameter legt fest, wie die Encounter und Conditions per fhir_search(...)-Anfrage eingeschränkt auf die
+### subject-IDs der zuvor geladenen NTproBNP-Observationen heruntergeladen werden sollen. Der Default 
+### COMMA_SEPARATED_PURE_IDS sollte bei Hapi und Blaze Servern funktionieren, bei Firely-Servern kam es zu Problemen.
+### Auf allen Servern funktioniert die Option COMMA_SEPARATED_IDS_WITH_PATIENT_PREFIX. Allerdings passen dann weniger
+### IDs gleichzeitig in eine Anfrage, da von den maximal 2048 Zeichen der get-Anfrage pro subject-ID die Länge für
+### den Präfix "Patient/" verloren geht und dadurch mehr Anfragen generiert werden müssen, was die Downloadzeit je
+### nach Datenmenge verlängert.
+### 
+### Default: "COMMA_SEPARATED_PURE_IDS"
+###
+### List request options for request with multiple subject IDs:
+### ...........................................................
+### COMMA_SEPARATED_PURE_IDS
+###    $fhirServerEndpoint/Encounter?subject=PID01,PID02,PID...&type=einrichtungskontakt&_profile=$PROFILE_ENC
+###    $fhirServerEndpoint/Condition?subject=PID01,PID02,PID...&_profile=$PROFILE_CON
+###
+### COMMA_SEPARATED_PURE_IDS_WITH_SUBJECT_PATIENT
+###    $fhirServerEndpoint/Encounter?subject:Patient=PID01,PID02,PID...&type=einrichtungskontakt&_profile=$PROFILE_ENC
+###    $fhirServerEndpoint/Condition?subject:Patient=PID01,PID02,PID...&_profile=$PROFILE_CON
+###
+### COMMA_SEPARATED_IDS_WITH_PATIENT_PREFIX
+###    $fhirServerEndpoint/Encounter?subject=Patient/PID01,Patient/PID0,...&type=einrichtungskontakt&_profile=$PROFILE_ENC
+###    $fhirServerEndpoint/Condition?subject=Patient/PID01,Patient/PID02,...&_profile=$PROFILE_CON
+###
+### Request options for multiple requests with a single subject ID:
+### .............................................................. 
+### Diese Optionen sollten (wenn es kein Blaze ist) möglichst nur zum Testen genutzt werden oder als absoluter Fallback,
+### falls keine der obigen Optionen funktioniert. Diese Requests mit nur einer subject ID dauern sehr viel länger (Hapi
+### statt 55 sek -> 25 min = ca. Faktor 25 und Blaze statt 35 sek -> 1:40 min = ca. Faktor 3 jeweils auf demselben
+### Datensatz)
+###
+### SINGLE_REQUEST_PER_ID
+###    $fhirServerEndpoint/Encounter?subject=PID01&type=einrichtungskontakt&_profile=$PROFILE_ENC
+###    $fhirServerEndpoint/Condition?subject=PID01&_profile=$PROFILE_CON
+###
+### SINGLE_REQUEST_PER_ID_WITH_SUBJECT_PATIENT
+###    $fhirServerEndpoint/Encounter?subject:Patient=PID01&type=einrichtungskontakt&_profile=$PROFILE_ENC
+###    $fhirServerEndpoint/Condition?subject:Patient=PID01&_profile=$PROFILE_CON
+###
+### SINGLE_REQUEST_PER_ID_WITH_PATIENT_PREFIX
+###    $fhirServerEndpoint/Encounter?subject=Patient/PID01&type=einrichtungskontakt&_profile=$PROFILE_ENC
+###    $fhirServerEndpoint/Condition?subject=Patient/PID01&_profile=$PROFILE_CON
+###
+### Query option to get all Encounters and Conditions on the server (useful if resources on the server are already
+### filtered):
+### ..............................................................................................................
+### IGNORE_IDS
+###    $fhirServerEndpoint/Encounter?einrichtungskontakt&_profile=$PROFILE_ENC
+###    $fhirServerEndpoint/Condition?_profile=$PROFILE_CON
+###
+### optimal für Hapi und Blaze (ist auch der Default)
+# FHIR_SEARCH_SUBJECT_LIST_OPTION = "COMMA_SEPARATED_PURE_IDS"
+### für Firely, aber funktioniert auch für Hapi und Blaze
+# FHIR_SEARCH_SUBJECT_LIST_OPTION = "COMMA_SEPARATED_IDS_WITH_PATIENT_PREFIX"
+
 
 #####################################
 ### Einstellungen für die Analyse ###
@@ -120,7 +220,8 @@ fhirServerEndpoint = "https://mii-agiop-3p.life.uni-leipzig.de/blaze"
 ### --------------------------------------###
 [analyze.env]
 
-### DECENTRAL_ANALYIS
+### DECENTRAL_ANALYSIS
+### ------------------
 ### Default: "TRUE"
 ###   TRUE = Die Ergebnisse des Retrieval werden in das Verzeichnis
 ###          outputLocal geschrieben (das nicht ausgeleitet werden
@@ -134,9 +235,10 @@ fhirServerEndpoint = "https://mii-agiop-3p.life.uni-leipzig.de/blaze"
 ###          DIZ ausgeführt werden sollte, kann man sie dennoch
 ###          ausführen und auch sie schreibt ihre Ergebnisse in
 ###          outputGlobal.
-# DECENTRAL_ANALYIS = "TRUE"
+# DECENTRAL_ANALYSIS = "TRUE"
 
 ### DEBUG
+### -----
 ### Default: "FALSE"
 ###   TRUE = Zwischenergebnisse werden ins Verzeichnis outputLocal
 ###          geschrieben
@@ -144,6 +246,7 @@ fhirServerEndpoint = "https://mii-agiop-3p.life.uni-leipzig.de/blaze"
 # DEBUG = "FALSE"
 
 ### DATA_QUALITY_REPORT
+### -------------------
 ### Default: "TRUE"
 ###   TRUE = Data Quality Report im outputGlobal erstellen
 ###  FALSE = Data Quality Report nicht erstellen
