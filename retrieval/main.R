@@ -277,7 +277,7 @@ parameters = c(
   "date" = "le2022-12-31"
 )
 # add profile from config if not empty
-if (PROFILE_OBS != "EMPTY") parameters <- c(parameters, "_profile" = PROFILE_OBS)
+if (PROFILE_OBS != "") parameters <- c(parameters, "_profile" = PROFILE_OBS)
 # include patients of observation
 parameters <- c(
   parameters,
@@ -455,7 +455,7 @@ invisible({
       # add type parameter for encounters
       parameters <- c(parameters, type = "einrichtungskontakt")
       # add profile from config if not empty
-      if (PROFILE_ENC != "EMPTY") parameters <- c(parameters, "_profile" = PROFILE_ENC)
+      if (PROFILE_ENC != "") parameters <- c(parameters, "_profile" = PROFILE_ENC)
       # add count parameter
       parameters <- c(parameters, c("_count" = BUNDLE_RESOURCES_COUNT))                                                  
       
@@ -482,7 +482,7 @@ invisible({
         if (nchar(chunkListOptionSubjectSuffix) > 0) names(parameters)[1] <- paste0("subject", chunkListOptionSubjectSuffix)
       }
       # add profile from config if not empty
-      if (PROFILE_CON != "EMPTY") parameters <- c(parameters, "_profile" = PROFILE_CON)
+      if (PROFILE_CON != "") parameters <- c(parameters, "_profile" = PROFILE_CON)
       # add count parameter
       parameters <- c(parameters, c("_count" = BUNDLE_RESOURCES_COUNT))                                                  
       
