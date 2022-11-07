@@ -106,29 +106,26 @@ Sys.setenv(FHIR_SERVER_ENDPOINT = "https://mii-agiop-3p.life.uni-leipzig.de/blaz
 
 ### PROFILE_ENC
 ### -----------
-### FHIR Profile der zu ladenden Encounter. Es werden nur
-### Encounter mit dem angegebenen Profil gefunden.
-### Default: "https://www.medizininformatik-initiative.de/fhir/core/modul-fall/StructureDefinition/KontaktGesundheitseinrichtung"
-###  EMPTY = Wenn kein Profil in der Abfrage gesetzt werden soll, muss dieses Schlüsselwort angegeben werden. 
-# Sys.setenv(PROFILE_ENC = "EMPTY")
+### FHIR Profile der zu ladenden Encounter. Es werden nur Encounter
+### mit genau dem angegebenen Profil gefunden.
+### Default: "" (leer, so dass alle Encounter ohne Einschränkung gefunden werden)
+### MII-Profil ggf. aktieren oder ändern
 # Sys.setenv(PROFILE_ENC = "https://www.medizininformatik-initiative.de/fhir/core/modul-fall/StructureDefinition/KontaktGesundheitseinrichtung")
 
 ### PROFILE_OBS
 ### -----------
-### FHIR Profile der zu ladenden Observations. Es werden nur
-### Observations mit dem angegebenen Profil gefunden.
-### Default: https://www.medizininformatik-initiative.de/fhir/core/modul-labor/StructureDefinition/ObservationLab
-###  EMPTY = Wenn kein Profil in der Abfrage gesetzt werden soll, muss dieses Schlüsselwort angegeben werden. 
-# Sys.setenv(PROFILE_OBS = "EMPTY")
+### FHIR Profile der zu ladenden Observations. Es werden nur Observations
+### mit genau dem angegebenen Profil gefunden.
+### Default: "" (leer, so dass alle Observatons ohne Einschränkung gefunden werden)
+### MII-Profil ggf. aktieren oder ändern
 # Sys.setenv(PROFILE_OBS = "https://www.medizininformatik-initiative.de/fhir/core/modul-labor/StructureDefinition/ObservationLab")
 
 ### PROFILE_CON
 ### -----------
-### FHIR Profile der zu ladenden Conditions. Es werden nur
-### Conditions mit dem angegebenen Profil gefunden.
-### Default: https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Diagnose
-###  EMPTY = Wenn kein Profil in der Abfrage gesetzt werden soll, muss dieses Schlüsselwort angegeben werden. 
-# Sys.setenv(PROFILE_CON = "EMPTY")
+### FHIR Profile der zu ladenden Conditions. Es werden nur Conditions
+### mit genau dem angegebenen Profil gefunden.
+### Default: "" (leer, so dass alle Conditions ohne Einschränkung gefunden werden)
+### MII-Profil ggf. aktieren oder ändern
 # Sys.setenv(PROFILE_CON = "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Diagnose")
 
 ### FHIR_SEARCH_SUBJECT_LIST_OPTION

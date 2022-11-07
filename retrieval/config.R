@@ -59,20 +59,16 @@ VERBOSE <- as.integer(Sys.getenv('VERBOSE', "0"))
 # Directory where 'outputLocal' and 'outputGlobal' directories are located 
 OUTPUT_DIR_BASE <- Sys.getenv('OUTPUT_DIR_BASE', '.')
 
-### Profile, der gesuchten Resourcen:
+### Profile, der gesuchten Resourcen. Default ist bei allen ein leerer String "".
 # Encounter
-PROFILE_ENC <- Sys.getenv("PROFILE_ENC",
-                          "https://www.medizininformatik-initiative.de/fhir/core/modul-fall/StructureDefinition/KontaktGesundheitseinrichtung")
+PROFILE_ENC <- Sys.getenv("PROFILE_ENC") 
 # Observation
-PROFILE_OBS <- Sys.getenv("PROFILE_OBS",
-                          "https://www.medizininformatik-initiative.de/fhir/core/modul-labor/StructureDefinition/ObservationLab")
+PROFILE_OBS <- Sys.getenv("PROFILE_OBS")
 # Condition
-PROFILE_CON <- Sys.getenv("PROFILE_CON",
-                          "https://www.medizininformatik-initiative.de/fhir/core/modul-diagnose/StructureDefinition/Diagnose")
+PROFILE_CON <- Sys.getenv("PROFILE_CON")
 
 # Option for the structure of subject IDs in fhir_search(...) requests
-FHIR_SEARCH_SUBJECT_LIST_OPTION <- Sys.getenv("FHIR_SEARCH_SUBJECT_LIST_OPTION",
-                                              "COMMA_SEPARATED_PURE_IDS")
+FHIR_SEARCH_SUBJECT_LIST_OPTION <- Sys.getenv("FHIR_SEARCH_SUBJECT_LIST_OPTION", "COMMA_SEPARATED_PURE_IDS")
 
 ### Log Parameters to Console
 message("Run Retrieval with Parameters:")
