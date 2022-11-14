@@ -128,23 +128,23 @@ getYear <- function(dateStringWithLeadingYear) {
 ###########################
 # Simple Filter Functions #
 ###########################
-# All these remove() functions remove Observation rows from a table
+# All these reatain()/remove() functions remove Observation rows from a table
 # regarding a special value of one column.
 
-removeMales <- function(table) {
-  return(table[gender != "male"])
+retainMales <- function(table) {
+  return(table[gender == "male"])
 }
 
-removeFemales <- function(table) {
-  return(table[gender != "female"])
+retainFemales <- function(table) {
+  return(table[gender == "female"])
 }
 
-removeAgeUnder50 <- function(table) {
-  return(table[age > 50])
-}
-
-removeAgeOver50 <- function(table) {
+retainAgeUnder50 <- function(table) {
   return(table[age <= 50])
+}
+
+retainAgeOver50 <- function(table) {
+  return(table[age > 50])
 }
 
 removeMyocardialInfarction <- function(table) {
@@ -560,21 +560,21 @@ conditions <- conditions[!(verificationStatus.code  %in%  c("refuted", "entered-
 # 1 cohort = all
 writeCohortAnalysisFiles(fullCohort, conditions, "Full Cohort", "_01_FullCohort")
 # 2 cohort = male
-writeCohortAnalysisFiles(removeFemales(fullCohort), conditions, "Males", "_02_Males")
+writeCohortAnalysisFiles(retainMales(fullCohort), conditions, "Males", "_02_Males")
 # 3 cohort = female
-writeCohortAnalysisFiles(removeMales(fullCohort), conditions, "Females", "_03_Females")
+writeCohortAnalysisFiles(retainFemales(fullCohort), conditions, "Females", "_03_Females")
 # 4 cohort = age <= 50
-writeCohortAnalysisFiles(removeAgeOver50(fullCohort), conditions, "Age <= 50", "_04_AgeUnder50")
+writeCohortAnalysisFiles(retainAgeUnder50(fullCohort), conditions, "Age <= 50", "_04_AgeUnder50")
 # 5 cohort = age > 50
-writeCohortAnalysisFiles(removeAgeUnder50(fullCohort), conditions, "Age > 50", "_05_AgeOver50")
+writeCohortAnalysisFiles(retainAgeOver50(fullCohort), conditions, "Age > 50", "_05_AgeOver50")
 # 6 cohort = male age <= 50
-writeCohortAnalysisFiles(removeFemales(removeAgeOver50(fullCohort)), conditions, "Males, Age <= 50", "_06_Males_AgeUnder50")
+writeCohortAnalysisFiles(retainMales(retainAgeUnder50(fullCohort)), conditions, "Males, Age <= 50", "_06_Males_AgeUnder50")
 # 7 cohort = male age > 50
-writeCohortAnalysisFiles(removeFemales(removeAgeUnder50(fullCohort)), conditions, "Males, Age > 50", "_07_Males_AgeOver50")
+writeCohortAnalysisFiles(retainMales(retainAgeOver50(fullCohort)), conditions, "Males, Age > 50", "_07_Males_AgeOver50")
 # 8 cohort = female age <= 50
-writeCohortAnalysisFiles(removeMales(removeAgeOver50(fullCohort)), conditions, "Females, Age <= 50", "_08_Females_AgeUnder50")
+writeCohortAnalysisFiles(retainFemales(retainAgeUnder50(fullCohort)), conditions, "Females, Age <= 50", "_08_Females_AgeUnder50")
 # 9 cohort = female age > 50
-writeCohortAnalysisFiles(removeMales(removeAgeUnder50(fullCohort)), conditions, "Females, Age > 50", "_09_Females_AgeOver50")
+writeCohortAnalysisFiles(retainFemales(retainAgeOver50(fullCohort)), conditions, "Females, Age > 50", "_09_Females_AgeOver50")
 
 runtime <- Sys.time() - start
 logGlobal("main.R finished at ", Sys.time(), ".")
