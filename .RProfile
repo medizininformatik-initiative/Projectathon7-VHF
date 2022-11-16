@@ -104,6 +104,15 @@ Sys.setenv(FHIR_SERVER_ENDPOINT = "https://mii-agiop-3p.life.uni-leipzig.de/blaz
 ### 0 .. 4 = Verbose-Level des fhircrackr
 # Sys.setenv(VERBOSE = "0")
 
+### ENCOUNTER_TYPE
+### --------------
+### Wenn der Server sowohl "einrichtungskontakt" Encounter als auch "abteilungskontakt" Encounter oder andere enthält,
+### dann kann man die Anfragen über diesen Filter etwas performanter machen, weil die "abteilungskontakt" Encounter dann
+### nicht heruntergeladen werden. Voraussetzung dafür ist aber, dass wirklich alle relevanten "einrichtungskontakt"
+### Encounter das tye-Attribut auch wirklich haben.
+### Default: "" (leer, so dass alle Encounter ohne Einschränkung gefunden werden)
+# Sys.setenv(ENCOUNTER_TYPE = "einrichtungskontakt")
+
 ### PROFILE_ENC
 ### -----------
 ### FHIR Profile der zu ladenden Encounter. Es werden nur Encounter
