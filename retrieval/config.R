@@ -60,6 +60,10 @@ VERBOSE <- as.integer(Sys.getenv('VERBOSE', "0"))
 OUTPUT_DIR_BASE <- Sys.getenv('OUTPUT_DIR_BASE', '.')
 
 ### Profile, der gesuchten Resourcen. Default ist bei allen ein leerer String "".
+### Typ der zu suchenden Encounter und Profile aller gesuchten Resourcen. Default ist bei allen ein leerer String "",
+### was keinerlei Einschränkungen/Filterung entspricht.
+# Encounter-Typ
+ENCOUNTER_TYPE <- Sys.getenv("ENCOUNTER_TYPE")
 # Encounter
 PROFILE_ENC <- Sys.getenv("PROFILE_ENC") 
 # Observation

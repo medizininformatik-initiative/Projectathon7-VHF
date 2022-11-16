@@ -53,6 +53,7 @@ createDirsRecursive(debug_dir_obs_bundles, debug_dir_enc_bundles, debug_dir_con_
 PROFILE_ENC <- trimws(PROFILE_ENC)
 PROFILE_OBS <- trimws(PROFILE_OBS)
 PROFILE_CON <- trimws(PROFILE_CON)
+ENCOUNTER_TYPE <- trimws(ENCOUNTER_TYPE)
 
 #####################
 # Chunk List Option #
@@ -453,7 +454,7 @@ invisible({
         if (nchar(chunkListOptionSubjectSuffix) > 0) names(parameters)[1] <- paste0("subject", chunkListOptionSubjectSuffix)
       }
       # add type parameter for encounters
-      parameters <- c(parameters, type = "einrichtungskontakt")
+      if (ENCOUNTER_TYPE != "") parameters <- c(parameters, "type" = ENCOUNTER_TYPE)
       # add profile from config if not empty
       if (PROFILE_ENC != "") parameters <- c(parameters, "_profile" = PROFILE_ENC)
       # add count parameter
