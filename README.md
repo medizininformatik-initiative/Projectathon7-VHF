@@ -100,7 +100,7 @@ Bei Bedarf können DUPs auch ohne den Einsatz von Docker ausgeführt werden.
 
 * **CRAN Snaphot Datum: 2022-06-22**
 
-[dupctl]: https://git.smith.care/smith/uc-phep/dup-control
-[dupctl#install]: https://git.smith.care/smith/uc-phep/dup-control#installation
-[dupctl#workdir]: https://git.smith.care/smith/uc-phep/dup-control#working-directory
-[dupctl#settings]: https://git.smith.care/smith/uc-phep/dup-control#global-settings
+[dupctl]: https://github.com/medizininformatik-initiative/dup-control
+[dupctl#install]: https://github.com/medizininformatik-initiative/dup-control#installation
+[dupctl#workdir]: https://github.com/medizininformatik-initiative/dup-control#working-directory
+[dupctl#settings]: https://github.com/medizininformatik-initiative/dup-control#global-settings
