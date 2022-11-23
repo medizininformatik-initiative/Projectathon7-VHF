@@ -1,5 +1,11 @@
 # VHF Vorhofflimmern Retrieval
 
+Autor: Alexander Strübing ([alexander.struebing@imise.uni-leipzig.de](mailto:alexander.struebing@imise.uni-leipzig.de))
+
+Der Retrieval-Teil dieses DUP basiert auf den von Julia Palm für den
+[Projectathon 6](https://github.com/medizininformatik-initiative/Projectathon6-smith2) erzeugten Scripten und
+Dokumentationen.
+
 ## Verwendung
 
 siehe [VHF Readme](../README.md#Verwendung)
@@ -220,3 +226,10 @@ Prinzipiell geht das Skript wie folgt vor:
 3) Filtere die Encounter, sodass nur die Encounter übrig bleiben, in deren `period` eine NTproBNP Observation liegt.
 
 4) Filtere die Diagnosen, sodass nur Diagnosen übrig bleiben, die zu den Encountern aus 4) gehören.
+
+## Problembehandlung
+
+Bei Problemen mit der Ausführung des DUP können Sie unter
+https://github.com/medizininformatik-initiative/Projectathon7/issues einen (möglichst aussagekräftigen) Issue anlegen.
+In dringenden Fällen kontaktieren Sie Alexander Strübing direkt unter
+[alexander.struebing@imise.uni-leipzig.de](mailto:alexander.struebing@imise.uni-leipzig.de).

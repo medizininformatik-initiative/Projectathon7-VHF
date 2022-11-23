@@ -1,5 +1,7 @@
 # VHF Vorhofflimmern
 
+Autor: Alexander Strübing ([alexander.struebing@imise.uni-leipzig.de](mailto:alexander.struebing@imise.uni-leipzig.de))
+
 ## Einführung
 
 Dieses Projekt führt das DUP Vorhofflimmern (VHF) aus. Es kann sowohl für die zentrale als auch für die dezentrale
@@ -95,10 +97,15 @@ Bei Bedarf können DUPs auch ohne den Einsatz von Docker ausgeführt werden.
     2. Das R-Arbeitsverzeichnis ist das Verzeichnis des Scripts `analysis/main.R`.
   * Das Setzen von `OUTPUT_DIR_BASE` und das Starten der Analyse kann durch teilweises Ausführen der Datei `manual.R`
     erfolgen (siehe oben).
-
 * **R Version: 4.2.0**
-
 * **CRAN Snaphot Datum: 2022-06-22**
+
+## Problembehandlung
+
+Bei Problemen mit der Ausführung des DUP können Sie unter
+https://github.com/medizininformatik-initiative/Projectathon7/issues einen (möglichst aussagekräftigen) Issue anlegen.
+In dringenden Fällen kontaktieren Sie Alexander Strübing direkt unter 
+[alexander.struebing@imise.uni-leipzig.de](mailto:alexander.struebing@imise.uni-leipzig.de).
 
 [dupctl]: https://github.com/medizininformatik-initiative/dup-control
 [dupctl#install]: https://github.com/medizininformatik-initiative/dup-control#installation

@@ -1,5 +1,7 @@
 # VHF Vorhofflimmern Analysis
 
+Autor: Alexander Strübing ([alexander.struebing@imise.uni-leipzig.de](mailto:alexander.struebing@imise.uni-leipzig.de))
+
 ## Verwendung
 
 siehe [VHF Readme](../README.md#Verwendung)
@@ -89,3 +91,10 @@ für die Analyse vorbereitet:
 3. die Einheiten werden alle in `pg/mL` (picogram per milliliter) umgerechnet. Werte mit fehlenden oder nicht
    umrechenbaren Einheiten werden entfernt.
 4. Das Alter des Patienten wird aus dem Datum des NTproBNP-Wertes und dem Geburtsdatum des Patienten berechnet.
+
+## Problembehandlung
+
+Bei Problemen mit der Ausführung des DUP können Sie unter
+https://github.com/medizininformatik-initiative/Projectathon7/issues einen (möglichst aussagekräftigen) Issue anlegen.
+In dringenden Fällen kontaktieren Sie Alexander Strübing direkt unter
+[alexander.struebing@imise.uni-leipzig.de](mailto:alexander.struebing@imise.uni-leipzig.de).
