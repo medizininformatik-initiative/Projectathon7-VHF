@@ -1,0 +1,3 @@
+[submodule "vhf"]
+	path = vhf
+	url = https://github.com/knoppiks/mii-dup-vhf.git
