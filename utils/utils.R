@@ -49,7 +49,7 @@ createDirWithBackup <- function(dir, copy = FALSE) {
     createDirsRecursive(dir)
     files <- list.files(newName)
     files <- paste(newName, files, sep = "/")
-    file.copy(files, dir, recursive = TRUE)
+    invisible(file.copy(files, dir, recursive = TRUE)) # writes for every copied file TRUE to he console -> invisible
   } else {
     createDirsRecursive(dir)    
   }
