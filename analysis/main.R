@@ -238,11 +238,24 @@ unifyUnits <- function(cohort) {
   # in the field "NTproBNP.unit" but in the "valueQuantity/unit" which was
   # imported in the "NTproBNP.unitLabel". This label should only be used in FHIR
   # as a human readable unit description. So we fix this error here.
-  cohort[is.na(NTproBNP.unit), NTproBNP.unit := NTproBNP.unitLabel]
+  # It is not clear why the else case does not work when all values are NA and
+  # so we need the if case :(
+  if (all(is.na(cohort$NTproBNP.unit))) { # all unit values are NA -> copy the full unitLabel column to unit
+    cohort[, NTproBNP.unit := NTproBNP.unitLabel]
+  } else { # some unit vales are NA -> replace the NA values in unit by unitLabel
+    cohort[is.na(NTproBNP.unit), NTproBNP.unit := NTproBNP.unitLabel] 
+  }
+  # remove all rows where the NTproBNP.unit is still NA
+  cohort <- cohort[!is.na(NTproBNP.unit)] 
   
-  # all valid NTproBNP units taken from http://www.unitslab.com/node/163
+  # All valid NTproBNP units taken from http://www.unitslab.com/node/163
+  # All units are checked case insensitive, so for example the correct
+  # UCUM unit "pg/mL" includes the invalid unit "pg/ml".
+  # The first value describes the code and the number value the conversion
+  # factor regarding the reference value in the first line of the table.
+  # If necessary then append other (invalid) units at the end of the list.
   units <- c(
-    "pg/mL", 1, #(Reference Unit as first value)
+    "pg/mL", 1, # Reference Unit as first value. Must always have conversion value 1.
     "ng/L", 1,
     "pg/dL", 100,
     "pg/100mL", 100,
@@ -250,6 +263,7 @@ unifyUnits <- function(cohort) {
     "pg/L", 1000,
     "pmol/L", 0.1182
   )
+  # extract unit strings and conversion factors from the table list
   units <- matrix(units, length(units) / 2, 2, byrow = TRUE)
   unitNames <- units[, 1]
   unitFactors <- as.numeric(units[, 2])
