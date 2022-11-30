@@ -4,22 +4,61 @@ Autor: Alexander Strübing ([alexander.struebing@imise.uni-leipzig.de](mailto:al
 
 ## Einführung
 
-Dieses Projekt führt das DUP Vorhofflimmern (VHF) aus. Es kann sowohl für die zentrale als auch für die dezentrale
-Analyse genutzt werden. Der Retrieval-Teil des DUP erzeugt zwei Tabellen mit den für die Analyse benötigten Inhalten.
-Diese Tabellen sollen entweder erzeugt und an die datenauswertendende Stelle übergeben werden (zentrale Analyse) oder
-in den DIZen analysiert werden (dezentrale Analyse). Bei der zentralen Analyse werden die o.g. Tabellen in das
-auszuleitende Verzeichnis `outputGlobal` geschrieben, bei der dezentralen Analyse werden die Analyseergebnisse
-(Textdateien und ROC-Plots in PDF-Dateien) in dieses Verzeichnis geschrieben.
+Dieses Projekt führt das DUP Vorhofflimmern (VHF) in verschiedenen Varianten aus. Der Retrieval-Teil (Datenselektion)
+des DUP erzeugt zwei Tabellen mit den für die Analyse benötigten Inhalten. Diese Tabellen sollen entweder in den DIZen
+erzeugt und an die Datenmanagementstelle (DMSt) ausgeleitet werden (zentrale Analyse) oder direkt nach dem Retrieval
+auch in den DIZen analysiert werden und nur die Analyseergebnisse an die DMSt ausgeleitet werden (dezentrale Analyse).
 
-Die **Datenqualitätsanalyse** braucht **nur einmal auf denselben Retrieval**-Daten gemacht zu werden. Wird eine Analyse
-wiederholt, kann man über die Umgebungsvariable bzw. Option `DATA_QUALITY_REPORT` die Datenqualitätsanalyse
-ausschalten und damit die **Laufzeit erheblich verkürzen**.
+Bei der dezentralen Analyse werden im DIZ die o.g. Tabellen in das nicht auszuleitende Verzeichnis `outputLocal`
+geschrieben und danach bei der Analyse im DIZ die auszuleitenden Analyseergebnisse (Textdateien und ROC-Plots in
+PDF-Dateien) in das Verzeichnis `outputGlobal`.
+
+Bei einer zentralen Analyse wird im DIZ nur das Retrieval ausgeführt und die o.g. Tabellen werden in das auszuleitende
+Verzeichnis `outputGlobal` geschrieben. Die Analyse wird dann in der DMSt oder beim Forscher ausgeführt.
 
 Hier wird die Verwendung des DUP beschrieben. Die inhaltliche Beschreibung des Retrieval und der Analyse steht in der
 Readme des jeweiligen Unterordners:
 
 * [Retrieval Readme](./retrieval#vhf-vorhofflimmern-retrieval)
 * [Analysis Readme](./analysis#vhf-vorhofflimmern-analysis)
+
+## Varianten für die jeweiligen Projekte im MII-Kontext
+
+### VHF-MI-dezentral
+
+DIZ: Sowohl das Retrieval als auch die Analyse werden in den DIZen ausgeführt und die Analyseergebnisse an die
+Datenmanagementstelle (DMSt) ausgeleitet. In der Datei `config.toml` (siehe unten) sind alle Default-Werte der
+Environment-Parameter für diesen Use Case bereits gesetzt. Es sollte sich ausführen lassen, wenn nur folgenden
+Paramter gesetzt werden:
+
+* `fhirServerEndpoint` 
+* ggf. `fhirServerUser` und `fhirServerPass`
+
+DMSt: Leitet dann die Analyseergebnisse an den Forscher zur Endauswertung weiter. 
+
+### VHF-MI-zentral
+
+**DIZ:** Das DIZ führt keine Scripte aus diesem Repository aus. Statt dessen muss das DIZ FHIR-Daten an die DMSt
+ausleiten. Die dazu notwendigen Skripte zum Retrieval finden sich in
+https://github.com/juliangruendner/pj7-data-extraction. 
+
+**DMSt:** Die DMSt selbst führt auf einem speziellen FHIR-Server mit den Daten aus den DIZen nur das Retrieval aus.
+Folgende Paramter müssen dabei in der Datei `config.toml` (siehe unten) mind. gesetzt bzw. vom Default geändert
+werden: 
+
+* `fhirServerEndpoint`
+* ggf. `fhirServerUser` und `fhirServerPass`
+* `DECENTRAL_ANALYSIS` muss auf `FALSE` geändert werden (Default ist `TRUE`). ACHTUNG: Dieser Paramter steht 2x in der
+`config.toml`. Der erste Eintrag ist die Einstellung für das Retrieval (toml-Abschnitt `[retrieve.env]`) und der
+zweite für die Analyse (toml-Abschnitt `[analyze.env]`). Die DMSt muss auf jeden Fall den ersten Eintrag ändern! 
+
+Die DMSt leitet dann die Retrievalergebnsse an den Forscher weiter. Der Forscher selbst kann dann die Analyse aus diesem
+Projekt auf den Daten ausführen.
+
+### VHF-datashield
+
+Die Teilnutzung der hier vorliegenden Skripte zum Retrieval (FHIR --> CSV) zur weiteren Nutzung in VHF-Datashield ist
+noch nicht beschieden. Dies betrifft insbesondere den ETL Vorgang zum OPAL-Server der teilnehmenden Standorte.
 
 ## Verwendung
 
