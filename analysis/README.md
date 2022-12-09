@@ -95,6 +95,6 @@ für die Analyse vorbereitet:
 ## Problembehandlung
 
 Bei Problemen mit der Ausführung des DUP können Sie unter
-https://github.com/medizininformatik-initiative/Projectathon7/issues einen (möglichst aussagekräftigen) Issue anlegen.
+https://github.com/medizininformatik-initiative/Projectathon7-VHF/issues einen (möglichst aussagekräftigen) Issue anlegen.
 In dringenden Fällen kontaktieren Sie Alexander Strübing direkt unter
 [alexander.struebing@imise.uni-leipzig.de](mailto:alexander.struebing@imise.uni-leipzig.de).
