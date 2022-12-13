@@ -36,7 +36,7 @@ Paramter gesetzt werden:
 
 DMSt: Leitet dann die Analyseergebnisse an den Forscher zur Endauswertung weiter. 
 
-### VHF-MI-zentral
+### VHF-MI-2-zentral
 
 **DIZ:** Das DIZ führt keine Scripte aus diesem Repository aus. Statt dessen muss das DIZ FHIR-Daten an die DMSt
 ausleiten. Die dazu notwendigen Skripte zum Retrieval finden sich in
