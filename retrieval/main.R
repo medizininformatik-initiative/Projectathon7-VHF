@@ -448,8 +448,6 @@ invisible({
   idStartIndex <- 1
   idEndIndex <- patientIDChunkSize
 
-  subjectParamName <- paste0("subject", chunkListOptionSubjectSuffix)
-  
   for (chunkIndex in 1 : chunkCount) {
 
     if (idStartIndex <= patientIDCount) {
@@ -501,7 +499,6 @@ invisible({
 
 # bring encounter results together, save and flatten
 encounter_bundles <- fhircrackr:::fhir_bundle_list(encounter_bundles)
-
 condition_bundles <- fhircrackr:::fhir_bundle_list(condition_bundles)
 
 if (DEBUG) {
