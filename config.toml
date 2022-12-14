@@ -86,9 +86,9 @@ fhirServerEndpoint = "https://mii-agiop-3p.life.uni-leipzig.de/blaze"
 ### ignoriert oder beschränkt. Hapi hat per Default 20, Blaze 50. Ein anderer
 ### Wert hat beim Blaze aber keinerlei Vorteile oder Nachteile in der Laufzeit
 ### ergeben. Nur beim Testen dauert es eben länger, wenn man 100 Resources
-### pro Bundle lädt oder nur 20.
-### Default: 50
-# BUNDLE_RESOURCES_COUNT = 50
+### pro Bundle lädt oder nur 10.
+### Default: 10
+# BUNDLE_RESOURCES_COUNT = 10
 
 ### MAX_REQUEST_STRING_LENGTH
 ### -------------------------
