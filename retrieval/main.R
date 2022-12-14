@@ -393,9 +393,6 @@ obs_tables$obs <- fhir_rm_indices(obs_tables$obs, brackets = brackets)
 # remove the resource_identifier inserted by fhir_melt
 obs_tables$obs[, resource_identifier := NULL]
 
-# remove all not loinc lines
-obs_tables$obs <- obs_tables$obs[NTproBNP.codeSystem == "http://loinc.org"]
-
 # get rid of resources that have been downloaded multiple times via _include
 obs_tables$pat <- unique(obs_tables$pat)
 
