@@ -639,7 +639,7 @@ encounters[, encounter.start := as.Date(encounter.start)]
 encounters[, encounter.end := as.Date(encounter.end)]
 
 # merge based on subject id and temporal relation of observation date and encounter times
-logGlobal("Merging Observation and Encounter data based on Subject id and tim:")
+logGlobal("Merging Observation and Encounter data based on Subject id and time:")
 logGlobal("Number of unique Subject ids in Observation data: ", length(unique(observations$subject)), " in ", nrow(observations), " rows")
 logGlobal("Number of unique Subject ids in Encounter data: ", length(unique(encounters$subject)), " in ", nrow(encounters), " rows\n")
 
