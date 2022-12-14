@@ -167,6 +167,30 @@ makeRelative <- function(references) {
   return(sub(".*/", "", references))
 }
 
+####################################
+# fhir search convenience function #
+####################################
+
+#'
+#' Convenience function to call fhircrackr::fhir_search with
+#' the global fhir server settings.
+#'
+#' @param request
+#' @param erroor_file
+#' @param max_bundles
+#'
+fhirSearch <- function(request, error_file, max_bundles = Inf) {
+  fhir_search(
+    request = request,
+    username = FHIR_SERVER_USER,
+    password = FHIR_SERVER_PASS,
+    token = FHIR_SERVER_TOKEN,
+    log_errors = error_file,
+    verbose = VERBOSE,
+    max_bundles = max_bundles
+  )
+}
+
 #####################
 # Create PID Chunks #
 #####################
@@ -290,15 +314,7 @@ obs_request <- fhir_url(url = fhir_server_url, resource = "Observation", paramet
 
 # download bundles
 message("Downloading Observations: ", obs_request, "\n")
-obs_bundles <- fhir_search(
-  request = obs_request,
-  username = FHIR_SERVER_USER,
-  password = FHIR_SERVER_PASS,
-  token = FHIR_SERVER_TOKEN,
-  log_errors = error_file_obs,
-  verbose = VERBOSE,
-  max_bundles = MAX_BUNDLES
-)
+obs_bundles <- fhirSearch(obs_request, error_file_obs, MAX_BUNDLES)
 
 # save for checking purposes
 if (DEBUG) {
@@ -444,6 +460,7 @@ invisible({
         idEndIndex <- patientIDCount
       }
   
+      ### Encounters
       parameters <- c()
       # append subject IDs as parameter if they should not be ignored
       if (!ignoreIDs) {
@@ -460,20 +477,8 @@ invisible({
       # add count parameter
       parameters <- c(parameters, c("_count" = BUNDLE_RESOURCES_COUNT))                                                  
       
-      ### Encounters
       enc_request <- fhir_url(url = fhir_server_url, resource = "Encounter", parameters = parameters)
-      
-      encounter_bundles <<- append(
-        encounter_bundles,
-        fhir_search(
-          enc_request,
-          username = FHIR_SERVER_USER,
-          password = FHIR_SERVER_PASS,
-          token = FHIR_SERVER_TOKEN,
-          log_errors = error_file_enc,
-          verbose = VERBOSE
-        )
-      )
+      encounter_bundles <<- append(encounter_bundles, fhirSearch(enc_request, error_file_enc))
 
       ### Conditions
       parameters <- c()
@@ -488,18 +493,7 @@ invisible({
       parameters <- c(parameters, c("_count" = BUNDLE_RESOURCES_COUNT))                                                  
       
       con_request <- fhir_url(url = fhir_server_url, resource = "Condition", parameters = parameters)
-      
-      condition_bundles <<- append(
-        condition_bundles,
-        fhir_search(
-          con_request,
-          username = FHIR_SERVER_USER,
-          password = FHIR_SERVER_PASS,
-          token = FHIR_SERVER_TOKEN,
-          log_errors = error_file_con,
-          verbose = VERBOSE
-        )
-      )
+      condition_bundles <<- append(condition_bundles, fhirSearch(con_request, error_file_con))
 
       idStartIndex <- idEndIndex + 1
       idEndIndex <- idStartIndex + patientIDChunkSize - 1
