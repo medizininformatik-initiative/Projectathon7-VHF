@@ -404,6 +404,25 @@ obs_tables$pat <- unique(obs_tables$pat)
 obs_tables$obs[, subject := makeRelative(subject)]
 obs_tables$obs[, encounter.id := makeRelative(encounter.id)]
 
+# check if all patients referenced by observations
+# could be really loaded as patient resource ->
+# if not then remove observations with invalid patient refs
+invalidPatRefs  <- setdiff(obs_tables$obs$subject, obs_tables$pat$id)
+if (length(invalidPatRefs) > 0) {
+  logError("Could not resolve Patient ID references from Observations:")
+  for (i in 1 : length(invalidPatRefs)) {
+    logError("   ", i, ": ", invalidPatRefs[i])
+  }
+  obsCount <- nrow(obs_tables$obs)                                 # number of all observations
+  patRefsInObs <- length(unique(obs_tables$obs$subject))           # number of unique patient refs in observations
+  obs_tables$obs <- obs_tables$obs[!(subject %in% invalidPatRefs)] # remove observations with unresolvable patient refs
+  obsCountWithValidPatRefs <- nrow(obs_tables$obs)                 # number of observations with resolvable patient refs
+  validPatRefsInObs <- length(unique(obs_tables$obs$subject))      # number of unique resolvable patient refs in observations
+  if (obsCount != obsCountWithValidPatRefs) {
+    logGlobal("Removed Observations with invalid Patient references: ", obsCount - obsCountWithValidPatRefs, " of ", obsCount)
+  }
+}
+
 # backup the NTproBNP.date as date string with day and time
 # after conversion as.Date(...) the day remains but the time is lost
 obs_tables$obs$NTproBNP.date.bak <- as.POSIXct(obs_tables$obs$NTproBNP.date, format = "%Y-%m-%dT%H:%M:%S")
