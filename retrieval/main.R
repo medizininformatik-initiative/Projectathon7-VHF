@@ -426,7 +426,9 @@ rm(obs_tables)
 
 # get patient IDs in chunks of the maximum list length for page queries
 patientIDs <- unique(observations$subject)
+logGlobal("Number of unique Patient ids in merged table: ", patientIDs, " in ", nrow(observations$subject), " rows")
 patientIDChunkSize <- as.integer(getPatientIDChunkSize(patientIDs))
+logGlobal("Patient ID Chunk Size in request: ", patientIDChunkSize)
 
 # get encounters and diagnoses
 # --> all encounters and diagnoses of initial patient population,
