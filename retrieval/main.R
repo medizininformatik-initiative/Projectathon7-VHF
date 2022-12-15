@@ -167,6 +167,30 @@ makeRelative <- function(references) {
   return(sub(".*/", "", references))
 }
 
+####################################
+# fhir search convenience function #
+####################################
+
+#'
+#' Convenience function to call fhircrackr::fhir_search with
+#' the global fhir server settings.
+#'
+#' @param request
+#' @param erroor_file
+#' @param max_bundles
+#'
+fhirSearch <- function(request, error_file, max_bundles = Inf) {
+  fhir_search(
+    request = request,
+    username = FHIR_SERVER_USER,
+    password = FHIR_SERVER_PASS,
+    token = FHIR_SERVER_TOKEN,
+    log_errors = error_file,
+    verbose = VERBOSE,
+    max_bundles = max_bundles
+  )
+}
+
 #####################
 # Create PID Chunks #
 #####################
@@ -290,15 +314,7 @@ obs_request <- fhir_url(url = fhir_server_url, resource = "Observation", paramet
 
 # download bundles
 message("Downloading Observations: ", obs_request, "\n")
-obs_bundles <- fhir_search(
-  request = obs_request,
-  username = FHIR_SERVER_USER,
-  password = FHIR_SERVER_PASS,
-  token = FHIR_SERVER_TOKEN,
-  log_errors = error_file_obs,
-  verbose = VERBOSE,
-  max_bundles = MAX_BUNDLES
-)
+obs_bundles <- fhirSearch(obs_request, error_file_obs, MAX_BUNDLES)
 
 # save for checking purposes
 if (DEBUG) {
@@ -377,9 +393,6 @@ obs_tables$obs <- fhir_rm_indices(obs_tables$obs, brackets = brackets)
 # remove the resource_identifier inserted by fhir_melt
 obs_tables$obs[, resource_identifier := NULL]
 
-# remove all not loinc lines
-obs_tables$obs <- obs_tables$obs[NTproBNP.codeSystem == "http://loinc.org"]
-
 # get rid of resources that have been downloaded multiple times via _include
 obs_tables$pat <- unique(obs_tables$pat)
 
@@ -413,7 +426,9 @@ rm(obs_tables)
 
 # get patient IDs in chunks of the maximum list length for page queries
 patientIDs <- unique(observations$subject)
+logGlobal("Number of unique Patient ids in merged table: ", patientIDs, " in ", nrow(observations$subject), " rows")
 patientIDChunkSize <- as.integer(getPatientIDChunkSize(patientIDs))
+logGlobal("Patient ID Chunk Size in request: ", patientIDChunkSize)
 
 # get encounters and diagnoses
 # --> all encounters and diagnoses of initial patient population,
@@ -435,8 +450,6 @@ invisible({
   idStartIndex <- 1
   idEndIndex <- patientIDChunkSize
 
-  subjectParamName <- paste0("subject", chunkListOptionSubjectSuffix)
-  
   for (chunkIndex in 1 : chunkCount) {
 
     if (idStartIndex <= patientIDCount) {
@@ -444,6 +457,7 @@ invisible({
         idEndIndex <- patientIDCount
       }
   
+      ### Encounters
       parameters <- c()
       # append subject IDs as parameter if they should not be ignored
       if (!ignoreIDs) {
@@ -460,20 +474,8 @@ invisible({
       # add count parameter
       parameters <- c(parameters, c("_count" = BUNDLE_RESOURCES_COUNT))                                                  
       
-      ### Encounters
       enc_request <- fhir_url(url = fhir_server_url, resource = "Encounter", parameters = parameters)
-      
-      encounter_bundles <<- append(
-        encounter_bundles,
-        fhir_search(
-          enc_request,
-          username = FHIR_SERVER_USER,
-          password = FHIR_SERVER_PASS,
-          token = FHIR_SERVER_TOKEN,
-          log_errors = error_file_enc,
-          verbose = VERBOSE
-        )
-      )
+      encounter_bundles <<- append(encounter_bundles, fhirSearch(enc_request, error_file_enc))
 
       ### Conditions
       parameters <- c()
@@ -488,18 +490,7 @@ invisible({
       parameters <- c(parameters, c("_count" = BUNDLE_RESOURCES_COUNT))                                                  
       
       con_request <- fhir_url(url = fhir_server_url, resource = "Condition", parameters = parameters)
-      
-      condition_bundles <<- append(
-        condition_bundles,
-        fhir_search(
-          con_request,
-          username = FHIR_SERVER_USER,
-          password = FHIR_SERVER_PASS,
-          token = FHIR_SERVER_TOKEN,
-          log_errors = error_file_con,
-          verbose = VERBOSE
-        )
-      )
+      condition_bundles <<- append(condition_bundles, fhirSearch(con_request, error_file_con))
 
       idStartIndex <- idEndIndex + 1
       idEndIndex <- idStartIndex + patientIDChunkSize - 1
@@ -510,7 +501,6 @@ invisible({
 
 # bring encounter results together, save and flatten
 encounter_bundles <- fhircrackr:::fhir_bundle_list(encounter_bundles)
-
 condition_bundles <- fhircrackr:::fhir_bundle_list(condition_bundles)
 
 if (DEBUG) {
@@ -651,7 +641,7 @@ encounters[, encounter.start := as.Date(encounter.start)]
 encounters[, encounter.end := as.Date(encounter.end)]
 
 # merge based on subject id and temporal relation of observation date and encounter times
-logGlobal("Merging Observation and Encounter data based on Subject id and tim:")
+logGlobal("Merging Observation and Encounter data based on Subject id and time:")
 logGlobal("Number of unique Subject ids in Observation data: ", length(unique(observations$subject)), " in ", nrow(observations), " rows")
 logGlobal("Number of unique Subject ids in Encounter data: ", length(unique(encounters$subject)), " in ", nrow(encounters), " rows\n")
 

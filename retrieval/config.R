@@ -41,7 +41,7 @@ MAX_BUNDLES <- as.double(Sys.getenv('MAX_BUNDLES', "Inf"))
 # Wert hat beim Blaze aber keinerlei Vorteile oder Nachteile in der Laufzeit
 # ergeben. Nur beim Testen dauert es eben länger, wenn man 100 Resources
 # pro Bundle lädt oder nur 20.
-BUNDLE_RESOURCES_COUNT <- as.numeric(Sys.getenv('BUNDLE_RESOURCES_COUNT', 50))
+BUNDLE_RESOURCES_COUNT <- as.numeric(Sys.getenv('BUNDLE_RESOURCES_COUNT', 10))
 
 # Maximale Gesamtlänge eines get-Requests, der an den Server geschickt wird. Diese
 # Länge wird definitiv niemals erreicht/überschritten. Dieser Parameter entscheidet
