@@ -465,6 +465,32 @@ writeCohortAnalysisFiles <- function(cohort, conditions, cohortDescription, coho
   closeAllConnections()
 }
 
+#'
+#' Loads the condition table and removes invalid(ated) conditions.
+#'
+loadAndCleanDiagnoses <- function() {
+  conditions <- fread(retrieve_file_diagnoses)
+  # Clean diagnoses table from invalid(ated) Conditions
+  allConditionsCount <- nrow(conditions)
+  # remove invalid(ated) diagnoses
+  # https://www.hl7.org/fhir/codesystem-condition-clinical.html#condition-clinical-inactive
+  conditions <- conditions[!(clinicalStatus.code  %in%  c("inactive", "remission", "resolved"))]
+  removedByClinicalStatusConditionsCount <- allConditionsCount - nrow(conditions)
+  # https://www.hl7.org/fhir/valueset-condition-ver-status.html
+  conditions <- conditions[!(verificationStatus.code  %in%  c("refuted", "entered-in-error"))]
+  removedByVerificationStatusConditionsCount <- allConditionsCount - removedByClinicalStatusConditionsCount - nrow(conditions)
+  removedConditionsCount <- removedByClinicalStatusConditionsCount + removedByVerificationStatusConditionsCount
+  if (removedConditionsCount > 0) {
+    logGlobal("Removed Observations:")
+    logGlobal("     1. with clinical status 'inactive', 'remission' or 'resolved': ", removedByClinicalStatusConditionsCount)
+    logGlobal("        (see https://www.hl7.org/fhir/codesystem-condition-clinical.html#condition-clinical-inactive)")
+    logGlobal("     2. with verification status 'refuted' or 'entered-in-error': ", removedByVerificationStatusConditionsCount)
+    logGlobal("        (see https://www.hl7.org/fhir/valueset-condition-ver-status.html)")
+    logGlobal("Remaining Observations ", nrow(conditions) ," of ",  allConditionsCount, " (removed ", removedConditionsCount, ")\n")
+  }
+  return (conditions)
+}
+
 ########
 # MAIN #
 ########
@@ -559,13 +585,7 @@ fullCohort$age <- getYear(fullCohort$NTproBNP.date) - getYear(fullCohort$birthda
 ###################
 # Diagnoses Table #
 ###################
-conditions <- fread(retrieve_file_diagnoses)
-
-# remove invalid(ated) diagnoses
-# https://www.hl7.org/fhir/codesystem-condition-clinical.html#condition-clinical-inactive
-conditions <- conditions[!(clinicalStatus.code  %in%  c("inactive", "remission", "resolved"))]
-# https://www.hl7.org/fhir/valueset-condition-ver-status.html
-conditions <- conditions[!(verificationStatus.code  %in%  c("refuted", "entered-in-error"))]
+conditions <- loadAndCleanDiagnoses()
 
 #############################################
 # Create subcohorts from cohort and analyze #
