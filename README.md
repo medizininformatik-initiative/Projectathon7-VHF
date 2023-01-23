@@ -40,7 +40,7 @@ DMSt: Leitet dann die Analyseergebnisse an den Forscher zur Endauswertung weiter
 
 **DIZ:** Das DIZ führt keine Scripte aus diesem Repository aus. Statt dessen muss das DIZ FHIR-Daten an die DMSt
 ausleiten. Die dazu notwendigen Skripte zum Retrieval finden sich in
-https://github.com/juliangruendner/pj7-data-extraction. 
+https://github.com/medizininformatik-initiative/Projectathon7-VHF-DataExtraction. 
 
 **DMSt:** Die DMSt selbst führt auf einem speziellen FHIR-Server mit den Daten aus den DIZen nur das Retrieval aus.
 Folgende Paramter müssen dabei in der Datei `config.toml` (siehe unten) mind. gesetzt bzw. vom Default geändert
