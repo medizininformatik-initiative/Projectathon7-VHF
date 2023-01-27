@@ -55,10 +55,9 @@ zweite für die Analyse (toml-Abschnitt `[analyze.env]`). Die DMSt muss auf jede
 Die DMSt leitet dann die Retrievalergebnsse an den Forscher weiter. Der Forscher selbst kann dann die Analyse aus diesem
 Projekt auf den Daten ausführen.
 
-### VHF-datashield
+### VHF-dataSHIELD
 
-Die Teilnutzung der hier vorliegenden Skripte zum Retrieval (FHIR --> CSV) zur weiteren Nutzung in VHF-Datashield ist
-noch nicht beschieden. Dies betrifft insbesondere den ETL Vorgang zum OPAL-Server der teilnehmenden Standorte.
+Die Dokumentation, Anleitungen und der Quellcode, die für das Projekt VHF-DataSHIELD im Rahmen des 7. Projektathon relevant sind, sind von dieser hier vorliegenden Dokumentation ausgenommen. Sie finden sich im GitHub Repositorium [Projekthathon7-VHF-DataSHIELD](https://github.com/medizininformatik-initiative/Projectathon7-VHF-DataSHIELD).
 
 ## Verwendung
 
