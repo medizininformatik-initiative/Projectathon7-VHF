@@ -29,19 +29,23 @@ result_dir <- ifelse(DECENTRAL_ANALYSIS, OUTPUT_DIR_LOCAL, OUTPUT_DIR_GLOBAL)
 output_local_errors <- paste0(OUTPUT_DIR_LOCAL, "/Errors")
 output_local_bundles <- paste0(OUTPUT_DIR_LOCAL, "/Bundles")
 # Error files
-error_file <- paste0(output_local_errors, "/ErrorMessage.txt")
-error_file_obs <- paste0(output_local_errors, "/ObservationError.xml")
-error_file_enc <- paste0(output_local_errors, "/EncounterError.xml")
-error_file_con <- paste0(output_local_errors, "/ConditionError.xml")
+error_file <- list(
+  main = paste0(output_local_errors, "/ErrorMessage.txt"),
+  obs  = paste0(output_local_errors, "/ObservationError.xml"),
+  enc  = paste0(output_local_errors, "/EncounterError.xml"),
+  con  = paste0(output_local_errors, "/ConditionError.xml")
+)
 # Debug files
 debug_dir_obs_bundles <- paste0(output_local_bundles, "/Observations")
 debug_dir_enc_bundles <- paste0(output_local_bundles, "/Encounters")
 debug_dir_con_bundles <- paste0(output_local_bundles, "/Conditions")
 
 # Result files
-retrieve_file_cohort <- paste0(result_dir, "/Cohort.csv")
-retrieve_file_diagnoses <- paste0(result_dir, "/Diagnoses.csv")
-retrieve_file_log <- paste0(OUTPUT_DIR_GLOBAL, "/Retrieval.log")
+retrieve_file <- list(
+  cohort    = paste0(result_dir, "/Cohort.csv"),
+  diagnoses = paste0(result_dir, "/Diagnoses.csv"),
+  log       = paste0(OUTPUT_DIR_GLOBAL, "/Retrieval.log")
+)
 
 ERROR <- NA
 tryCatch({
@@ -117,7 +121,7 @@ rm(chunkListOptionRowIndex)
 #'
 logGlobal <- function(..., append = TRUE) {
   logText <- paste0(...)
-  write(logText, file = retrieve_file_log, append = append)
+  write(logText, file = retrieve_file$log, append = append)
   message(logText)
 }
 
@@ -126,7 +130,7 @@ logGlobal <- function(..., append = TRUE) {
 #'
 logError <- function(..., append = TRUE, message = TRUE) {
   logText <- paste0(...)
-  write(logText, file = error_file, append = append)
+  write(logText, file = error_file$main, append = append)
   if (message) {
     message(logText)
   }
@@ -337,7 +341,7 @@ obs_request <- fhir_url(url = fhir_server_url, resource = "Observation", paramet
 
 # download bundles
 message("Downloading Observations: ", obs_request, "\n")
-obs_bundles <- fhirSearch(obs_request, error_file_obs, MAX_BUNDLES)
+obs_bundles <- fhirSearch(obs_request, error_file$obs, MAX_BUNDLES)
 
 # save for checking purposes
 if (DEBUG) {
@@ -448,7 +452,7 @@ if (length(invalidPatRefs) > 0) {
 
 # backup the NTproBNP.date as date string with day and time
 # after conversion as.Date(...) the day remains but the time is lost
-obs_tables$obs$NTproBNP.date.bak <- as.POSIXct(obs_tables$obs$NTproBNP.date, format = "%Y-%m-%dT%H:%M:%S")
+#obs_tables$obs$NTproBNP.date.bak <- as.POSIXct(obs_tables$obs$NTproBNP.date, format = "%Y-%m-%dT%H:%M:%S")
 obs_tables$obs[, NTproBNP.date := as.Date(NTproBNP.date)]
 
 # merge
@@ -517,7 +521,7 @@ invisible({
       parameters <- c(parameters, c("_count" = BUNDLE_RESOURCES_COUNT))                                                  
       
       enc_request <- fhir_url(url = fhir_server_url, resource = "Encounter", parameters = parameters)
-      encounter_bundles <<- append(encounter_bundles, fhirSearch(enc_request, error_file_enc))
+      encounter_bundles <<- append(encounter_bundles, fhirSearch(enc_request, error_file$enc))
 
       ### Conditions
       parameters <- c()
@@ -532,7 +536,7 @@ invisible({
       parameters <- c(parameters, c("_count" = BUNDLE_RESOURCES_COUNT))                                                  
       
       con_request <- fhir_url(url = fhir_server_url, resource = "Condition", parameters = parameters)
-      condition_bundles <<- append(condition_bundles, fhirSearch(con_request, error_file_con))
+      condition_bundles <<- append(condition_bundles, fhirSearch(con_request, error_file$con))
 
       idStartIndex <- idEndIndex + 1
       idEndIndex <- idStartIndex + patientIDChunkSize - 1
@@ -781,8 +785,8 @@ cohort[, NTproBNP.date := NULL]
 cohort[, birthdate := NULL]
 
 # Write result files
-write.csv2(cohort, retrieve_file_cohort, row.names = FALSE)
-write.csv2(conditions, retrieve_file_diagnoses, row.names = FALSE)
+write.csv2(cohort, retrieve_file$cohort, row.names = FALSE)
+write.csv2(conditions, retrieve_file$diagnoses, row.names = FALSE)
 
 # logging
 runtime <- Sys.time() - start
@@ -790,4 +794,3 @@ runtime <- Sys.time() - start
 logGlobal("main.R finished at ", Sys.time(), ".")
 logGlobal("Extracted ", length(cohort$encounter.id), " Encounters based on ", length(unique(cohort$subject)), " Patients.")
 logGlobal("R script execution took ", round(runtime, 2), " ", attr(runtime, "units"), ".")
-
