@@ -43,11 +43,21 @@ retrieve_file_cohort <- paste0(result_dir, "/Cohort.csv")
 retrieve_file_diagnoses <- paste0(result_dir, "/Diagnoses.csv")
 retrieve_file_log <- paste0(OUTPUT_DIR_GLOBAL, "/Retrieval.log")
 
-# rename old dirs and create new ones  (surpress warning if dir exists)
-createDirWithBackup(OUTPUT_DIR_LOCAL)
-createDirWithBackup(OUTPUT_DIR_GLOBAL)
-createDirsRecursive(output_local_errors)
-createDirsRecursive(debug_dir_obs_bundles, debug_dir_enc_bundles, debug_dir_con_bundles, condition = DEBUG)
+ERROR <- NA
+tryCatch({
+  # rename old dirs and create new ones  (surpress warning if dir exists)
+  createDirWithBackup(OUTPUT_DIR_LOCAL)
+  createDirWithBackup(OUTPUT_DIR_GLOBAL)
+  createDirsRecursive(output_local_errors)
+  createDirsRecursive(debug_dir_obs_bundles, debug_dir_enc_bundles, debug_dir_con_bundles, condition = DEBUG)
+}, warning = function(w) {
+  ERROR <<- paste0(w, 'At least one file in this folder is locked by a(nother) program.')
+}, error = function(e) {
+  ERROR <<- e
+})
+if (!all(is.na(ERROR))) {
+  stop(ERROR)
+}
 
 # ensure profile Strings without leading or tailing whitespaces
 PROFILE_ENC <- trimws(PROFILE_ENC)
