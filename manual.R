@@ -6,7 +6,7 @@
 # you must first change to the specific R working
 # directory.
 #########################################################
-
+rm(list = ls())
 # gets the current working directory as base working 
 # directory
 # (this should be the directory of this script!)
