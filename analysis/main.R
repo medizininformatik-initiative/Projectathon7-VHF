@@ -111,20 +111,6 @@ getResultsFileName <- function(baseNameSuffix, hasComparator) {
   paste0(results_file_baseName, baseNameSuffix, ".csv")
 }
 
-#########
-# Utils #
-#########
-
-#'
-#' @param dateStringWithLeadingYear a string representing a date or only a year. The year must be the
-#' first 4 characters of the string.
-#' @return the extracted year from the given date string
-#'
-getYear <- function(dateStringWithLeadingYear) {
-  date <- as.POSIXct(as.character(dateStringWithLeadingYear), format = "%Y")
-  return (year(date))
-}
-
 ###########################
 # Simple Filter Functions #
 ###########################
@@ -309,13 +295,11 @@ mergeRetrievalResults <- function(cohort, conditions) {
     # fill the date (=timestamp) column with the timestamp of the max NTproBNP
     # value for every encounter. If there is more than 1 maximum value, then take
     # the lowest (min) date
-    NTproBNP.date = min(NTproBNP.date[NTproBNP.valueQuantity.value == max(NTproBNP.valueQuantity.value)]),
+    age = min(age[NTproBNP.valueQuantity.value == max(NTproBNP.valueQuantity.value)]),
     # fill the NTproBNP value for every encounter with the maximum value
     NTproBNP.valueQuantity.value = max(NTproBNP.valueQuantity.value),
     NTproBNP.unit,
-    birthdate,
-    gender,
-    age
+    gender
   ), by = encounter.id]
   
   # remove equal columns which are now present if there were multiple NTproBNP
@@ -578,9 +562,6 @@ for (i in 1 : length(valueCuts)) {
   logGlobal(whitespaces, cut, greaterCutCount)  
 }
 logGlobal("     total after cleanup: ", fullCohortCountCleaned, "\n")
-
-# calculate age by birthdate and NTproBNP date 
-fullCohort$age <- getYear(fullCohort$NTproBNP.date) - getYear(fullCohort$birthdate)
 
 ###################
 # Diagnoses Table #

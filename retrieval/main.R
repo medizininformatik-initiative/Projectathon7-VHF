@@ -153,6 +153,19 @@ logErrorMax100 <- function(message, dataTable) {
   errorLogCount <<- errorLogCount + 1
 }
 
+#########
+# Utils #
+#########
+
+#'
+#' @param dateStringWithLeadingYear a string representing a date or only a year. The year must be the
+#' first 4 characters of the string.
+#' @return the extracted year from the given date string
+#'
+getYear <- function(dateStringWithLeadingYear) {
+  date <- as.POSIXct(as.character(dateStringWithLeadingYear), format = "%Y")
+  return (year(date))
+}
 
 ####################################
 # Absolute to Relative ID Function #
@@ -750,10 +763,12 @@ if (nrow(conditions) > 0) {
   conditions <- conditions[encounter.id %in% cohort$encounter.id]
 }
 
-# replace the NTproBNP.date (with only day) by the backup (with day and time)
-cohort$NTproBNP.date <- cohort$NTproBNP.date.bak
-# remove the date column backup
-cohort[, NTproBNP.date.bak := NULL] #cohort <- within(cohort, rm(NTproBNP.date.bak))
+# calculate age by birthdate and NTproBNP date 
+cohort$age <- getYear(cohort$NTproBNP.date) - getYear(cohort$birthdate)
+# remove the date column
+cohort[, NTproBNP.date := NULL]
+# remove the birthdate column
+cohort[, birthdate := NULL]
 
 # Write result files
 write.csv2(cohort, retrieve_file_cohort, row.names = FALSE)
