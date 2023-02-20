@@ -48,8 +48,8 @@ datatyp_report <- as.data.table(t(metadata_report$DATA_TYPE))
 colnames(datatyp_report) <- metadata_report$VAR_NAMES
 
 #extract known value labels
-value_labels <- as.data.table(t(metadata_report$VALUE_LABELS[3:8]))
-colnames(value_labels) <- metadata_report$VAR_NAMES[3:8]
+value_labels <- as.data.table(t(metadata_report$VALUE_LABELS[2:7]))
+colnames(value_labels) <- metadata_report$VAR_NAMES[2:7]
 # function that returns only labels in string as list
 get_labels <- function(string) {
   # regex to split at | num = : \s?\|?\s?\d\s\=\s
@@ -97,38 +97,39 @@ apply_labels <- function(vector, labels) {
   return(r)
 }
 
-calculate_age <- function(vector) {
-
-  # ws is assinged missing code for wrong format as well
-  # # unify casing, trim whitespace
-  # vector <- tolower(vector)
-  # vector <- trimws(vector, which = "both")
-
-  #convert to datetime with at least years (YYYY or any YYYY-MM... format)
-  r <- parse_date_time(vector, "ymd", truncated = 2)
-
-  # calculate age with lubridate period
-  r <- lapply(r, function(x) {as.period(interval(x, Sys.Date()), unit = "year")$year} )
-  r <- unlist(r)
-
-  for (i in 1:length(r) ) {
-    if( is.na( r[i] ) && !is.na(vector[i]) ) r[i] <- missing_datetime
-  }
-
-  return(r)
-}
-
-table(cohort_report$NTproBNP.unit)
+# age not calculate from birthdate anymore
+# calculate_age <- function(vector) {
+#
+#  # ws is assinged missing code for wrong format as well
+#  # # unify casing, trim whitespace
+#  # vector <- tolower(vector)
+#  # vector <- trimws(vector, which = "both")
+#
+#  #convert to datetime with at least years (YYYY or any YYYY-MM... format)
+#  r <- parse_date_time(vector, "ymd", truncated = 2)
+#
+#  # calculate age with lubridate period
+#  r <- lapply(r, function(x) {as.period(interval(x, Sys.Date()), unit = "year")$year} )
+#  r <- unlist(r)
+#
+#  for (i in 1:length(r) ) {
+#    if( is.na( r[i] ) && !is.na(vector[i]) ) r[i] <- missing_datetime
+#  }
+#
+#  return(r)
+#}
+#
+# table(cohort_report$NTproBNP.unit)
 
 #apply labels and fix typing per column - missmatched typing is returned as NA (NOT as missing code)
-cohort_report$NTproBNP.date <- parse_date_time(cohort_report$NTproBNP.date, "ymd HMS", truncated = 5)
+#cohort_report$NTproBNP.date <- parse_date_time(cohort_report$NTproBNP.date, "ymd HMS", truncated = 5)
 cohort_report$NTproBNP.valueQuantity.value <- as.double(cohort_report$NTproBNP.valueQuantity.value)
 cohort_report$NTproBNP.code <- as.integer( apply_labels(cohort_report$NTproBNP.code, value_labels$NTproBNP.code) )
 cohort_report$NTproBNP.codeSystem <- as.integer(  apply_labels(cohort_report$NTproBNP.codeSystem, value_labels$NTproBNP.codeSystem) )
 cohort_report$NTproBNP.unit <- as.integer( apply_labels(cohort_report$NTproBNP.unit, value_labels$NTproBNP.unit) )
 cohort_report$NTproBNP.unitSystem <- as.integer( apply_labels(cohort_report$NTproBNP.unitSystem, value_labels$NTproBNP.unitSystem) )
 cohort_report$gender <- as.integer( apply_labels(cohort_report$gender, value_labels$gender) )
-cohort_report$birthdate <- as.integer(calculate_age(cohort_report$birthdate))
+cohort_report$age <- as.integer(cohort_report$age)
 cohort_report$encounter.start <- parse_date_time(cohort_report$encounter.start, "ymd HMS", truncated = 5)
 cohort_report$encounter.end <- parse_date_time(cohort_report$encounter.end, "ymd HMS", truncated = 5)
 cohort_report$NTproBNP.valueQuantity.comparator <- as.integer( apply_labels(cohort_report$NTproBNP.valueQuantity.comparator, value_labels$NTproBNP.valueQuantity.comparator) )
