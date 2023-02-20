@@ -97,28 +97,29 @@ apply_labels <- function(vector, labels) {
   return(r)
 }
 
-calculate_age <- function(vector) {
-
-  # ws is assinged missing code for wrong format as well
-  # # unify casing, trim whitespace
-  # vector <- tolower(vector)
-  # vector <- trimws(vector, which = "both")
-
-  #convert to datetime with at least years (YYYY or any YYYY-MM... format)
-  r <- parse_date_time(vector, "ymd", truncated = 2)
-
-  # calculate age with lubridate period
-  r <- lapply(r, function(x) {as.period(interval(x, Sys.Date()), unit = "year")$year} )
-  r <- unlist(r)
-
-  for (i in 1:length(r) ) {
-    if( is.na( r[i] ) && !is.na(vector[i]) ) r[i] <- missing_datetime
-  }
-
-  return(r)
-}
-
-table(cohort_report$NTproBNP.unit)
+# age not calculate from birthdate anymore
+# calculate_age <- function(vector) {
+#
+#  # ws is assinged missing code for wrong format as well
+#  # # unify casing, trim whitespace
+#  # vector <- tolower(vector)
+#  # vector <- trimws(vector, which = "both")
+#
+#  #convert to datetime with at least years (YYYY or any YYYY-MM... format)
+#  r <- parse_date_time(vector, "ymd", truncated = 2)
+#
+#  # calculate age with lubridate period
+#  r <- lapply(r, function(x) {as.period(interval(x, Sys.Date()), unit = "year")$year} )
+#  r <- unlist(r)
+#
+#  for (i in 1:length(r) ) {
+#    if( is.na( r[i] ) && !is.na(vector[i]) ) r[i] <- missing_datetime
+#  }
+#
+#  return(r)
+#}
+#
+# table(cohort_report$NTproBNP.unit)
 
 #apply labels and fix typing per column - missmatched typing is returned as NA (NOT as missing code)
 #cohort_report$NTproBNP.date <- parse_date_time(cohort_report$NTproBNP.date, "ymd HMS", truncated = 5)
