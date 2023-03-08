@@ -4,17 +4,12 @@ Autor: Alexander Strübing ([alexander.struebing@imise.uni-leipzig.de](mailto:al
 
 ## Einführung
 
-Dieses Projekt führt das DUP Vorhofflimmern (VHF) in verschiedenen Varianten aus. Der Retrieval-Teil (Datenselektion)
-des DUP erzeugt zwei Tabellen mit den für die Analyse benötigten Inhalten. Diese Tabellen sollen entweder in den DIZen
-erzeugt und an die Datenmanagementstelle (DMSt) ausgeleitet werden (zentrale Analyse) oder direkt nach dem Retrieval
-auch in den DIZen analysiert werden und nur die Analyseergebnisse an die DMSt ausgeleitet werden (dezentrale Analyse).
+Dieses Projekt führt das DUP Vorhofflimmern (VHF) aus. Der Retrieval-Teil (Datenselektion) des DUP erzeugt zwei
+Tabellen mit den für die Analyse benötigten Inhalten. Diese Tabellen sollen direkt nach dem Retrieval auch in den
+DIZen analysiert werden und nur die Analyseergebnisse an die DMSt ausgeleitet werden (VHF-MI-dezentral).
 
-Bei der dezentralen Analyse werden im DIZ die o.g. Tabellen in das nicht auszuleitende Verzeichnis `outputLocal`
-geschrieben und danach bei der Analyse im DIZ die auszuleitenden Analyseergebnisse (Textdateien und ROC-Plots in
-PDF-Dateien) in das Verzeichnis `outputGlobal`.
-
-Bei einer zentralen Analyse wird im DIZ nur das Retrieval ausgeführt und die o.g. Tabellen werden in das auszuleitende
-Verzeichnis `outputGlobal` geschrieben. Die Analyse wird dann in der DMSt oder beim Forscher ausgeführt.
+Die o.g. Tabellen werden in das nicht auszuleitende Verzeichnis `outputLocal` geschrieben und danach bei der Analyse
+im DIZ die auszuleitenden Analyseergebnisse (Textdateien und ROC-Plots in PDF-Dateien) in das Verzeichnis `outputGlobal`.
 
 Hier wird die Verwendung des DUP beschrieben. Die inhaltliche Beschreibung des Retrieval und der Analyse steht in der
 Readme des jeweiligen Unterordners:
