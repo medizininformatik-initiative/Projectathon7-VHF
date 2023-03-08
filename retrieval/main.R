@@ -69,49 +69,6 @@ PROFILE_OBS <- trimws(PROFILE_OBS)
 PROFILE_CON <- trimws(PROFILE_CON)
 ENCOUNTER_TYPE <- trimws(ENCOUNTER_TYPE)
 
-#####################
-# Chunk List Option #
-#####################
-
-# The urls in get requests have a maximum length of approx. 2000 characters.
-# Depending on how the requests to the server are to be structured (option
-# FHIR_SEARCH_SUBJECT_LIST_OPTION), it is specified here how many subject
-# IDs are to come into a request at the same time and which strings are
-# (must be) inserted in the request before and after the ID.
-
-# option name | max IDs per chunk (if fits) | string after subject | string before every ID | string after every ID
-CHUNK_LIST_OPTION <- c(
-  "COMMA_SEPARATED_PURE_IDS",                      Inf,         "",         "", "%2C", # every comma after an ID will
-  "COMMA_SEPARATED_PURE_IDS_WITH_SUBJECT_PATIENT", Inf, ":Patient",         "", "%2C", # be replaced by "%2C"
-  "COMMA_SEPARATED_IDS_WITH_PATIENT_PREFIX",       Inf,         "", "Patient/", "%2C",
-  "SINGLE_REQUEST_PER_ID",                           1,         "",         "",    "",
-  "SINGLE_REQUEST_PER_ID_WITH_SUBJECT_PATIENT",      1, ":Patient",         "",    "",
-  "SINGLE_REQUEST_PER_ID_WITH_PATIENT_PREFIX",       1,         "", "Patient/",    "",
-  "IGNORE_IDS",                                      0,         "",         "",    ""
-)
-CHUNK_LIST_OPTION <- matrix(CHUNK_LIST_OPTION, length(CHUNK_LIST_OPTION) / 5, 5, byrow = TRUE)
-
-# Row index of the choosed option in the above matrix 
-chunkListOptionRowIndex <- match(FHIR_SEARCH_SUBJECT_LIST_OPTION, CHUNK_LIST_OPTION[, 1])
-
-# the option was not found (probably typo in config.toml or .RProfile)
-if (is.na(chunkListOptionRowIndex)) {
-  logGlobalAndError("Ungültiger Wert für Parameter FHIR_SEARCH_SUBJECT_LIST_OPTION gefunden: ", FHIR_SEARCH_SUBJECT_LIST_OPTION)
-  stop("No NTproBNP Observations found - aborting.")
-}
-# max number of IDs in one chunk (if it fits)
-chunkListOptionMaxIDsPerChunk <- as.numeric(CHUNK_LIST_OPTION[chunkListOptionRowIndex, 2])
-# string that will be added after "subject" and before "="
-chunkListOptionSubjectSuffix <- as.character(CHUNK_LIST_OPTION[chunkListOptionRowIndex, 3])
-# number of chars added to every ID in the request as prefix
-chunkListOptionIDPrefix <- as.character(CHUNK_LIST_OPTION[chunkListOptionRowIndex, 4])
-# number of chars added to every ID in the request as suffix
-chunkListOptionIDSuffix <- as.character(CHUNK_LIST_OPTION[chunkListOptionRowIndex, 5])
-
-# cleanup
-rm(CHUNK_LIST_OPTION)
-rm(chunkListOptionRowIndex)
-
 #################
 # Log Functions #
 #################
@@ -134,15 +91,17 @@ logError <- function(..., append = TRUE, message = TRUE) {
   if (message) {
     message(logText)
   }
+  return(logText)
 }
 
 #'
 #' Logs the given arguments to the global log file and via message()
 #' and in the error file.
 #'
-logGlobalAndError <- function(...) {
+logGlobalAndStopWithError <- function(...) {
   logGlobal(...)
-  logError(..., message = FALSE)
+  error <- logError(..., message = FALSE)
+  stop(error)
 }
 
 # counts how many error logs are written to the error file
@@ -281,6 +240,47 @@ getPatientIDChunkSize <- function(allPatientIDs) {
   return (patientIDsChunkSize)
 }
 
+#####################
+# Chunk List Option #
+#####################
+
+# The urls in get requests have a maximum length of approx. 2000 characters.
+# Depending on how the requests to the server are to be structured (option
+# FHIR_SEARCH_SUBJECT_LIST_OPTION), it is specified here how many subject
+# IDs are to come into a request at the same time and which strings are
+# (must be) inserted in the request before and after the ID.
+
+# option name | max IDs per chunk (if fits) | string after subject | string before every ID | string after every ID
+CHUNK_LIST_OPTION <- c(
+  "COMMA_SEPARATED_PURE_IDS",                      Inf,         "",         "", "%2C", # every comma after an ID will
+  "COMMA_SEPARATED_PURE_IDS_WITH_SUBJECT_PATIENT", Inf, ":Patient",         "", "%2C", # be replaced by "%2C"
+  "COMMA_SEPARATED_IDS_WITH_PATIENT_PREFIX",       Inf,         "", "Patient/", "%2C",
+  "SINGLE_REQUEST_PER_ID",                           1,         "",         "",    "",
+  "SINGLE_REQUEST_PER_ID_WITH_SUBJECT_PATIENT",      1, ":Patient",         "",    "",
+  "SINGLE_REQUEST_PER_ID_WITH_PATIENT_PREFIX",       1,         "", "Patient/",    "",
+  "IGNORE_IDS",                                      0,         "",         "",    ""
+)
+CHUNK_LIST_OPTION <- matrix(CHUNK_LIST_OPTION, length(CHUNK_LIST_OPTION) / 5, 5, byrow = TRUE)
+
+# Row index of the choosed option in the above matrix 
+chunkListOptionRowIndex <- match(FHIR_SEARCH_SUBJECT_LIST_OPTION, CHUNK_LIST_OPTION[, 1])
+
+# the option was not found (probably typo in config.toml or .RProfile)
+if (is.na(chunkListOptionRowIndex)) {
+  logGlobalAndStopWithError("Invalid value found for parameter FHIR_SEARCH_SUBJECT_LIST_OPTION:", FHIR_SEARCH_SUBJECT_LIST_OPTION, "-> aborting.")
+}
+# max number of IDs in one chunk (if it fits)
+chunkListOptionMaxIDsPerChunk <- as.numeric(CHUNK_LIST_OPTION[chunkListOptionRowIndex, 2])
+# string that will be added after "subject" and before "="
+chunkListOptionSubjectSuffix <- as.character(CHUNK_LIST_OPTION[chunkListOptionRowIndex, 3])
+# number of chars added to every ID in the request as prefix
+chunkListOptionIDPrefix <- as.character(CHUNK_LIST_OPTION[chunkListOptionRowIndex, 4])
+# number of chars added to every ID in the request as suffix
+chunkListOptionIDSuffix <- as.character(CHUNK_LIST_OPTION[chunkListOptionRowIndex, 5])
+
+# cleanup
+rm(CHUNK_LIST_OPTION)
+rm(chunkListOptionRowIndex)
 
 ##############
 # SSL Veryfy #
@@ -391,14 +391,12 @@ obs_tables <- fhir_crack(
 
 rm(obs_bundles)
 
-if (nrow(obs_tables$obs) == 0) {
-  logGlobalAndError("Konnte keine Observations für NTproBNP auf dem Server finden. Abfrage abgebrochen.")
-  stop("No NTproBNP Observations found - aborting.")
+if (!NROW(obs_tables$obs)) {
+  logGlobalAndStopWithError("No NTproBNP Observations found - aborting.")
 }
 
-if (nrow(obs_tables$pat) == 0) {
-  logGlobalAndError("Konnte keine Patientenressourcen für NTproBNP-Observations auf dem Server finden. Abfrage abgebrochen.")
-  stop("No Patients for NTproBNP Observations found - aborting.")
+if (!NROW(obs_tables$pat)) {
+  logGlobalAndStopWithError("No Patients for NTproBNP Observations found - aborting.")
 }
 
 # remove indices in sub table pat in obs_tables
@@ -579,9 +577,8 @@ encounters <- fhir_crack(
   verbose = VERBOSE
 )
 
-if (nrow(encounters) == 0) {
-  logGlobalAndError( "Konnte keine Encounter-Ressourcen zu den gefundenen Patients finden. Abfrage abgebrochen.")
-  stop("No Encounters for Patients found - aborting.")
+if (!NROW(encounters)) {
+  logGlobalAndStopWithError("No Encounters for Patients found - aborting.")
 }
 
 rm(encounter_bundles)
@@ -617,7 +614,7 @@ rm(condition_bundles)
 
 
 ### generate conditions table --> has all conditions of all Patients in the initial population
-if (nrow(conditions) > 0) {
+if (NROW(conditions)) {
   #extract diagnosis use info from encounter table
   useInfo <- fhir_melt(
     encounters,
@@ -702,13 +699,13 @@ for(i in 1 : nrow(observations)) {
   encounterID <- observations[i, encounter.id]
   if (!is.na(encounterID)) {
     observationEncounter <- encounters[encounter.id == encounterID]
-    if (nrow(observationEncounter) > 0) {
+    if (NROW(observationEncounter)) {
       observationEncounter <- observationEncounter[1]
     }
   }
 
   # found no encounter by its ID?
-  if (nrow(observationEncounter) == 0) {
+  if (!NROW(observationEncounter)) {
     # get the observation date of the current observation i
     obs_date <- observations[i, NTproBNP.date]
     # get all encounters for the patient with the current observation
@@ -759,7 +756,7 @@ for(i in 1 : nrow(observations)) {
     }
   }
   
-  if (nrow(observationEncounter) > 0) { # should alway be 1 row here, but sure is...
+  if (NROW(observationEncounter)) { # should alway be 1 row here, but sure is...
     observations[i, encounter.id := observationEncounter$encounter.id[1]]
     observations[i, encounter.start := observationEncounter$encounter.start[1]]
     observations[i, encounter.end := observationEncounter$encounter.end[1]]
@@ -773,9 +770,15 @@ cohort <- observations # it's a copy by reference (type is data.table)
 rm(observations)
 
 # filter conditions: only keep conditions belonging to the encounters we have just filtered
-if (nrow(conditions) > 0) {
+if (NROW(conditions)) {
   conditions <- conditions[encounter.id %in% cohort$encounter.id]
 }
+
+# there are no conditions
+if (!NROW(conditions)) {
+  logGlobalAndStopWithError("No conditions found for patients with at least one NT-proBNP observation - aborting")
+}
+
 
 # calculate age by birthdate and NTproBNP date 
 cohort$age <- getYear(cohort$NTproBNP.date) - getYear(cohort$birthdate)
