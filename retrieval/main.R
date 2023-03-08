@@ -774,12 +774,6 @@ if (NROW(conditions)) {
   conditions <- conditions[encounter.id %in% cohort$encounter.id]
 }
 
-# there are no conditions
-if (!NROW(conditions)) {
-  logGlobalAndStopWithError("No conditions found for patients with at least one NT-proBNP observation - aborting")
-}
-
-
 # calculate age by birthdate and NTproBNP date 
 cohort$age <- getYear(cohort$NTproBNP.date) - getYear(cohort$birthdate)
 # remove the date column
@@ -789,6 +783,10 @@ cohort[, birthdate := NULL]
 
 # Write result files
 write.csv2(cohort, retrieve_file$cohort, row.names = FALSE)
+# there are no conditions
+if (!NROW(conditions)) {
+  logGlobalAndStopWithError("No conditions found for patients with at least one NT-proBNP observation - aborting")
+}
 write.csv2(conditions, retrieve_file$diagnoses, row.names = FALSE)
 
 # logging
