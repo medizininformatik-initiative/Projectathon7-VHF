@@ -178,7 +178,7 @@ knit_error( smith_dq_report$long_format$con_contradictions$results[[1]]$SummaryP
 
 ### Contradiction checks as Table:
 
-```{r message=FALSE, warning=FALSE,echo=FALSE}
+```{r message=FALSE, warning=FALSE,echo=FALSE,out.width="100%"}
 
 knit_error( smith_dq_report$long_format$con_contradictions$results[[1]]$SummaryTable, 'Could not print Contradictions SummaryTable for Cohort. Error: ')
 
@@ -187,7 +187,7 @@ knit_error( smith_dq_report$long_format$con_contradictions$results[[1]]$SummaryT
 ## Results of limit checks:
 ```{r message=FALSE, warning=FALSE,echo=FALSE}
 
-knit_error(smith_dq_report$long_format$con_limit_deviations$results[[1]]$SummaryPlotList$ntprobnp, 'Could not print Limit SummaryPlot for Cohort. Error: ')
+knit_error(con_limit_deviations(study_data = cohort_report, meta_data = metadata_report, resp_vars = 'NTproBNP.valueQuantity.value')$SummaryPlotList$NTproBNP.valueQuantity.value, 'Could not print Limit SummaryPlot for Cohort. Error: ')
 
 ```
 
@@ -195,7 +195,7 @@ knit_error(smith_dq_report$long_format$con_limit_deviations$results[[1]]$Summary
 
 ```{r message=FALSE, warning=FALSE,echo=FALSE,out.width="100%"}
 
-knit_error(smith_dq_report$long_format$con_limit_deviations$results[[1]]$SummaryTable, 'Could not print Limit SummaryTable for Cohort. Error: ')
+knit_error(con_limit_deviations(study_data = cohort_report, meta_data = metadata_report, resp_vars = 'NTproBNP.valueQuantity.value')$SummaryTable, 'Could not print Limit SummaryPlot for Cohort. Error: ')
 
 ```
 
@@ -205,7 +205,16 @@ knit_error(smith_dq_report$long_format$con_limit_deviations$results[[1]]$Summary
 #### 1 = male | 2 = female | 3 = other | 4 = unknown
 ```{r message=FALSE, warning=FALSE,echo=FALSE}
 
-knit_error(smith_dq_report$long_format$con_limit_deviations$results[[1]]$SummaryPlotList$gender, 'Could not print SummaryPlotList$gender for Cohort. Error: ')
+knit_error(acc_plots <- acc_distributions(resp_vars      = NULL, 
+                         label_col      = "LABEL",
+                         study_data     = cohort_report, 
+                         meta_data      = metadata_report), 
+           'Could not generate SummaryPlotList$gender for Cohort. Error: ')
+
+print('Gender as table:')
+table(smith_dq_report$study_data$gender)
+
+knit_error(acc_plots$SummaryPlotList$gender, 'Could not print SummaryPlotList$gender for Cohort. Error: ')
 
 ```
 
@@ -213,7 +222,7 @@ knit_error(smith_dq_report$long_format$con_limit_deviations$results[[1]]$Summary
 #### Age was calculated from birthdates in YYYY... format.
 ```{r message=FALSE, warning=FALSE,echo=FALSE}
 
-knit_error(smith_dq_report$long_format$con_limit_deviations$results[[1]]$SummaryPlotList$age, 'Could not print SummaryPlotList$age for Cohort. Eorror: ')
+knit_error(acc_plots$SummaryPlotList$age, 'Could not print SummaryPlotList$age for Cohort. Eorror: ')
 
 ```
 
@@ -221,7 +230,11 @@ knit_error(smith_dq_report$long_format$con_limit_deviations$results[[1]]$Summary
 #### 1 = other | 2 = 33763-4 | 3 = 71425-3 | 4 = 33762-6 | 5 = 83107-3 | 6 =  83108-1 | 7 = 77622-9 | 8 = 77621-1
 ```{r message=FALSE, warning=FALSE,echo=FALSE}
 
-knit_error(smith_dq_report$long_format$con_limit_deviations$results[[1]]$SummaryPlotList$NTproBNP.code, 'Could not print SummaryPlotList$NTproBNP.code for Cohrot. Error: ')
+print('LOIC Codes as table:')
+knit_error(table(smith_dq_report$study_data$NTproBNP.code), 'Could not tab SummaryPlotList$NTproBNP.code for Cohrot. Error: ')
+
+print('If less then two Codes are used no plot will be generated.')
+knit_error(acc_plots$SummaryPlotList$NTproBNP.code, 'Could not print SummaryPlotList$NTproBNP.code for Cohrot. Error: ')
 
 ```
 
@@ -229,7 +242,11 @@ knit_error(smith_dq_report$long_format$con_limit_deviations$results[[1]]$Summary
 #### 1 = other | 2 = < | 3 = <= | 4 = > | 5 = >=
 ```{r message=FALSE, warning=FALSE,echo=FALSE}
 
-knit_error(smith_dq_report$long_format$con_limit_deviations$results[[1]]$SummaryPlotList$comparator, 'Could not print SummaryPlotList$comparator for Cohort. Error: ')
+print('Comperators as table:')
+knit_error(table(smith_dq_report$study_data$NTproBNP.valueQuantity.comparator), 'Could not tab SummaryPlotList$study_data$NTproBNP.valueQuantity.comparator for Cohrot. Error: ')
+
+print('If less then two Comperaors are used no plot will be generated.')
+knit_error(acc_plots$SummaryPlotList$NTproBNP.valueQuantity.comparator, 'Could not print SummaryPlotList$comparator for Cohort. Error: ')
 
 ```
 
@@ -237,7 +254,11 @@ knit_error(smith_dq_report$long_format$con_limit_deviations$results[[1]]$Summary
 #### 1 = other | 2 = pg/mL | 3 = pg/dL | 4 = pg/100mL | 5 = pg/L | 6 = pg% | 7 = pmol/L | 8 = ng/L | 9 = Mt/m3
 ```{r message=FALSE, warning=FALSE,echo=FALSE}
 
-knit_error(smith_dq_report$long_format$con_limit_deviations$results[[1]]$SummaryPlotList$NTproBNP.unit, 'Could not print SummaryPlotList$NTproBNP.unit for Cohort. Error: ')
+print('Units as table:')
+knit_error(table(smith_dq_report$study_data$NTproBNP.unit), 'Could not tab SummaryPlotList$study_data$NTproBNP.unit for Cohrot. Error: ')
+
+print('If less then two Units are used no plot will be generated.')
+knit_error(acc_plots$SummaryPlotList$NTproBNP.unit, 'Could not print SummaryPlotList$NTproBNP.unit for Cohort. Error: ')
 
 ```
 
@@ -251,7 +272,7 @@ knit_error(smith_dq_report$long_format$com_item_missingness$results[[1]]$Summary
 
 ```
 
-# Plot of completness with missing codes:
+# Completness with missing codes:
 #### MISSING 9991100: Missing - reason unknown
 #### MISSING 9991200: Deleted - Datetime format not supported
 #### MISSING 9991300: Deleted - not in VALUE_LABELS
@@ -260,7 +281,7 @@ If a field has the wrong datatype it is evaluated to NA and tracked under Sysmis
 ```{r message=FALSE, warning=FALSE,echo=FALSE,out.width="100%"}
 
 #Plot
-knit_error(smith_dq_report$long_format$com_item_missingness$results[[1]]$SummaryPlot, 'Could not print Missingness SummaryPlot for Cohort. Error: ')
+knit_error(smith_dq_report$long_format$com_item_missingness$results[[1]]$ReportSummaryTable, 'Could not print Missingness SummaryPlot for Cohort. Error: ')
 
 
 ```
