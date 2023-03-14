@@ -8,6 +8,11 @@ output:
 
 ```{r include=FALSE}
 ### LIBRARIES ------------------------
+# this script requiers dataquieR version 1.0.9
+#packageVersion("dataquieR")
+# if a different verison is installed use
+#utils::install.packages(pkgs = "https://cran.r-project.org/src/contrib/Archive/dataquieR/dataquieR_1.0.9.tar.gz", repos = NULL)
+
 library(knitr)
 library(dataquieR)
 library(data.table)
@@ -166,7 +171,7 @@ knit_error( smith_dq_report <- dq_report(study_data = cohort_report,
 
 ## Data Quality report for the 6. Projectathon of MII: SMITH
 
-#### This report was created with the [dataquieR](https://dataquality.ship-med.uni-greifswald.de/tutorials2.html) Package for R.
+#### This report was created with the [dataquieR](https://dataquality.ship-med.uni-greifswald.de/tutorials2.html) (Version 1.0.9) Package for R.
 
 ## Result of contradiction checks:
 ```{r message=FALSE, warning=FALSE,echo=FALSE}
@@ -227,7 +232,7 @@ knit_error(acc_plots <- acc_distributions(resp_vars      = NULL,
                          label_col      = "LABEL",
                          study_data     = cohort_report, 
                          meta_data      = metadata_report), 
-           'Could not generate SummaryPlotList$gender for Cohort. Error: ')
+           'Could not generate SummaryPlotList for Cohort. Error: ')
 
 
 knit_error(acc_plots$SummaryPlotList$age, 'Could not print SummaryPlotList$age for Cohort. Eorror: ')
@@ -259,14 +264,8 @@ knit_error(acc_univariate_outlier(resp_vars = 'age',
 #### 1 = male | 2 = female | 3 = other | 4 = unknown
 ```{r message=FALSE, warning=FALSE,echo=FALSE}
 
-knit_error(acc_plots <- acc_distributions(resp_vars      = NULL, 
-                         label_col      = "LABEL",
-                         study_data     = cohort_report, 
-                         meta_data      = metadata_report), 
-           'Could not generate SummaryPlotList$gender for Cohort. Error: ')
-
 print('Gender as table:')
-table(smith_dq_report$study_data$gender)
+knit_error(table(smith_dq_report$study_data$gender), 'Could not tab SummaryPlotList$gender for Cohrot. Error: ')
 
 knit_error(acc_plots$SummaryPlotList$gender, 'Could not print SummaryPlotList$gender for Cohort. Error: ')
 
