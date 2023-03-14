@@ -199,7 +199,61 @@ knit_error(con_limit_deviations(study_data = cohort_report, meta_data = metadata
 
 ```
 
+### Outlier Detection NTproBNP:
+```{r message=FALSE, warning=FALSE,echo=FALSE,out.width="100%"}
+
+knit_error(acc_univariate_outlier(resp_vars = 'NTproBNP.valueQuantity.value',
+                         study_data = cohort_report,
+                         meta_data = metadata_report
+                       )$SummaryPlotList$NTproBNP.valueQuantity.value, 'Could not print NTproBNP Outlier SummaryPlot for Cohort. Error: ')
+
+```
+
+### Outlier Detection NTproBNP as Table:
+```{r message=FALSE, warning=FALSE,echo=FALSE,out.width="100%"}
+
+knit_error(acc_univariate_outlier(resp_vars = 'NTproBNP.valueQuantity.value',
+                         study_data = cohort_report,
+                         meta_data = metadata_report
+                       )$SummaryTable, 'Could not print NTproBNP Outlier SummaryTable for Cohort. Error: ')
+
+```
+
 # Information about distribution:
+
+## Age:
+```{r message=FALSE, warning=FALSE,echo=FALSE}
+knit_error(acc_plots <- acc_distributions(resp_vars      = NULL, 
+                         label_col      = "LABEL",
+                         study_data     = cohort_report, 
+                         meta_data      = metadata_report), 
+           'Could not generate SummaryPlotList$gender for Cohort. Error: ')
+
+
+knit_error(acc_plots$SummaryPlotList$age, 'Could not print SummaryPlotList$age for Cohort. Eorror: ')
+
+```
+
+### Outlier Detection Age:
+```{r message=FALSE, warning=FALSE,echo=FALSE,out.width="100%"}
+
+knit_error(acc_univariate_outlier(resp_vars = 'age',
+                         study_data = cohort_report,
+                         meta_data = metadata_report
+                       )$SummaryPlotList$age, 'Could not print Age Outlier SummaryPlot for Cohort. Error: ')
+
+```
+
+### Outlier Detection Age as Table:
+```{r message=FALSE, warning=FALSE,echo=FALSE,out.width="100%"}
+
+knit_error(acc_univariate_outlier(resp_vars = 'age',
+                         study_data = cohort_report,
+                         meta_data = metadata_report
+                       )$SummaryTable, 'Could not print Age Outlier SummaryTable for Cohort. Error: ')
+
+```
+
 
 ## Gender:
 #### 1 = male | 2 = female | 3 = other | 4 = unknown
@@ -215,14 +269,6 @@ print('Gender as table:')
 table(smith_dq_report$study_data$gender)
 
 knit_error(acc_plots$SummaryPlotList$gender, 'Could not print SummaryPlotList$gender for Cohort. Error: ')
-
-```
-
-## Age:
-#### Age was calculated from birthdates in YYYY... format.
-```{r message=FALSE, warning=FALSE,echo=FALSE}
-
-knit_error(acc_plots$SummaryPlotList$age, 'Could not print SummaryPlotList$age for Cohort. Eorror: ')
 
 ```
 
