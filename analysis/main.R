@@ -49,7 +49,7 @@ data_quality_report_file <- paste0(OUTPUT_DIR_GLOBAL, "/DQ-Report.html")
 # Backs up the OUTPUT_DIR_GLOBAL. On Central Analysis we must copy the
 # old content to preserve the Retrieval results in this directory
 if (file.exists(analysis_file_log)) {
-  createDirWithBackup(OUTPUT_DIR_GLOBAL, copy = TRUE)  
+  createDirWithBackup(OUTPUT_DIR_GLOBAL, copy = TRUE)
 } else {
   createDirsRecursive(OUTPUT_DIR_GLOBAL)
 }
@@ -125,12 +125,8 @@ retainFemales <- function(table) {
   return(table[gender == "female"])
 }
 
-retainAgeUnder50 <- function(table) {
-  return(table[age <= 50])
-}
-
-retainAgeOver50 <- function(table) {
-  return(table[age > 50])
+retainAge <- function(table, inclusiveMinAge, exclusiveMaxAge = Inf) {
+  table[age >= inclusiveMinAge & age < exclusiveMaxAge]
 }
 
 removeMyocardialInfarction <- function(table) {
@@ -184,15 +180,15 @@ getComparatorOptions <- function(cohort) {
 #' @param cohort the cohort with NTproBNP values which can have comparators
 #' @return String of a table with all unique values with comparators and
 #' its frequencies in this cohort
-#' 
+#'
 getComparatorFrequenciesText <- function(cohort) {
-  
+
   comparatorFrequencies <- ""
   value <- cohort$NTproBNP.valueQuantity.value
   comparator <- cohort$NTproBNP.valueQuantity.comparator
-  
+
   # we must restore the original values here
-  value <- 
+  value <-
     ifelse(is.na(comparator), value, ifelse(comparator == ">", value - 1, ifelse(comparator == "<", value + 1, value)))
 
   # construct a string with the frequencies for all unique comparator values
@@ -213,13 +209,13 @@ getComparatorFrequenciesText <- function(cohort) {
 
 #'
 #' Unify units in cohort.
-#' 
+#'
 #' @param cohort the conhort with maybe different units for NTproNP
 #' @return cohort with unified units and removed observations, if they have
 #' an invalid unit
-#' 
+#'
 unifyUnits <- function(cohort) {
-  
+
   # Some DIZ write the SI unit not in the "valueQuantity/code" which was imported
   # in the field "NTproBNP.unit" but in the "valueQuantity/unit" which was
   # imported in the "NTproBNP.unitLabel". This label should only be used in FHIR
@@ -229,11 +225,11 @@ unifyUnits <- function(cohort) {
   if (all(is.na(cohort$NTproBNP.unit))) { # all unit values are NA -> copy the full unitLabel column to unit
     cohort[, NTproBNP.unit := NTproBNP.unitLabel]
   } else { # some unit vales are NA -> replace the NA values in unit by unitLabel
-    cohort[is.na(NTproBNP.unit), NTproBNP.unit := NTproBNP.unitLabel] 
+    cohort[is.na(NTproBNP.unit), NTproBNP.unit := NTproBNP.unitLabel]
   }
   # remove all rows where the NTproBNP.unit is still NA
-  cohort <- cohort[!is.na(NTproBNP.unit)] 
-  
+  cohort <- cohort[!is.na(NTproBNP.unit)]
+
   # All valid NTproBNP units taken from http://www.unitslab.com/node/163
   # All units are checked case insensitive, so for example the correct
   # UCUM unit "pg/mL" includes the invalid unit "pg/ml".
@@ -253,13 +249,13 @@ unifyUnits <- function(cohort) {
   units <- matrix(units, length(units) / 2, 2, byrow = TRUE)
   unitNames <- units[, 1]
   unitFactors <- as.numeric(units[, 2])
-  
+
   # remove data rows with invalid units
   unitsPattern <- paste(unitNames, collapse = "|")
   cohort <- cohort[
     grepl(unitsPattern, NTproBNP.unit, ignore.case = TRUE)
   ]
-  
+
   # now really unify
   for (i in 2 : length(unitNames)) {
     # Convert value
@@ -273,10 +269,10 @@ unifyUnits <- function(cohort) {
       NTproBNP.unit := unitNames[1]
     ]
   }
-  
+
   # overwrite the unit label with the unified one
   cohort[, NTproBNP.unitLabel := "picogram per milliliter"]
-  
+
   return(cohort)
 }
 
@@ -285,9 +281,9 @@ unifyUnits <- function(cohort) {
 #'
 #' @param cohort the (sub)cohort table that should be analyzed
 #' @param conditions the conditions table from he retrieval (should be unchanged)
-#'  
+#'
 #' @return the cohort table merged with the diagnoses table
-#' 
+#'
 mergeRetrievalResults <- function(cohort, conditions) {
 
     result <- cohort[, .(
@@ -301,12 +297,12 @@ mergeRetrievalResults <- function(cohort, conditions) {
     NTproBNP.unit,
     gender
   ), by = encounter.id]
-  
+
   # remove equal columns which are now present if there were multiple NTproBNP
   # values for the same encounter with different timestamps (now these NTproBNP
   # values have all the same timestamp and so the whole row is equals)
   result <- unique(result)
-  
+
   # for each encounter, extract the Boolean information whether certain diagnoses
   # were present
   conditionsReduced <- conditions[, .(
@@ -315,7 +311,7 @@ mergeRetrievalResults <- function(cohort, conditions) {
     HeartFailure = as.numeric(any(grepl("I50", code))),
     Stroke = as.numeric(any(grepl("I60|I61|I62|I63|I64|I69", code)))
   ), by = encounter.id]
-  
+
   # merge the result encounters with the diagnoses information
   result <- merge.data.table(
     x = result,
@@ -323,22 +319,22 @@ mergeRetrievalResults <- function(cohort, conditions) {
     by = "encounter.id",
     all.x = TRUE
   )
-  
+
   # fill missing diagnosis values with 0
   result[is.na(AtrialFibrillation), AtrialFibrillation := 0]
   result[is.na(MyocardialInfarction), MyocardialInfarction := 0]
   result[is.na(HeartFailure), HeartFailure := 0]
   result[is.na(Stroke), Stroke := 0]
-  
+
   # bring the subject column to the front again
   setcolorder(result, neworder = "subject")
-  
+
   return(result)
 }
 
 #'
 #' Runs all analysis options for a (sub)cohort.
-#' 
+#'
 #' @param result the data table
 #' @param cohortDescription String with a description of the current cohort in
 #' the result table (e.g. "Full cohort", "Males", "Females, Age > 50", ' ...)
@@ -349,18 +345,18 @@ mergeRetrievalResults <- function(cohort, conditions) {
 #' @param removedObservationsCount number of NTproBNP values removed with comparator
 #'
 cohortAnalysis <- function(result, cohortDescription, comparatorOptionDisplay, comparatorFrequenciesText, removedObservationsCount) {
-  
+
   analysisOption <- "AtrialFibrillation"
   analysisOptionDisplay <- "Atrial Fibrillation incl. all other diagnoses"
   analyze(result, cohortDescription, analysisOption, analysisOptionDisplay, comparatorOptionDisplay, comparatorFrequenciesText, removedObservationsCount)
-  
+
   analysisOption <- "HeartFailure"
   analysisOptionDisplay <- "Heart Failure incl. all other diagnoses"
   analyze(result, cohortDescription, analysisOption, analysisOptionDisplay, comparatorOptionDisplay, comparatorFrequenciesText, removedObservationsCount)
 
   result <- removeMyocardialInfarction(result)
   result <- removeStroke(result)
-  
+
   analysisOption <- "AtrialFibrillation"
   analysisOptionDisplay <- "Atrial Fibrillation incl. Heart Failure, excl. Myocardial Infarction and Stroke"
   analyze(result, cohortDescription, analysisOption, analysisOptionDisplay, comparatorOptionDisplay, comparatorFrequenciesText, removedObservationsCount)
@@ -370,7 +366,7 @@ cohortAnalysis <- function(result, cohortDescription, comparatorOptionDisplay, c
   analyze(result, cohortDescription, analysisOption, analysisOptionDisplay, comparatorOptionDisplay, comparatorFrequenciesText, removedObservationsCount)
 
   result <- removeHeartFailure(result)
-  
+
   analysisOption <- "AtrialFibrillation"
   analysisOptionDisplay <- "Atrial Fibrillation excl. Myocardial Infarction, Stroke and Heart Failure"
   analyze(result, cohortDescription, analysisOption, analysisOptionDisplay, comparatorOptionDisplay, comparatorFrequenciesText, removedObservationsCount)
@@ -378,7 +374,7 @@ cohortAnalysis <- function(result, cohortDescription, comparatorOptionDisplay, c
 
 #'
 #' Starts the cohortAnalysis for every cohort option (with or without comparator values)
-#' 
+#'
 #' @param cohort the cohort table
 #' @param conditions the conditions table
 #' @param cohortDescription String with a description of the current cohort in
@@ -387,27 +383,27 @@ cohortAnalysis <- function(result, cohortDescription, comparatorOptionDisplay, c
 #' in DEBUG mode
 #'
 analyzeCohort <- function(cohort, conditions, cohortDescription, resultsFileNameSuffix) {
-  
+
   comparatorOptions <- getComparatorOptions(cohort)
-  
+
   # run the same analysis with the first run option with all values and with
   # a possibly existing second run option without all values with comparators
-  
+
   for (comparatorOption in comparatorOptions) {
 
     isFirstOption <- comparatorOption == comparatorOptions[1]
-    
+
     comparatorFrequenciesText <- ifelse(isFirstOption, getComparatorFrequenciesText(cohort), "")
-    
+
     sizeBeforeRemove <- nrow(cohort)
     # remove columns with comparator if they should be exluded
     if (!isFirstOption) { # the 1. run option is with all values and the 2. with filtered
       cohort <- cohort[is.na(NTproBNP.valueQuantity.comparator)]
     }
     removedObservationsCount <- sizeBeforeRemove - nrow(cohort)
-    
+
     result <- mergeRetrievalResults(cohort, conditions)
-    
+
     # Debug? -> Write result table as csv to localOutput
     #           (full data or without comparator values)
     if (DEBUG) {
@@ -420,7 +416,7 @@ analyzeCohort <- function(cohort, conditions, cohortDescription, resultsFileName
 
 #'
 #' Frame around the analysis function which opens and closes the result text and plot file.
-#' 
+#'
 #' @param cohort the cohort table
 #' @param conditions the conditions table
 #' @param cohortDescription String with a description of the current cohort in
@@ -428,14 +424,14 @@ analyzeCohort <- function(cohort, conditions, cohortDescription, resultsFileName
 #' @param cohortFileNameSuffix suffix for all result files for the specific cohort
 #'
 writeCohortAnalysisFiles <- function(cohort, conditions, cohortDescription, cohortFileNameSuffix) {
-  
+
   analysisPlotFileName <- getAnalysisPlotFileName(cohortFileNameSuffix)
   analysisTextFileName <- getAnalysisTextFileName(cohortFileNameSuffix)
-  
-  # create pdf plot file and results text file 
+
+  # create pdf plot file and results text file
   pdf(analysisPlotFileName)
   sink(analysisTextFileName)
-  
+
   start <- Sys.time()
   logGlobal("Start Cohort Analysis: ", start)
   logGlobal("Cohort: ", cohortDescription)
@@ -443,7 +439,7 @@ writeCohortAnalysisFiles <- function(cohort, conditions, cohortDescription, coho
   end <- Sys.time()
   runtime <- end - start
   logGlobal("Finished Analysis: ", end, " -> Duration: ", round(runtime, 2), " ", attr(runtime, "units"),  "\n")
-  
+
   sink()
   dev.off()
   closeAllConnections()
@@ -488,8 +484,8 @@ if (DATA_QUALITY_REPORT) {
   startDQ <- Sys.time()
   tryCatch(                       # Applying tryCatch
     rmarkdown::render(
-      "data-quality/report.Rmd", 
-      output_format = "html_document", 
+      "data-quality/report.Rmd",
+      output_format = "html_document",
       output_file = data_quality_report_file,
       output_dir = OUTPUT_DIR_GLOBAL,
       intermediates_dir = OUTPUT_DIR_LOCAL
@@ -524,7 +520,7 @@ removedNACount <- removedNACount - nrow(fullCohort)
 # is ">" or with value - 1 if the comparator is "<".
 value <- fullCohort$NTproBNP.valueQuantity.value
 comparator <- fullCohort$NTproBNP.valueQuantity.comparator
-# You must check N.A. seperately in R!? It is not covered by the very 
+# You must check N.A. seperately in R!? It is not covered by the very
 # last else case :(
 fullCohort$NTproBNP.valueQuantity.value <-
   ifelse(is.na(comparator), value, ifelse(comparator == ">", value + 1, ifelse(comparator == "<", value - 1, value)))
@@ -554,12 +550,12 @@ logGlobal("                     < 1: ", lowerOneCount)
 for (i in 1 : length(valueCuts)) {
   cut <- valueCuts[i]
   nextCut <- ifelse(i < length(valueCuts), valueCuts[i + 1], Inf)
-  greaterCutCount <- 
+  greaterCutCount <-
     length(which(fullCohort$NTproBNP.valueQuantity.value > cut & fullCohort$NTproBNP.valueQuantity.value <= nextCut))
   cut <- paste0("> ", cut, ": ")
   whitespaces <- "                          "
   whitespaces <- substring(whitespaces, 1, nchar(whitespaces) - nchar(cut))
-  logGlobal(whitespaces, cut, greaterCutCount)  
+  logGlobal(whitespaces, cut, greaterCutCount)
 }
 logGlobal("     total after cleanup: ", fullCohortCountCleaned, "\n")
 
@@ -574,22 +570,32 @@ conditions <- loadAndCleanDiagnoses()
 
 # 1 cohort = all
 writeCohortAnalysisFiles(fullCohort, conditions, "Full Cohort", "_01_FullCohort")
+
 # 2 cohort = male
 writeCohortAnalysisFiles(retainMales(fullCohort), conditions, "Males", "_02_Males")
 # 3 cohort = female
 writeCohortAnalysisFiles(retainFemales(fullCohort), conditions, "Females", "_03_Females")
-# 4 cohort = age <= 50
-writeCohortAnalysisFiles(retainAgeUnder50(fullCohort), conditions, "Age <= 50", "_04_AgeUnder50")
-# 5 cohort = age > 50
-writeCohortAnalysisFiles(retainAgeOver50(fullCohort), conditions, "Age > 50", "_05_AgeOver50")
-# 6 cohort = male age <= 50
-writeCohortAnalysisFiles(retainMales(retainAgeUnder50(fullCohort)), conditions, "Males, Age <= 50", "_06_Males_AgeUnder50")
-# 7 cohort = male age > 50
-writeCohortAnalysisFiles(retainMales(retainAgeOver50(fullCohort)), conditions, "Males, Age > 50", "_07_Males_AgeOver50")
-# 8 cohort = female age <= 50
-writeCohortAnalysisFiles(retainFemales(retainAgeUnder50(fullCohort)), conditions, "Females, Age <= 50", "_08_Females_AgeUnder50")
-# 9 cohort = female age > 50
-writeCohortAnalysisFiles(retainFemales(retainAgeOver50(fullCohort)), conditions, "Females, Age > 50", "_09_Females_AgeOver50")
+
+# 4 cohort = 18 <= age <= 50
+writeCohortAnalysisFiles(retainAge(fullCohort, 18,51), conditions, "18 <= Age <= 50", "_04_Age_18_50")
+# 5 cohort = 51 <= age <= 80
+writeCohortAnalysisFiles(retainAge(fullCohort, 51, 81), conditions, "51 <= Age <= 80", "_05_Age_51_80")
+# 6 cohort = age > 80
+writeCohortAnalysisFiles(retainAge(fullCohort, 81), conditions, "Age > 80", "_06_Age_81_Inf")
+
+# 7 cohort = male 18 <= age <= 50
+writeCohortAnalysisFiles(retainMales(retainAge(fullCohort, 18, 51)), conditions, "Males, 18 <= Age <= 50", "_07_Males_Age_18_50")
+# 8 cohort = male 51 <= age <= 80
+writeCohortAnalysisFiles(retainMales(retainAge(fullCohort, 51, 81)), conditions, "Males, 51 <= Age <= 80", "_08_Males_Age_51_80")
+# 9 cohort = male age > 80
+writeCohortAnalysisFiles(retainMales(retainAge(fullCohort, 81)), conditions, "Males, Age > 80", "_09_Males_Age_81_Inf")
+
+# 10 cohort = female 18 <= age <= 50
+writeCohortAnalysisFiles(retainFemales(retainAge(fullCohort, 18, 51)), conditions, "Females, 18 <= Age <= 50", "_10_Females_Age_18_50")
+# 11 cohort = female 51 <= age <= 80
+writeCohortAnalysisFiles(retainFemales(retainAge(fullCohort, 51, 81)), conditions, "Females, 51 <= Age <= 80", "_11_Females_Age_51_80")
+# 12 cohort = female age > 80
+writeCohortAnalysisFiles(retainFemales(retainAge(fullCohort, 81)), conditions, "Females, Age > 80", "_12_Females_Age_81_Inf")
 
 runtime <- Sys.time() - start
 logGlobal("main.R finished at ", Sys.time(), ".")
