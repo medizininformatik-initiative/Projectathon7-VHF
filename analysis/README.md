@@ -23,7 +23,7 @@ bleibt somit erhalten.
 
 ### Ergebnisse
 
-Wenn die Analyse erfolgreich durchgeführt wurde, befinden sich im `outputGlobal`- Verzeichnis 9 Text- und 9 PDF-Dateien.
+Wenn die Analyse erfolgreich durchgeführt wurde, befinden sich im `outputGlobal`- Verzeichnis 12 Text- und 12 PDF-Dateien.
 Zusätzlich dazu kann es noch das File `DQ-Report.html` mit dem Datenqualitätsreport geben (bei Startparameter
 `DATA_QUALITY_REPORT = TRUE`).
 
@@ -66,12 +66,16 @@ Für jede dieser (Sub)Kohorten wird eine Text- und eine PDF-Datei erzeugt.
 1. Gesamtkohorte
 2. Männer
 3. Frauen
-4. Alter <= 50 Jahre
-5. Alter > 50 Jahre
-6. Männer mit Alter <= 50 Jahre
-7. Männer mit Alter > 50 Jahre
-8. Frauen mit Alter <= 50 Jahre
-9. Frauen mit Alter > 50 Jahre
+4. Alter zwischen 18 und 50 Jahren
+5. Alter zwischen 51 und 80 Jahren
+6. Alter > 80 Jahre
+7. Männer mit Alter zwischen 18 und 50 Jahren
+8. Männer mit Alter zwischen 51 und 80 Jahren
+9. Männer mit Alter > 80 Jahre
+10. Frauen mit Alter zwischen 18 und 50 Jahren
+11. Frauen mit Alter zwischen 51 und 80 Jahren
+12. Frauen mit Alter > 80 Jahre
+
 
 Die Einzelkohorten werden zunächst jeweils aus den Daten der Datei `Cohort.csv` gebildet. Danach wird das Vorligen der
 4 Diagnosen aus der `Diagnoses.csv` (Vorhofflimmern, Herzinsuffizienz, Herzinfarkt und Schlaganfall) binär für jeden der
