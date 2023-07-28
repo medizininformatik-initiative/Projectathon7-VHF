@@ -112,7 +112,7 @@ maxErrorLogCount <- 100
 #'
 #' Logs the message and the dataTable. If this function is called more than 100 times
 #' then nothing will be logged anymore.
-#' 
+#'
 #' @param message
 #' @param dataTable
 #'
@@ -219,7 +219,7 @@ getPatientIDChunkSize <- function(allPatientIDs) {
   patientIDsChunkSize <- chunkListOptionMaxIDsPerChunk
   if (patientIDsChunkSize > 10) {
     profile <- ifelse(nchar(PROFILE_ENC) > nchar(PROFILE_CON), PROFILE_ENC, PROFILE_CON)
-    
+
     # maximum lenght of all parts of a paged query
     fixLength <- nchar(fhir_server_url) + 1 + # the url with a slash
       nchar("/Encounter/__page?subject=") +   # fix part after url ("Condition" has the same lenght like "Encounter")
@@ -231,7 +231,7 @@ getPatientIDChunkSize <- function(allPatientIDs) {
       nchar("&_count=1000&__t=1000000&__page-id=EncounterID_ABCDEFGHIJKLMNOPQRSTUVWXYZ") # Something like this will be
                                                                                          # added to every paging query.
                                                                                          # The values here are super large.
-                                                                                         # Realistic values should be 
+                                                                                         # Realistic values should be
                                                                                          # shorter.
     ncharForAllIDs <- MAX_REQUEST_STRING_LENGTH - fixLength
     maxSingleIDLength <- nchar(chunkListOptionIDPrefix) + max(nchar(allPatientIDs)) + nchar(chunkListOptionIDSuffix)
@@ -262,7 +262,7 @@ CHUNK_LIST_OPTION <- c(
 )
 CHUNK_LIST_OPTION <- matrix(CHUNK_LIST_OPTION, length(CHUNK_LIST_OPTION) / 5, 5, byrow = TRUE)
 
-# Row index of the choosed option in the above matrix 
+# Row index of the choosed option in the above matrix
 chunkListOptionRowIndex <- match(FHIR_SEARCH_SUBJECT_LIST_OPTION, CHUNK_LIST_OPTION[, 1])
 
 # the option was not found (probably typo in config.toml or .RProfile)
@@ -333,7 +333,7 @@ if (PROFILE_OBS != "") parameters <- c(parameters, "_profile" = PROFILE_OBS)
 # include patients of observation
 parameters <- c(
   parameters,
-  "_include" = "Observation:patient", 
+  "_include" = "Observation:patient",
   "_count" = BUNDLE_RESOURCES_COUNT
 )
 
@@ -486,11 +486,11 @@ invisible({
 
   # get the maximum number of subject IDs for a single request
   patientIDCount <- length(patientIDs)
-  chunkCount <- ifelse(patientIDChunkSize > 0, as.integer(patientIDCount / patientIDChunkSize) + 1, NA) 
-  
+  chunkCount <- ifelse(patientIDChunkSize > 0, as.integer(patientIDCount / patientIDChunkSize) + 1, NA)
+
   ignoreIDs <- is.na(chunkCount)
   if (ignoreIDs) chunkCount <- 1
-  
+
   idStartIndex <- 1
   idEndIndex <- patientIDChunkSize
 
@@ -500,7 +500,7 @@ invisible({
       if (idEndIndex > patientIDCount) {
         idEndIndex <- patientIDCount
       }
-  
+
       ### Encounters
       parameters <- c()
       # append subject IDs as parameter if they should not be ignored
@@ -516,8 +516,8 @@ invisible({
       # add profile from config if not empty
       if (PROFILE_ENC != "") parameters <- c(parameters, "_profile" = PROFILE_ENC)
       # add count parameter
-      parameters <- c(parameters, c("_count" = BUNDLE_RESOURCES_COUNT))                                                  
-      
+      parameters <- c(parameters, c("_count" = BUNDLE_RESOURCES_COUNT))
+
       enc_request <- fhir_url(url = fhir_server_url, resource = "Encounter", parameters = parameters)
       encounter_bundles <<- append(encounter_bundles, fhirSearch(enc_request, error_file$enc))
 
@@ -531,8 +531,8 @@ invisible({
       # add profile from config if not empty
       if (PROFILE_CON != "") parameters <- c(parameters, "_profile" = PROFILE_CON)
       # add count parameter
-      parameters <- c(parameters, c("_count" = BUNDLE_RESOURCES_COUNT))                                                  
-      
+      parameters <- c(parameters, c("_count" = BUNDLE_RESOURCES_COUNT))
+
       con_request <- fhir_url(url = fhir_server_url, resource = "Condition", parameters = parameters)
       condition_bundles <<- append(condition_bundles, fhirSearch(con_request, error_file$con))
 
@@ -623,7 +623,7 @@ if (NROW(conditions)) {
     sep = sep,
     all_columns = TRUE
   )
-  
+
   useInfo <- fhir_rm_indices(useInfo, brackets = brackets)
 
   useInfo <- useInfo[, c("encounter.id", "diagnosis", "diagnosis.use.code","diagnosis.use.system")]
@@ -691,9 +691,9 @@ logGlobal("Number of unique Subject ids in Encounter data: ", length(unique(enco
 # Try to find the encounter to the observations via date check.
 # This check only considers the start date of all encounters
 # of the patient with the current observation and tries to find
-# the closest start date of all encounters in the past. 
+# the closest start date of all encounters in the past.
 for(i in 1 : nrow(observations)) {
- 
+
   observationEncounter <- data.table()
 
   encounterID <- observations[i, encounter.id]
@@ -716,10 +716,10 @@ for(i in 1 : nrow(observations)) {
     #    In this case nrow(obs_subject_encounters) == 0
     #    -> Log an Error
     # 2. The encounter has no start date -> the script will crash at 'if (closest_date_diff != Inf) {'
-    #    -> We try to find the encounter via the 'encounter' column (= Encounter ID) in the observation table 
+    #    -> We try to find the encounter via the 'encounter' column (= Encounter ID) in the observation table
     #    -> If there is no Counter ID or no Encounter for this ID
     #    -> Log an Error
-    
+
     if (nrow(obs_subject_encounters) == 0) {
       logErrorMax100("There is no Encounter for Observation:", observations)
       next
@@ -728,9 +728,9 @@ for(i in 1 : nrow(observations)) {
     # get a list of all differences between the observation date and
     # the encounter start date
     obs_enc_date_diffs <- obs_date - obs_subject_encounters$encounter.start
-    
+
     obs_enc_date_diffs <- obs_enc_date_diffs[!is.na(obs_enc_date_diffs)]
-    
+
     if (length(obs_enc_date_diffs) == 0) {
       logErrorMax100(
         "Observation has no Encounter Reference and all Encounters of the Patient of the Observation have no start date -> can not find Encounter for Observation:",
@@ -738,7 +738,7 @@ for(i in 1 : nrow(observations)) {
       )
       next
     }
-    
+
     # if there were encounter start dates after the observation date
     # then set them to the maximum distance to the observation date
     obs_enc_date_diffs[obs_enc_date_diffs < 0] <- Inf
@@ -755,12 +755,12 @@ for(i in 1 : nrow(observations)) {
       observationEncounter <- obs_subject_encounters[closest_date_diff_index, ]
     }
   }
-  
+
   if (NROW(observationEncounter)) { # should alway be 1 row here, but sure is...
     observations[i, encounter.id := observationEncounter$encounter.id[1]]
     observations[i, encounter.start := observationEncounter$encounter.start[1]]
     observations[i, encounter.end := observationEncounter$encounter.end[1]]
-  }  
+  }
 
 }
 
@@ -774,12 +774,16 @@ if (NROW(conditions)) {
   conditions <- conditions[encounter.id %in% cohort$encounter.id]
 }
 
-# calculate age by birthdate and NTproBNP date 
+# calculate age by birthdate and NTproBNP date
 cohort$age <- getYear(cohort$NTproBNP.date) - getYear(cohort$birthdate)
 # remove the date column
 cohort[, NTproBNP.date := NULL]
 # remove the birthdate column
 cohort[, birthdate := NULL]
+
+# remove underage encounters (< 18)
+underageEncounters <- cohort[age < 18, ]$encounter.id
+cohort <- cohort[!(encounter.id %in% underageEncounters)]
 
 # Write result files
 write.csv2(cohort, retrieve_file$cohort, row.names = FALSE)
@@ -787,6 +791,10 @@ write.csv2(cohort, retrieve_file$cohort, row.names = FALSE)
 if (!NROW(conditions)) {
   logGlobalAndStopWithError("No conditions found for patients with at least one NT-proBNP observation - aborting")
 }
+
+# remove conditions for underage encounters (< 18)
+conditions <- conditions[!(encounter.id %in% underageEncounters)]
+
 write.csv2(conditions, retrieve_file$diagnoses, row.names = FALSE)
 
 # logging
