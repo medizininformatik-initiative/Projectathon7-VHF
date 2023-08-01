@@ -1,13 +1,13 @@
 #########################################################
 # The retrieval script and the analysis script only
-# work if the working directory of R is the subfolder 
+# work if the working directory of R is the subfolder
 # "/retrieval" and "/analysis" respectively.
 # Therefore, when executing the scripts manually,
 # you must first change to the specific R working
 # directory.
 #########################################################
 rm(list = ls())
-# gets the current working directory as base working 
+# gets the current working directory as base working
 # directory
 # (this should be the directory of this script!)
 working_dir <- getwd()
