@@ -15,14 +15,14 @@
 #' with comparators and its frequencies in this analysis
 #' @param removedObservationsCount number of NTproBNP values removed with
 #' comparator
-#' 
+#'
 analyze <- function(result, cohortDescription, analysisOption, analysisOptionDisplay, comparatorOptionDisplay, comparatorFrequenciesText, removedObservationsCount) {
 
   # function from main (global Env)
   logGlobal(analysisOptionDisplay, " (", comparatorOptionDisplay, "):")
-  
+
   resultRows <- nrow(result)
-  
+
   # check possible data problems
   errorMessage <- NA
   # not enough data rows
@@ -33,7 +33,7 @@ analyze <- function(result, cohortDescription, analysisOption, analysisOptionDis
     errorMessage <- paste0("All ", analysisOption, " diagnoses have the same value ", result[[analysisOption]][1], " -> abort analysis")
   }
   hasError <- !is.na(errorMessage)
-  
+
   # plot roc curve to pdf
   # Explanation of the graph:
   # Sens = Sensitivity
@@ -44,36 +44,40 @@ analyze <- function(result, cohortDescription, analysisOption, analysisOptionDis
     rocTitle <- paste0("NTproBNP(Full) for ", cohortDescription, "\n", analysisOptionDisplay, "\n(", comparatorOptionDisplay, ")")
     roc <- ROC(test = result$NTproBNP.valueQuantity.value, stat = result[[analysisOption]], plot = "ROC", main = rocTitle, AUC = TRUE)
   }
-  
+
   # start text file logging
   cat("###########################\n")
   cat("# Results of VHF Analysis #\n")
   cat("###########################\n\n")
   cat(paste0("Date: ", Sys.time(), "\n\n"))
-  
+
   cat(paste0("    Cohort: ", cohortDescription, "\n"))
   cat(paste0("  Analysis: ", analysisOptionDisplay, "\n"))
   cat(paste0("Run Option: ", comparatorOptionDisplay, ifelse(removedObservationsCount > 0 , paste0(" (", removedObservationsCount, " Observations with comparator removed)"), "")), "\n\n")
-  
+
   if (nchar(comparatorFrequenciesText) > 0) {
     cat(comparatorFrequenciesText, "\n\n")
   }
-  
+
+  summary <- capture.output(summary(result$NTproBNP.valueQuantity.value))
+  cat(paste0(summary[1], '\n', summary[2], '\n\n'))
+
   # run analysis if the result table has not only 0 or 1 row and not all diagnoses values are the same
   if (!hasError) {
-    
+
     # print AUC to the text file
     cat(paste0("ROC Area Under Curve NTproBNP(Full): "), roc$AUC, "\n\n")
-    
+
     # create different CUT points for NTproBNP
     thresholds <- c(1 : 60) * 50
-    
+
     cat("NtProBNP Threshold Values Analysis\n")
     cat("----------------------------------\n\n")
-    
+
     for (i in c(1 : length(thresholds))) {
       cutsColumnlName <- "NTproBNP.valueQuantity.value_cut"
       cuts <- result[[cutsColumnlName]] <- ifelse(result$NTproBNP.valueQuantity.value < thresholds[i], 0, 1)
+
       cat(paste0("\nThreshold Value: ", thresholds[i], "\n"))
       cat("---------------------\n")
       cat(analysisOptionDisplay, "\n")
@@ -83,7 +87,7 @@ analyze <- function(result, cohortDescription, analysisOption, analysisOptionDis
                  digits = 2,
                  prop.chisq = FALSE,
                  format = "SPSS")
-      
+
       if (all(cuts == cuts[1])) { # all cuts have the same value (all 0 or all 1) -> no further calculations
         # log information in the output file
         comparatorText <- ifelse(cuts[1] == 0, "lower than or equal to ", "greater than ")
@@ -92,23 +96,23 @@ analyze <- function(result, cohortDescription, analysisOption, analysisOptionDis
         table <- xtabs(~cuts + result[[analysisOption]])
         test <- rowSums(table)
         sick <- colSums(table)
-        
+
         # sensitivity
         sensitivity <- table[2, 2] / sick[2]
         cat(paste0("Sensitivity: ", sensitivity, "\n"))
-        
+
         # specifity
         specifity <- table[1, 1] / sick[1]
         cat(paste0("  Specifity: ", specifity, "\n"))
-        
+
         # npw - the positive predictive value
         ppv <- table[2, 2] / test[2]
         cat(paste0("        PV+: ", ppv, "\n"))
-        
+
         # npw - Der negativepredictive value
         npv <- table[1, 1] / test[1]
         cat(paste0("        PV-: ", npv, "\n\n"))
-        
+
         # add the ROC plot to the pdf and the AUC value to the text file
         rocTitle <- paste0(
           "NtproBNP_cut", thresholds[i], " for ", cohortDescription, "\n",
@@ -118,16 +122,16 @@ analyze <- function(result, cohortDescription, analysisOption, analysisOptionDis
         cat(paste0("ROC Area Under Curve (Cut ", thresholds[i], "): "), roc$AUC, "\n\n\n")
       }
     }
-    
+
     #Multivarite Analyse, VHF in Abhängigkeit von NTproBNP, adjustiert mit Alter und Geschlecht
-    
+
     cat("GLM Analysis\n")
     cat("------------\n")
-    
+
     # glm(...) throws an error if one of the so called contrast values (vector)
     # has always the same value -> we must identify these contrast values and
     # remove them from our analysis
-    
+
     # all contrast values we want to consider
     contrast_names = c("NTproBNP.valueQuantity.value", "age", "gender")
     # list for all contratst we want to use in glm(...) is filled
@@ -138,7 +142,7 @@ analyze <- function(result, cohortDescription, analysisOption, analysisOptionDis
       con <- result[[colName]]     # get result column with colum name i
       contrasts[i] <- list(con)    # add result column as list item to contrasts
     }
-    
+
     # now remove all invalid constrast (= contrast
     # vectors where all values are equal)
     for (i in length(contrasts) : 1) {
@@ -158,9 +162,9 @@ analyze <- function(result, cohortDescription, analysisOption, analysisOptionDis
         contrasts[i] <- contrast_names[i]
       }
     }
-    
+
     cat("\n")
-    
+
     # construct the formula for glm(...)
     logit_formula <- as.formula(paste(analysisOption, " ~ ", paste(contrasts, collapse = "+")))
     logit <- glm(logit_formula, family = binomial, data = result)
