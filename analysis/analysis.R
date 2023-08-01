@@ -59,6 +59,9 @@ analyze <- function(result, cohortDescription, analysisOption, analysisOptionDis
     cat(comparatorFrequenciesText, "\n\n")
   }
 
+  summary <- capture.output(summary(result$NTproBNP.valueQuantity.value))
+  cat(paste0(summary[1], '\n', summary[2], '\n\n'))
+
   # run analysis if the result table has not only 0 or 1 row and not all diagnoses values are the same
   if (!hasError) {
 
