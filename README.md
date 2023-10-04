@@ -130,8 +130,7 @@ Bei Bedarf können DUPs auch ohne den Einsatz von Docker ausgeführt werden.
     2. Das R-Arbeitsverzeichnis ist das Verzeichnis des Scripts `analysis/main.R`.
   * Das Setzen von `OUTPUT_DIR_BASE` und das Starten der Analyse kann durch teilweises Ausführen der Datei `manual.R`
     erfolgen (siehe oben).
-* **R Version: 4.2.0**
-* **CRAN Snaphot Datum: 2022-06-22**
+* **R Version: 4.3.1**
 
 ## Problembehandlung
 
