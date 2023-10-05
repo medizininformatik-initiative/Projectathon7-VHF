@@ -15,9 +15,11 @@ source("install-dependencies.R")
 
 # source config
 source("config.R")
-source("../utils/utils.R")
 
 PROJECT_NAME <- "VHF"
+
+# sources all files in the utils dir
+source('../utils/init_utils.R')
 
 ### Verzeichnisse
 # Verzeichnis für Zwischenergebnisse/Debug
