@@ -215,7 +215,7 @@ fhirSearch <- function(request, error_file, max_bundles = Inf) {
 getPatientIDChunkSize <- function(allPatientIDs) {
   # The magic number 10 means that we assume that at least
   # 10 IDs can be contained in a chunk and that the search
-  # query will not exceed the length of about 2000.
+  # query will not exceed the length of about 2000 chars.
   patientIDsChunkSize <- chunkListOptionMaxIDsPerChunk
   if (patientIDsChunkSize > 10) {
     profile <- ifelse(nchar(PROFILE_ENC) > nchar(PROFILE_CON), PROFILE_ENC, PROFILE_CON)
@@ -237,7 +237,7 @@ getPatientIDChunkSize <- function(allPatientIDs) {
     maxSingleIDLength <- nchar(chunkListOptionIDPrefix) + max(nchar(allPatientIDs)) + nchar(chunkListOptionIDSuffix)
     patientIDsChunkSize <- ncharForAllIDs / maxSingleIDLength
   }
-  return (patientIDsChunkSize)
+  return(as.integer(patientIDsChunkSize))
 }
 
 #####################
@@ -471,7 +471,7 @@ rm(obs_tables)
 # get patient IDs in chunks of the maximum list length for page queries
 patientIDs <- unique(observations$subject)
 logGlobal("Number of unique Patient ids in merged table: ", length(patientIDs), " in ", length(observations$subject), " rows")
-patientIDChunkSize <- as.integer(getPatientIDChunkSize(patientIDs))
+patientIDChunkSize <- getPatientIDChunkSize(patientIDs)
 logGlobal("Patient ID Chunk Size in request: ", patientIDChunkSize)
 
 # get encounters and diagnoses
