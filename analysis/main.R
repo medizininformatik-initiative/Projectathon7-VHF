@@ -476,6 +476,9 @@ loadAndCleanDiagnoses <- function() {
 ########
 # first log -> delete old log content with append = FALSE
 logGlobal("Start Analysis at ", start, "\n", append = FALSE)
+#log loaded package versions
+logGlobal("SessionInfo:")
+logGlobal(sessionInfo())
 
 #################################
 # Start the Data Quality Report #
