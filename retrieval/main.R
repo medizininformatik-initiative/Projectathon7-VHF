@@ -18,8 +18,9 @@ source("config.R")
 
 PROJECT_NAME <- "VHF"
 
-# sources all files in the utils dir
-source('../utils/init_utils.R')
+# sources the utils
+source('../utils/utils.R')
+source('retrieval-utils.R')
 
 ### Verzeichnisse
 # Verzeichnis für Zwischenergebnisse/Debug
@@ -128,33 +129,6 @@ logErrorMax100 <- function(message, dataTable) {
   errorLogCount <<- errorLogCount + 1
 }
 
-#########
-# Utils #
-#########
-
-#'
-#' @param dateStringWithLeadingYear a string representing a date or only a year. The year must be the
-#' first 4 characters of the string.
-#' @return the extracted year from the given date string
-#'
-getYear <- function(dateStringWithLeadingYear) {
-  date <- as.POSIXct(as.character(dateStringWithLeadingYear), format = "%Y")
-  return (year(date))
-}
-
-####################################
-# Absolute to Relative ID Function #
-####################################
-
-#'
-#' @param references single string or list of strings
-#' @return single string or list of strings where only the last part of each string
-#' remains after a slash '/'. Strings without slashes are returned unchanged.
-#'
-makeRelative <- function(references) {
-  return(sub(".*/", "", references))
-}
-
 ####################################
 # fhir search convenience function #
 ####################################
@@ -225,7 +199,7 @@ getPatientIDChunkSize <- function(allPatientIDs) {
     # maximum lenght of all parts of a paged query
     fixLength <- nchar(fhir_server_url) + 1 + # the url with a slash
       nchar("/Encounter/__page?subject=") +   # fix part after url ("Condition" has the same lenght like "Encounter")
-      nchar(chunkListOptionSubjectSuffix) +        # ":Patient" after subject or empty string
+      nchar(chunkListOptionSubjectSuffix) +   # ":Patient" after subject or empty string
       nchar("&type=einrichtungskontakt") +    # parameter for encounters
       nchar("&_profile") + nchar(profile) +   # the full profile length
       countCharInString(profile, "/") * 2 +   # "/" will be replaced by "%2F" -> count * 2
@@ -496,7 +470,7 @@ invisible({
   idStartIndex <- 1
   idEndIndex <- patientIDChunkSize
 
-  for (chunkIndex in 1 : chunkCount) {
+  for (chunkIndex in 1:chunkCount) {
 
     if (idStartIndex <= patientIDCount) {
       if (idEndIndex > patientIDCount) {
@@ -559,12 +533,15 @@ enc_description <- fhir_table_description(
   cols = c(
     encounter.id = "id",
     subject = "subject/reference",
+    partOf = "partOf/reference",
     encounter.start = "period/start",
     encounter.end = "period/end",
     diagnosis = "diagnosis/condition/reference",
     diagnosis.use.code = "diagnosis/use/coding/code",
     diagnosis.use.system = "diagnosis/use/coding/system",
-    serviceType = "serviceType/coding/display"
+    serviceType.code = "serviceType/coding/code",
+    serviceType.system = "serviceType/coding/system",
+    serviceType.display = "serviceType/coding/display"
   )
 )
 
@@ -696,22 +673,37 @@ logGlobal("Number of unique Subject ids in Encounter data: ", length(unique(enco
 # the closest start date of all encounters in the past.
 for(i in 1 : nrow(observations)) {
 
-  observationEncounter <- data.table()
+  observation_encounter <- data.table()
 
   encounterID <- observations[i, encounter.id]
   if (!is.na(encounterID)) {
-    observationEncounter <- encounters[encounter.id == encounterID]
-    if (NROW(observationEncounter)) {
-      observationEncounter <- observationEncounter[1]
+    observation_encounter <- encounters[encounter.id == encounterID]
+    if (NROW(observation_encounter)) {
+      observation_encounter <- observation_encounter[1]
     }
   }
 
+  # get all encounters for the patient of the current observation
+  obs_subject_encounters <- encounters[subject == observations[i, subject]]
+
+  # separate the part encounters
+  obs_subject_sub_encounters <- unique(obs_subject_encounters[!is.na(partOf)])
+  obs_subject_sub_encounters[, partOf := makeRelative(partOf)]
+
+  # separate the main encounters
+  obs_subject_encounters <- unique(obs_subject_encounters[is.na(partOf)])
+
+  # only department encounters have a reference to the super encounters
+  # so remove all sub encounter which have a superencounter which is a subencunter itself (= remove 'Versorgungsstellenkontakte')
+  obs_subject_sub_encounters <- unique(obs_subject_sub_encounters[partOf %in% obs_subject_encounters$encounter.id])
+
+  # remove all department encounters without a service type code information
+  obs_subject_sub_encounters <- obs_subject_sub_encounters[!is.na(serviceType.code) & nchar(as.character(serviceType.code))]
+
   # found no encounter by its ID?
-  if (!NROW(observationEncounter)) {
+  if (!NROW(observation_encounter)) {
     # get the observation date of the current observation i
     obs_date <- observations[i, NTproBNP.date]
-    # get all encounters for the patient with the current observation
-    obs_subject_encounters <- encounters[subject == observations[i, subject]]
 
     # there are two possible errors at this point
     # 1. No encounter found for the given patient ID (this is a real error that should never happen).
@@ -754,14 +746,22 @@ for(i in 1 : nrow(observations)) {
     if (closest_date_diff != Inf) {
       # find the corresponding encounter and merge its properties
       # to new columns in the observation table
-      observationEncounter <- obs_subject_encounters[closest_date_diff_index, ]
+      observation_encounter <- obs_subject_encounters[closest_date_diff_index, ]
     }
   }
 
-  if (NROW(observationEncounter)) { # should alway be 1 row here, but sure is...
-    observations[i, encounter.id := observationEncounter$encounter.id[1]]
-    observations[i, encounter.start := observationEncounter$encounter.start[1]]
-    observations[i, encounter.end := observationEncounter$encounter.end[1]]
+  if (NROW(observation_encounter)) { # should alway be 1 row here, but sure is...
+
+    # extract the uniue service types of all encounters of the same case
+    enc <- observation_encounter[1]
+    observations[i, encounter.id := enc$encounter.id]
+    observations[i, encounter.start := enc$encounter.start]
+    observations[i, encounter.end := enc$encounter.end]
+
+    # now extract all department codes of the sub encounters in this case
+    obs_subject_sub_encounters <- obs_subject_sub_encounters[partOf == enc$encounter.id]
+    departmentCodes <- paste0(sort(unique(obs_subject_sub_encounters$serviceType.code)), collapse = ' ~ ')
+    observations[i, encounter.departments := departmentCodes]
   }
 
 }
