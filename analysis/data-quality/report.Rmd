@@ -1,5 +1,5 @@
 ---
-title: "DQ report - SMITH"
+title: "DQ Report - PJT 7: VHF"
 output:
   html_document:
     df_print: paged
@@ -8,33 +8,43 @@ output:
 
 ```{r include=FALSE}
 ### LIBRARIES ------------------------
-# this script requiers dataquieR version 1.0.9
+# this script requiers dataquieR version 2.0.1
 #packageVersion("dataquieR")
 # if a different verison is installed use
-#utils::install.packages(pkgs = "https://cran.r-project.org/src/contrib/Archive/dataquieR/dataquieR_1.0.9.tar.gz", repos = NULL)
+#utils::install.packages(pkgs = "https://cran.r-project.org/src/contrib/Archive/dataquieR/dataquieR_2.0.1.tar.gz", repos = NULL)
 
 library(knitr)
 library(dataquieR)
 library(data.table)
 library(lubridate)
+library(xfun)
+library(pointblank)
+library(digest)
+library(ggplot2)
 
 ```
 
 ```{r include=FALSE}
 ### READ DATA -------------------
 
-# only the fallback if we start knitr directly from R Studio
-if (!exists("retrieve_file_cohort")) {
-  retrieve_file_cohort <- paste0(OUTPUT_DIR_BASE, "/outputLocal/", PROJECT_NAME, "/Cohort.csv")
-}
+# # only the fallback if we start knitr directly from R Studio
+if (!exists("OUTPUT_DIR_BASE")) OUTPUT_DIR_BASE <- dirname(dirname(getwd()))
+if (!exists("PROJECT_NAME")) PROJECT_NAME <- "VHF"
+if (!exists("OUTPUT_DIR_LOCAL")) OUTPUT_DIR_LOCAL <- paste0(OUTPUT_DIR_BASE, "/outputLocal/", PROJECT_NAME)
+if (!exists("OUTPUT_DIR_GLOBAL")) OUTPUT_DIR_GLOBAL <- paste0(OUTPUT_DIR_BASE, "/outputGlobal/", PROJECT_NAME)
+if (!exists("OUTPUT_DIR_TMP")) OUTPUT_DIR_TMP <- paste0(OUTPUT_DIR_LOCAL, "/tmp")
+if (!exists("error_file")) error_file <- paste0(OUTPUT_DIR_BASE, "/outputLocal/", PROJECT_NAME, "/Errors/ErrorMessage.txt")
+if (!exists("retrieve_file_cohort")) retrieve_file_cohort <- paste0(OUTPUT_DIR_BASE, "/outputLocal/", PROJECT_NAME, "/Cohort.csv")
+if (!exists("retrieve_file_diagnoses")) retrieve_file_diagnoses <- paste0(OUTPUT_DIR_BASE, "/outputLocal/", PROJECT_NAME, "/Diagnoses.csv")
 
-if(!file.exists(retrieve_file_cohort)){
+if(!file.exists(retrieve_file_cohort) || !file.exists(retrieve_file_diagnoses)){
   write("Ergebnisse nicht gefunden.", file = error_file)
   stop("Results not found - aborting.")
 }
 
 # read result csv
-cohort_report <- read.csv(retrieve_file_cohort, sep = ";", colClasses = "character")
+cohort_full <- read.csv(retrieve_file_cohort, sep = ";", colClasses = "character")
+diagnoses_full <- read.csv(retrieve_file_diagnoses, sep = ";", colClasses = "character")
 
 # read metadata
 metadata_report <- read.csv("metadata.csv")
@@ -42,11 +52,15 @@ checks_report <- read.csv("contradictions.csv")
 missings_report <- read.csv("missing-codes.csv")
 
 # select columns supported with metadata from cohort
-if(!all( metadata_report$VAR_NAMES %in% colnames(cohort_report) )){
+if(!all( metadata_report$VAR_NAMES %in% colnames(cohort_full) )){
   write("Metadaten passen nicht zur Kohorte.", file = error_file)
   stop("Metadata does not match Cohort - aborting.")
 }
+cohort_report <- cohort_full
 cohort_report <- cohort_report[,metadata_report$VAR_NAMES]
+
+# separate department DQA as its a list
+cohort_departments <- cohort_full$encounter.departments
 
 #extract known data types
 datatyp_report <- as.data.table(t(metadata_report$DATA_TYPE))
@@ -102,32 +116,7 @@ apply_labels <- function(vector, labels) {
   return(r)
 }
 
-# age not calculate from birthdate anymore
-# calculate_age <- function(vector) {
-#
-#  # ws is assinged missing code for wrong format as well
-#  # # unify casing, trim whitespace
-#  # vector <- tolower(vector)
-#  # vector <- trimws(vector, which = "both")
-#
-#  #convert to datetime with at least years (YYYY or any YYYY-MM... format)
-#  r <- parse_date_time(vector, "ymd", truncated = 2)
-#
-#  # calculate age with lubridate period
-#  r <- lapply(r, function(x) {as.period(interval(x, Sys.Date()), unit = "year")$year} )
-#  r <- unlist(r)
-#
-#  for (i in 1:length(r) ) {
-#    if( is.na( r[i] ) && !is.na(vector[i]) ) r[i] <- missing_datetime
-#  }
-#
-#  return(r)
-#}
-#
-# table(cohort_report$NTproBNP.unit)
-
 #apply labels and fix typing per column - missmatched typing is returned as NA (NOT as missing code)
-#cohort_report$NTproBNP.date <- parse_date_time(cohort_report$NTproBNP.date, "ymd HMS", truncated = 5)
 cohort_report$NTproBNP.valueQuantity.value <- as.double(cohort_report$NTproBNP.valueQuantity.value)
 cohort_report$NTproBNP.code <- as.integer( apply_labels(cohort_report$NTproBNP.code, value_labels$NTproBNP.code) )
 cohort_report$NTproBNP.codeSystem <- as.integer(  apply_labels(cohort_report$NTproBNP.codeSystem, value_labels$NTproBNP.codeSystem) )
@@ -165,15 +154,16 @@ knit_error( smith_dq_report <- dq_report(study_data = cohort_report,
                           label_col  = LABEL) ,
 'Could not generate DQ report for Cohort. Error: ')
 
-
-
 ```
 
-## Data Quality report for the 6. Projectathon of MII: SMITH
+## Data Quality Report for the 7. Projectathon of MII: Use Case 'atrial fibrillation'
 
-#### This report was created with the [dataquieR](https://dataquality.ship-med.uni-greifswald.de/tutorials2.html) (Version 1.0.9) Package for R.
+#### This report was created with the [dataquieR](https://dataquality.ship-med.uni-greifswald.de/tutorials2.html) (Version 2.0.1) Package for R.
 
-## Result of contradiction checks:
+# Information about Contradictions:
+
+## Plot of Contradiction Checks:
+#### 1001: The end date of an Encounter was before its start date. 
 ```{r message=FALSE, warning=FALSE,echo=FALSE}
 
 knit_error( smith_dq_report$long_format$con_contradictions$results[[1]]$SummaryPlot, 'Could not print Contradictions SummaryPlot for Cohort. Error: ')
@@ -181,30 +171,34 @@ knit_error( smith_dq_report$long_format$con_contradictions$results[[1]]$SummaryP
 
 ```
 
-### Contradiction checks as Table:
-
+## Contradiction Checks as Table:
 ```{r message=FALSE, warning=FALSE,echo=FALSE,out.width="100%"}
 
 knit_error( smith_dq_report$long_format$con_contradictions$results[[1]]$SummaryTable, 'Could not print Contradictions SummaryTable for Cohort. Error: ')
 
 ```
+# Information about Data Values:
 
-## Results of limit checks:
+## NTproBNP Distribution with Limit Checks:
 ```{r message=FALSE, warning=FALSE,echo=FALSE}
 
-knit_error(con_limit_deviations(study_data = cohort_report, meta_data = metadata_report, resp_vars = 'NTproBNP.valueQuantity.value')$SummaryPlotList$NTproBNP.valueQuantity.value, 'Could not print Limit SummaryPlot for Cohort. Error: ')
+knit_error({
+plots <- list()
+plots$ntprobnp <- con_limit_deviations(study_data = cohort_report, meta_data = metadata_report, resp_vars = 'NTproBNP.valueQuantity.value', limits = c("SOFT_LIMITS"))$SummaryPlotList$NTproBNP.valueQuantity.value
+plots$ntprobnp$plot_env$p$coordinates$limits$x <- c(0,14500)
+plots$ntprobnp
+}, 'Could not print Limit NTproBNP Limit Plot for Cohort. Error: ')
 
 ```
 
-### Limit checks as Table:
-
+## NTproBNP Limit Checks as Table:
 ```{r message=FALSE, warning=FALSE,echo=FALSE,out.width="100%"}
 
 knit_error(con_limit_deviations(study_data = cohort_report, meta_data = metadata_report, resp_vars = 'NTproBNP.valueQuantity.value')$SummaryTable, 'Could not print Limit SummaryPlot for Cohort. Error: ')
 
 ```
 
-### Outlier Detection NTproBNP:
+## NTproBNP Outlier Detection:
 ```{r message=FALSE, warning=FALSE,echo=FALSE,out.width="100%"}
 
 knit_error(acc_univariate_outlier(resp_vars = 'NTproBNP.valueQuantity.value',
@@ -214,7 +208,7 @@ knit_error(acc_univariate_outlier(resp_vars = 'NTproBNP.valueQuantity.value',
 
 ```
 
-### Outlier Detection NTproBNP as Table:
+## NTproBNP Outlier Detection as Table:
 ```{r message=FALSE, warning=FALSE,echo=FALSE,out.width="100%"}
 
 knit_error(acc_univariate_outlier(resp_vars = 'NTproBNP.valueQuantity.value',
@@ -224,22 +218,36 @@ knit_error(acc_univariate_outlier(resp_vars = 'NTproBNP.valueQuantity.value',
 
 ```
 
-# Information about distribution:
 
-## Age:
+
+## Age Distribution with Limit Checks:
 ```{r message=FALSE, warning=FALSE,echo=FALSE}
-knit_error(acc_plots <- acc_distributions(resp_vars      = NULL, 
-                         label_col      = "LABEL",
-                         study_data     = cohort_report, 
-                         meta_data      = metadata_report), 
-           'Could not generate SummaryPlotList for Cohort. Error: ')
 
+#other possible limits: soft limit [18;120] hard limit [-1;200] ?
 
-knit_error(acc_plots$SummaryPlotList$age, 'Could not print SummaryPlotList$age for Cohort. Eorror: ')
+knit_error({
+  plots$age <- con_limit_deviations(study_data = cohort_report, meta_data = metadata_report, resp_vars = 'age', limits = c("HARD_LIMITS"))$SummaryPlotList$age
+  plots$age$plot_env$p$coordinates$limits$x <- c(0,125)
+  plots$age
+}, 'Could not print Age Limit Plot for Cohort. Error: ')
+
+# deprecated age plot now in con_limit_deviations
+# acc_plots in 2.0.1, dataquieR::report2()
+# acc_plots <- acc_distributions(resp_vars      = NULL, 
+#                          label_col      = "LABEL",
+#                          study_data     = cohort_report, 
+#                          meta_data      = metadata_report)
+#knit_error(acc_plots$SummaryPlotList$age, 'Could not print SummaryPlotList$age for Cohort. Eorror: ')
+
+```  
+
+## Age Limit Checks as Table:
+```{r message=FALSE, warning=FALSE,echo=FALSE,out.width="100%"}
+
+knit_error(con_limit_deviations(study_data = cohort_report, meta_data = metadata_report, resp_vars = 'age')$SummaryTable, 'Could not print Limit SummaryPlot for Cohort. Error: ')
 
 ```
-
-### Outlier Detection Age:
+## Age Outlier Detection:
 ```{r message=FALSE, warning=FALSE,echo=FALSE,out.width="100%"}
 
 knit_error(acc_univariate_outlier(resp_vars = 'age',
@@ -249,7 +257,7 @@ knit_error(acc_univariate_outlier(resp_vars = 'age',
 
 ```
 
-### Outlier Detection Age as Table:
+## Age Outlier Detection as Table:
 ```{r message=FALSE, warning=FALSE,echo=FALSE,out.width="100%"}
 
 knit_error(acc_univariate_outlier(resp_vars = 'age',
@@ -258,16 +266,47 @@ knit_error(acc_univariate_outlier(resp_vars = 'age',
                        )$SummaryTable, 'Could not print Age Outlier SummaryTable for Cohort. Error: ')
 
 ```
+# Information about Code Usage:
 
+## Department Codes:
+#### German Department Codes (Fachabteilungsschlüssel), see [code system](https://simplifier.net/packages/de.basisprofil.r4/1.4.0/files/656778) for full list.
+#### 0100 = Innere Medizin | 0300 = Kardiologie | 0600 = Endokrinologie | 3700 = Sonstige Fachabteilung
+```{r message=FALSE, warning=FALSE,echo=FALSE}
+
+knit_error( {
+  cohort_departments_list <- unlist(strsplit(cohort_departments," ~ "))
+  cohort_departments_table <- table( as.vector( cohort_departments_list) )
+  tables <- list()
+  tables$departments <- cohort_departments_table
+} , 'Could not calculate information about Department Codes for Cohort. Error: ')
+
+knit_error( {
+  barplot( cohort_departments_table, horiz = FALSE, xlab = "Department Code", ylab = "Frequency" )
+  }, 'Could not Plot Department Codes for Cohort. Error: ')
+print('Department Codes as table:')
+knit_error( cohort_departments_table, 'Could not print Department Code table for Cohort. Error: ')
+
+knit_error( {
+  print( paste0("Total columns: ", length(cohort_departments), "    Missing department codes (NA): ", 
+  sum(is.na(cohort_departments)) ) )
+  print( paste0("Total department codes: ", length(cohort_departments_list), "    Unique department codes: ",
+  length(unique(cohort_departments_list))) )
+} , 'Could not calculate information about Department Codes for Cohort. Error: ')
+
+```
 
 ## Gender:
 #### 1 = male | 2 = female | 3 = other | 4 = unknown
 ```{r message=FALSE, warning=FALSE,echo=FALSE}
 
-print('Gender as table:')
-knit_error(table(smith_dq_report$study_data$gender), 'Could not tab SummaryPlotList$gender for Cohrot. Error: ')
+knit_error( 
+tables$gender <-  table(cohort_report$gender), 'Could not create Table Gender. Error: ')
 
-knit_error(acc_plots$SummaryPlotList$gender, 'Could not print SummaryPlotList$gender for Cohort. Error: ')
+knit_error( #acc_plots$SummaryPlotList$gender
+barplot( tables$gender, horiz = FALSE, xlab = "Gender", ylab = "Frequency" ), 'Could not print SummaryPlotList$gender for Cohort. Error: ')
+
+print('Gender as table:')
+knit_error(tables$gender, 'Could not tab SummaryPlotList$gender for Cohrot. Error: ')
 
 ```
 
@@ -275,11 +314,14 @@ knit_error(acc_plots$SummaryPlotList$gender, 'Could not print SummaryPlotList$ge
 #### 1 = other | 2 = 33763-4 | 3 = 71425-3 | 4 = 33762-6 | 5 = 83107-3 | 6 =  83108-1 | 7 = 77622-9 | 8 = 77621-1
 ```{r message=FALSE, warning=FALSE,echo=FALSE}
 
-print('LOIC Codes as table:')
-knit_error(table(smith_dq_report$study_data$NTproBNP.code), 'Could not tab SummaryPlotList$NTproBNP.code for Cohrot. Error: ')
+knit_error( 
+tables$loinc <-  table(cohort_report$NTproBNP.code), 'Could not create Table LOINC. Error: ')
 
-print('If less then two Codes are used no plot will be generated.')
-knit_error(acc_plots$SummaryPlotList$NTproBNP.code, 'Could not print SummaryPlotList$NTproBNP.code for Cohrot. Error: ')
+knit_error(#acc_plots$SummaryPlotList$NTproBNP.code
+  barplot( tables$loinc, horiz = FALSE, xlab = "LOINC Code", ylab = "Frequency" ), 'Could not print SummaryPlotList$NTproBNP.code for Cohrot. Error: ')
+
+print('LOIC Codes as table:')
+knit_error(tables$loinc, 'Could not tab SummaryPlotList$NTproBNP.code for Cohrot. Error: ')
 
 ```
 
@@ -287,11 +329,14 @@ knit_error(acc_plots$SummaryPlotList$NTproBNP.code, 'Could not print SummaryPlot
 #### 1 = other | 2 = < | 3 = <= | 4 = > | 5 = >=
 ```{r message=FALSE, warning=FALSE,echo=FALSE}
 
-print('Comperators as table:')
-knit_error(table(smith_dq_report$study_data$NTproBNP.valueQuantity.comparator), 'Could not tab SummaryPlotList$study_data$NTproBNP.valueQuantity.comparator for Cohrot. Error: ')
+knit_error( 
+tables$comperators <-  table(cohort_report$NTproBNP.valueQuantity.comparator), 'Could not create Table Comperators. Error: ')
 
-print('If less then two Comperaors are used no plot will be generated.')
-knit_error(acc_plots$SummaryPlotList$NTproBNP.valueQuantity.comparator, 'Could not print SummaryPlotList$comparator for Cohort. Error: ')
+knit_error(#acc_plots$SummaryPlotList$NTproBNP.valueQuantity.comparator
+  barplot( tables$comperators, horiz = FALSE, xlab = "Comperator", ylab = "Frequency" ), 'Could not print SummaryPlotList$comparator for Cohort. Error: ')
+
+print('Comperators as table:')
+knit_error(tables$comperators, 'Could not tab SummaryPlotList$study_data$NTproBNP.valueQuantity.comparator for Cohrot. Error: ')
 
 ```
 
@@ -299,25 +344,28 @@ knit_error(acc_plots$SummaryPlotList$NTproBNP.valueQuantity.comparator, 'Could n
 #### 1 = other | 2 = pg/mL | 3 = pg/dL | 4 = pg/100mL | 5 = pg/L | 6 = pg% | 7 = pmol/L | 8 = ng/L | 9 = Mt/m3
 ```{r message=FALSE, warning=FALSE,echo=FALSE}
 
-print('Units as table:')
-knit_error(table(smith_dq_report$study_data$NTproBNP.unit), 'Could not tab SummaryPlotList$study_data$NTproBNP.unit for Cohrot. Error: ')
+knit_error( 
+tables$units <-  table(cohort_report$NTproBNP.unit), 'Could not create Table Comperators. Error: ')
 
-print('If less then two Units are used no plot will be generated.')
-knit_error(acc_plots$SummaryPlotList$NTproBNP.unit, 'Could not print SummaryPlotList$NTproBNP.unit for Cohort. Error: ')
+knit_error(#acc_plots$SummaryPlotList$NTproBNP.unit
+  barplot( tables$units, horiz = FALSE, xlab = "Unit", ylab = "Frequency" ), 'Could not print SummaryPlotList$NTproBNP.unit for Cohort. Error: ')
+
+print('Units as table:')
+knit_error(tables$units, 'Could not tab SummaryPlotList$study_data$NTproBNP.unit for Cohrot. Error: ')
 
 ```
 
-# Information about completness:
+# Information about Completeness:
 
+## Item Missingness as Table:
 ```{r message=FALSE, warning=FALSE,echo=FALSE,out.width="100%"}
 
 #Table
 knit_error(smith_dq_report$long_format$com_item_missingness$results[[1]]$SummaryTable, 'Could not print Missingness Table for Cohort. Error: ')
 
-
 ```
 
-# Completness with missing codes:
+## Completeness with Missing Codes:
 #### MISSING 9991100: Missing - reason unknown
 #### MISSING 9991200: Deleted - Datetime format not supported
 #### MISSING 9991300: Deleted - not in VALUE_LABELS
@@ -326,14 +374,109 @@ If a field has the wrong datatype it is evaluated to NA and tracked under Sysmis
 ```{r message=FALSE, warning=FALSE,echo=FALSE,out.width="100%"}
 
 #Plot
-knit_error(smith_dq_report$long_format$com_item_missingness$results[[1]]$ReportSummaryTable, 'Could not print Missingness SummaryPlot for Cohort. Error: ')
+knit_error(#smith_dq_report$long_format$com_item_missingness$results[[1]]$ReportSummaryTable
+  smith_dq_report$long_format$com_item_missingness$results[[1]]$SummaryPlot, 'Could not print Missingness SummaryPlot for Cohort. Error: ')
+
+print("Missingness as table: ")
+knit_error(#smith_dq_report$long_format$com_item_missingness$results[[1]]$ReportSummaryTable
+  smith_dq_report$long_format$com_item_missingness$results[[1]]$ReportSummaryTable, 'Could not print Missingness SummaryPlot for Cohort. Error: ')
 
 
 ```
 
-# Further possible analysis with dataquieR:
+# Further possible Analysis with dataquieR:
 ```{r message=FALSE, warning=FALSE,echo=FALSE,out.width="100%"}
 
 knit_error(smith_dq_report$app_mat$ApplicabilityPlot, 'Could not print ApplicabilityPlot for Cohort. Error: ')
 
 ```
+
+# Extract Plots for Cohort:
+```{r message=FALSE, warning=FALSE,echo=FALSE,out.width="100%"}
+
+ # make dir for plots
+  TMP_DIR <- paste0(OUTPUT_DIR_TMP,"/plots")
+  dir.create(TMP_DIR)
+
+#function to embed variables as .rds in knitr output with xfun
+embed_var = function(x, ...) {
+  f <- tempfile(fileext = '.rds', tmpdir = TMP_DIR)
+  saveRDS(x, f)
+  xfun::embed_file(f, ...)
+}
+# embed plots
+knit_error( {
+  tmpfiles <- list()
+  tmpfiles$ntprobnp <- tempfile(fileext = '.png', tmpdir = TMP_DIR)
+  ggsave( plot = plots$ntprobnp, tmpfiles$ntprobnp, device = "png", bg = "white")
+  embed_file(tmpfiles$ntprobnp, name = "NTproBNP.png", text = "[Get NTproBNP Distribution Plot as .png]")
+}, 'Could not crate plot exports. Error: ')
+knit_error( {
+  plots$ntprobnp_ecdf <- ecdf(plots$ntprobnp$data$values)
+  embed_var(plots$ntprobnp_ecdf, name = "NTproBNP_ECDF.rds", text = "[Get NTproBNP Distribution Plot as .ecdf]")
+}, 'Could not crate plot exports. Error: ')
+knit_error( {
+  tmpfiles$age <- tempfile(fileext = '.png', tmpdir = TMP_DIR)
+  ggsave( plot = plots$age, tmpfiles$age, device = "png", bg = "white")
+  embed_file(tmpfiles$age, name = "Age.png", text = "[Get Age Distribution Plot as .png]")
+}, 'Could not crate plot exports. Error: ')
+knit_error( {
+  plots$age_ecdf <- ecdf(plots$age$data$values)
+  embed_var(plots$age_ecdf, name = "Age_ECDF.rds", text = "[Get Age Distribution Plot as .ecdf]")
+}, 'Could not crate plot exports. Error: ')
+knit_error( {
+  embed_var(tables, name = "Table_list.rds", text = "[Get all Tables in List as .rds]")
+}, 'Could not crate plot exports. Error: ')
+
+# TODO
+# verify embedding
+# em_back <- readRDS("AGE_ECDF.rds")
+# plot(em_back)
+```
+
+# Extract [Pointblank](https://cran.r-project.org/web/packages/pointblank/index.html) Scans for Cohort and Diagnoses:
+```{r message=FALSE, warning=FALSE,echo=FALSE,out.width="100%"}
+
+# function that maps whitespace strings to NA then hashes all non NA values 
+  digst_hash_without_NA <- function(x, ...) {
+    if(is.na(x)) return(NA)
+    x <- trimws(x)
+    if(x == "") return(NA)
+    return(digest(x, ...))
+  }
+  
+  dir.create(OUTPUT_DIR_TMP)
+
+knit_error({ 
+  # pointblank data_scan
+  # full cohort/diagnosis for integrity & completeness checks without metadata
+  # fix typing cohort 
+  cohort_full$NTproBNP.valueQuantity.value <- as.double(cohort_full$NTproBNP.valueQuantity.value)
+  cohort_full$age <- as.integer(cohort_full$age)
+  cohort_full$encounter.start <- parse_date_time(cohort_full$encounter.start, "ymd HMS", truncated = 5)
+  cohort_full$encounter.end <- parse_date_time(cohort_full$encounter.end, "ymd HMS", truncated = 5)
+  # hash ids before generating pointblank summary scan
+  cohort_full$subject <- sapply(cohort_full$subject, digst_hash_without_NA, algo = "md5")
+  cohort_full$encounter.id <- sapply(cohort_full$encounter.id, digst_hash_without_NA, algo = "md5")
+  # save pointblank summary scan in temp file
+  cohort_pointblank_scan <- pointblank::scan_data(cohort_full, sections = "OVM")
+  cohort_pointblank_tmp <- tempfile(fileext = '.html', tmpdir = OUTPUT_DIR_TMP)
+  pointblank::export_report(cohort_pointblank_scan, cohort_pointblank_tmp)
+  embed_file(cohort_pointblank_tmp, name = "cohort_pointblank_scan.html", text = "[Get Pointblank scan for Cohort.csv as .html]")
+}, 'Could not create Pointblank scan for Cohort.csv. Error: ')
+
+knit_error({ 
+  # diagnosis, typing all string is correct
+  # hash ids before generating pointblank summary scan
+  diagnoses_full$condition.id <- sapply(diagnoses_full$condition.id, digst_hash_without_NA, algo = "md5")
+  diagnoses_full$subject <- sapply(diagnoses_full$subject, digst_hash_without_NA, algo = "md5")
+  diagnoses_full$encounter.id <- sapply(diagnoses_full$encounter.id, digst_hash_without_NA, algo = "md5")
+  # save pointblank summary scan in temp file
+  diagnoses_pointblank_scan <- pointblank::scan_data(diagnoses_full, sections = "OVM")
+  diagnoses_pointblank_tmp <- tempfile(fileext = '.html', tmpdir = OUTPUT_DIR_TMP)
+  pointblank::export_report(diagnoses_pointblank_scan, diagnoses_pointblank_tmp)
+  embed_file(diagnoses_pointblank_tmp, name = "diagnoses_pointblank_scan.html", text = "[Get Pointblank scan for Diagnoses.csv as .html]")
+}, 'Could not create Pointblank scan for Diagnoses.csv. Error: ')
+
+```
+
