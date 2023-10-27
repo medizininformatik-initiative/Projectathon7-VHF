@@ -1,5 +1,5 @@
 #load/install packages
-packages <- c("data.table", "rmarkdown", "knitr", "dataquieR", "lubridate", "Epi", "gmodels")
+packages <- c("data.table", "rmarkdown", "knitr", "dataquieR", "lubridate", "Epi", "gmodels", "xfun", "pointblank", "digest","ggplot2")
 
 for (package in packages) {
   available <- suppressWarnings(require(package, character.only = T))
