@@ -395,6 +395,7 @@ knit_error(smith_dq_report$app_mat$ApplicabilityPlot, 'Could not print Applicabi
 ```{r message=FALSE, warning=FALSE,echo=FALSE,out.width="100%"}
 
  # make dir for plots
+  dir.create(OUTPUT_DIR_TMP)
   TMP_DIR <- paste0(OUTPUT_DIR_TMP,"/plots")
   dir.create(TMP_DIR)
 
