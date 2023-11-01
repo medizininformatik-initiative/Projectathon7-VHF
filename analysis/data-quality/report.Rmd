@@ -452,7 +452,7 @@ knit_error({
   # pointblank data_scan
   # full cohort/diagnosis for integrity & completeness checks without metadata
   # fix typing cohort 
-  cohort_full$NTproBNP.valueQuantity.value <- as.double(cohort_full$NTproBNP.valueQuantity.value)
+  cohort_full$NTproBNP.valueQuantity.value <- round(as.double(cohort_full$NTproBNP.valueQuantity.value), digits = -1)
   cohort_full$age <- as.integer(cohort_full$age)
   cohort_full$encounter.start <- parse_date_time(cohort_full$encounter.start, "ymd HMS", truncated = 5)
   cohort_full$encounter.end <- parse_date_time(cohort_full$encounter.end, "ymd HMS", truncated = 5)
