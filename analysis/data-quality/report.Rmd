@@ -405,6 +405,7 @@ embed_var = function(x, ...) {
   saveRDS(x, f)
   xfun::embed_file(f, ...)
 }
+
 # embed plots
 knit_error( {
   tmpfiles <- list()
@@ -412,8 +413,9 @@ knit_error( {
   ggsave( plot = plots$ntprobnp, tmpfiles$ntprobnp, device = "png", bg = "white")
   embed_file(tmpfiles$ntprobnp, name = "NTproBNP.png", text = "[Get NTproBNP Distribution Plot as .png]")
 }, 'Could not crate plot exports. Error: ')
+# plot from cohort instead of plotlist ntprobnp
 knit_error( {
-  plots$ntprobnp_ecdf <- ecdf(plots$ntprobnp$data$values)
+  plots$ntprobnp_ecdf <- ecdf(cohort_report$NTproBNP.valueQuantity.value)
   embed_var(plots$ntprobnp_ecdf, name = "NTproBNP_ECDF.rds", text = "[Get NTproBNP Distribution Plot as .ecdf]")
 }, 'Could not crate plot exports. Error: ')
 knit_error( {
@@ -421,18 +423,15 @@ knit_error( {
   ggsave( plot = plots$age, tmpfiles$age, device = "png", bg = "white")
   embed_file(tmpfiles$age, name = "Age.png", text = "[Get Age Distribution Plot as .png]")
 }, 'Could not crate plot exports. Error: ')
+# plot from cohort instead of plotlist age
 knit_error( {
-  plots$age_ecdf <- ecdf(plots$age$data$values)
+  plots$age_ecdf <- ecdf(cohort_report$age)
   embed_var(plots$age_ecdf, name = "Age_ECDF.rds", text = "[Get Age Distribution Plot as .ecdf]")
 }, 'Could not crate plot exports. Error: ')
 knit_error( {
   embed_var(tables, name = "Table_list.rds", text = "[Get all Tables in List as .rds]")
 }, 'Could not crate plot exports. Error: ')
 
-# TODO
-# verify embedding
-# em_back <- readRDS("AGE_ECDF.rds")
-# plot(em_back)
 ```
 
 # Extract [Pointblank](https://cran.r-project.org/web/packages/pointblank/index.html) Scans for Cohort and Diagnoses:
