@@ -416,7 +416,7 @@ knit_error( {
 # plot from cohort instead of plotlist ntprobnp
 knit_error( {
   plots$ntprobnp_ecdf <- ecdf(cohort_report$NTproBNP.valueQuantity.value)
-  embed_var(plots$ntprobnp_ecdf, name = "NTproBNP_ECDF_c.rds", text = "[Get NTproBNP Distribution Plot as .ecdf]")
+  embed_var(plots$ntprobnp_ecdf, name = "NTproBNP_ECDF.rds", text = "[Get NTproBNP Distribution Plot as .ecdf]")
 }, 'Could not crate plot exports. Error: ')
 knit_error( {
   tmpfiles$age <- tempfile(fileext = '.png', tmpdir = TMP_DIR)
@@ -426,7 +426,7 @@ knit_error( {
 # plot from cohort instead of plotlist age
 knit_error( {
   plots$age_ecdf <- ecdf(cohort_report$age)
-  embed_var(plots$age_ecdf, name = "NTproBNP_ECDF.rds", text = "[Get Age Distribution Plot as .ecdf]")
+  embed_var(plots$age_ecdf, name = "Age_ECDF.rds", text = "[Get Age Distribution Plot as .ecdf]")
 }, 'Could not crate plot exports. Error: ')
 knit_error( {
   embed_var(tables, name = "Table_list.rds", text = "[Get all Tables in List as .rds]")
