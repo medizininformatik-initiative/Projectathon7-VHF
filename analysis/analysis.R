@@ -32,6 +32,19 @@ analyze <- function(result, cohortDescription, analysisOption, analysisOptionDis
   if (all(result[[analysisOption]] == result[[analysisOption]][1])) { # only 0 or only 1 in this diagnosis column
     errorMessage <- paste0("All ", analysisOption, " diagnoses have the same value ", result[[analysisOption]][1], " -> abort analysis")
   }
+  # Check if the columns that we need for the analysis contain NA values -> count them and remove them and check if
+  # there are some valid columns left
+  full_result_count <- nrow(result)
+  result <- result[!is.na(NTproBNP.valueQuantity.value) & !is.na(age) & !is.na(gender)]
+  clean_result_count <- nrow(result)
+  result_diff <- full_result_count - clean_result_count
+  if (result_diff) {
+    cat(paste(result_diff, "rows of", full_result_count, "are removed because they contain at least one NA value in the columns 'NTproBNP.valueQuantity.value', 'age' or 'gender'."))
+  }
+  if (!clean_result_count) {
+    errorMessage <- "All rows contain invalid NA values in columns 'NTproBNP.valueQuantity.value', 'age' or 'gender'."
+  }
+
   hasError <- !is.na(errorMessage)
 
   # plot roc curve to pdf
@@ -136,6 +149,7 @@ analyze <- function(result, cohortDescription, analysisOption, analysisOptionDis
 
     # all contrast values we want to consider
     contrast_names = c("NTproBNP.valueQuantity.value", "age", "gender")
+
     # list for all contratst we want to use in glm(...) is filled
     # by the given contrast column names
     contrasts <- list()
@@ -149,7 +163,7 @@ analyze <- function(result, cohortDescription, analysisOption, analysisOptionDis
     # vectors where all values are equal)
     for (i in length(contrasts) : 1) {
       con <- contrasts[i][[1]] # get the contrast vector i
-      first_con <- con[1]      # get th first element of contrast vector i
+      first_con <- con[1]      # get the first element of contrast vector i
       # if all values are equal in the contrast vector
       if (all(con == first_con)) {
         # log information in the output file

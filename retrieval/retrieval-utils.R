@@ -8,8 +8,11 @@
 #' @return the extracted year from the given date string
 #'
 getYear <- function(dateStringWithLeadingYear) {
-  date <- as.POSIXct(as.character(dateStringWithLeadingYear), format = "%Y")
-  return (year(date))
+  year_as_string <- NA
+  try(year_as_string <- sub("^(\\d{4}).*", "\\1", dateStringWithLeadingYear), silent = TRUE)
+  year_as_integer <- NA
+  try(year_as_integer <- as.integer(year_as_string), silent = TRUE)
+  return (year_as_integer)
 }
 
 ####################################
