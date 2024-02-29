@@ -55,7 +55,7 @@ analyze <- function(result, cohortDescription, analysisOption, analysisOptionDis
   #  PV- = Proportion of false positives among all test positives
   if (!hasError) {
     rocTitle <- paste0("NTproBNP(Full) for ", cohortDescription, "\n", analysisOptionDisplay, "\n(", comparatorOptionDisplay, ")")
-    roc <- ROC(test = result$NTproBNP.valueQuantity.value, stat = result[[analysisOption]], plot = "ROC", main = rocTitle, AUC = TRUE)
+    roc <- Epi::ROC(test = result$NTproBNP.valueQuantity.value, stat = result[[analysisOption]], plot = "ROC", main = rocTitle, AUC = TRUE)
   }
 
   # start text file logging
@@ -133,7 +133,7 @@ analyze <- function(result, cohortDescription, analysisOption, analysisOptionDis
           "NtproBNP_cut", thresholds[i], " for ", cohortDescription, "\n",
           analysisOptionDisplay, "\n",
           "(", comparatorOptionDisplay, ")")
-        roc <- ROC(test = cuts, stat = result[[analysisOption]], plot = "ROC", main = rocTitle)
+        roc <- Epi::ROC(test = cuts, stat = result[[analysisOption]], plot = "ROC", main = rocTitle)
         cat(paste0("ROC Area Under Curve (Cut ", thresholds[i], "): "), roc$AUC, "\n\n\n")
       }
     }
