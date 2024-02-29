@@ -1,6 +1,55 @@
 # VHF Vorhofflimmern
 
+
+
+Liebe DIZ,
+
+vielen Dank für Euer Feedback, eure Issues und das Engagement soweit.
+
+Wir haben dadurch Ausführungsverhindernde Probleme mit dem Skript festgestellt.
+
+Die müssen wir lösen. Das geht nicht heute.
+
+Bis dahin, dieses Skript bitte nicht mehr nutzen.
+
+Derzeit ist nicht klar ob einzelne, bereits durchgeführte Analysen nochmal durchgeführt werden müssen.
+
+Wir sind mit der TMF übereingekommen hier die Datennutzungszeiträume zu verlängern.
+
+Wir würden uns über DIZ freuen, die wir für ein Vortest ansprechen dürfen – gerne eine E-Mail an Frank.Meineke@imise.uni-leipzig.de
+
+ 
+
+Euer Projektathon VHF Team!
+
+ 
+
+ 
+
+Dear DIZ,
+
+thank you very much for your feedback, your issues and your commitment so far.
+
+We have identified problems with the script that prevent execution.
+
+We have to solve them. We can't do that today.
+
+Until then, please stop using this script.
+
+It is currently not clear whether individual analyses that have already been carried out need to be performed again.
+
+We have agreed with the TMF to extend the data usage periods here.
+
+We would be pleased to hear from DIZ, which we can contact for a pre-test - please send an e-mail to Frank.Meineke@imise.uni-leipzig.de
+
+ 
+
+Your Projectathon VHF Team!
+
+---
 Autor: Alexander Strübing ([alexander.struebing@imise.uni-leipzig.de](mailto:alexander.struebing@imise.uni-leipzig.de))
+
+
 
 ## Einführung
 
