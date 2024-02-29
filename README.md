@@ -10,7 +10,7 @@ Wir haben dadurch Ausführungsverhindernde Probleme mit dem Skript festgestellt.
 
 Die müssen wir lösen. Das geht nicht heute.
 
-Bis dahin, dieses Skript bitte nicht mehr nutzen.
+<span style="color:red">**Bis dahin, dieses Skript bitte nicht mehr nutzen.**</span>
 
 Derzeit ist nicht klar ob einzelne, bereits durchgeführte Analysen nochmal durchgeführt werden müssen.
 
@@ -34,7 +34,7 @@ We have identified problems with the script that prevent execution.
 
 We have to solve them. We can't do that today.
 
-Until then, please stop using this script.
+<span style="color:red">**Until then, please stop using this script.**</span>
 
 It is currently not clear whether individual analyses that have already been carried out need to be performed again.
 
