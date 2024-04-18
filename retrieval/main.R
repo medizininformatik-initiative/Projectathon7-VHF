@@ -142,14 +142,15 @@ logErrorMax100 <- function(message, dataTable) {
 #' @param max_bundles
 #'
 fhirSearch <- function(request, error_file, max_bundles = Inf) {
-  fhir_search(
+  fhircrackr::fhir_search(
     request = request,
     username = FHIR_SERVER_USER,
     password = FHIR_SERVER_PASS,
     token = FHIR_SERVER_TOKEN,
     log_errors = error_file,
     verbose = VERBOSE,
-    max_bundles = max_bundles
+    max_bundles = max_bundles,
+    rm_tag = NULL
   )
 }
 
