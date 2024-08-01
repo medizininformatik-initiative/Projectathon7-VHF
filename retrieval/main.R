@@ -22,6 +22,10 @@ PROJECT_NAME <- "VHF"
 source('../utils/utils.R')
 source('retrieval-utils.R')
 
+# parallelization
+ncores <- parallel::detectCores()
+ncores <- ifelse(ncores > 1, ncores - 1, ncores) # don't overload the CPU
+
 ### Verzeichnisse
 # Verzeichnis für Zwischenergebnisse/Debug
 OUTPUT_DIR_LOCAL <- paste0(OUTPUT_DIR_BASE, "/outputLocal/", PROJECT_NAME)
@@ -363,7 +367,8 @@ obs_tables <- fhir_crack(
   sep = sep,
   brackets = brackets,
   data.table = TRUE,
-  verbose = VERBOSE
+  verbose = VERBOSE,
+  ncores = ncores
 )
 
 rm(obs_bundles)
@@ -554,7 +559,8 @@ encounters <- fhir_crack(
   brackets = brackets,
   sep = sep,
   data.table = TRUE,
-  verbose = VERBOSE
+  verbose = VERBOSE,
+  ncores = ncores
 )
 
 if (!NROW(encounters)) {
@@ -587,7 +593,8 @@ conditions <- fhir_crack(
   brackets = brackets,
   sep = sep,
   data.table = TRUE,
-  verbose = VERBOSE
+  verbose = VERBOSE,
+  ncores = ncores
 )
 
 rm(condition_bundles)
